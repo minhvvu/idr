@@ -19,3 +19,10 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+.gitignore
+
+yarn.log
+
+idr-app.sublime-project
+idr-app.sublime-workspace

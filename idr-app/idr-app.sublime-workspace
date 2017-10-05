@@ -19,8 +19,16 @@
 			"file": "src/App.js",
 			"settings":
 			{
-				"buffer_size": 524,
+				"buffer_size": 387,
 				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/components/chart.jsx",
+			"settings":
+			{
+				"buffer_size": 980,
 				"line_ending": "Unix"
 			}
 		}
@@ -80,10 +88,14 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 154.0,
-		"last_filter": "install",
+		"height": 334.0,
+		"last_filter": "menu",
 		"selected_items":
 		[
+			[
+				"menu",
+				"View: Toggle Menu"
+			],
 			[
 				"install",
 				"Package Control: Install Package"
@@ -142,10 +154,12 @@
 	},
 	"expanded_folders":
 	[
-		"/home/vmvu/Workspace/IDR/idr-app/src"
+		"/home/vmvu/Workspace/IDR/idr-app/src",
+		"/home/vmvu/Workspace/IDR/idr-app/src/components"
 	],
 	"file_history":
 	[
+		"/home/vmvu/Workspace/IDR/idr-app/.gitignore",
 		"/home/vmvu/Workspace/papers/reviewDR01/sota01.bib",
 		"/home/vmvu/Workspace/papers/reviewDR01/DRwithConstraints_part1.tex",
 		"/home/vmvu/Workspace/papers/reviewDR01/test_pgm.tex",
@@ -212,7 +226,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 2,
 			"sheets":
 			[
 				{
@@ -235,7 +249,40 @@
 						"settings":
 						{
 							"git_gutter_is_enabled": false,
+							"git_savvy.repo_path": "/home/vmvu/Workspace/IDR",
 							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/App.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 387,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								274,
+								274
+							]
+						],
+						"settings":
+						{
+							"git_gutter_is_enabled": true,
+							"git_savvy.repo_path": "/home/vmvu/Workspace/IDR",
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -245,28 +292,28 @@
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "src/App.js",
+					"buffer": 2,
+					"file": "src/components/chart.jsx",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 524,
+						"buffer_size": 980,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								524,
-								524
+								779,
+								779
 							]
 						],
 						"settings":
 						{
-							"git_gutter_is_enabled": false,
-							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"git_gutter_is_enabled": true,
+							"git_savvy.repo_path": "/home/vmvu/Workspace/IDR",
+							"syntax": "Packages/Babel/JavaScript (Babel).sublime-syntax",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -308,7 +355,7 @@
 			1.0
 		]
 	},
-	"menu_visible": true,
+	"menu_visible": false,
 	"output.find_results":
 	{
 		"height": 0.0
