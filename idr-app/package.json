@@ -8,6 +8,9 @@
     "d3-scale": "^1.0.6",
     "d3-selection": "^1.1.0",
     "react": "^16.0.0",
+    "react-clickdrag": "^3.0.2",
+    "react-dnd": "^2.5.4",
+    "react-dnd-html5-backend": "^2.5.4",
     "react-dom": "^16.0.0",
     "react-scripts": "1.0.14"
   },
