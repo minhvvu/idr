@@ -1,7 +1,4 @@
 import React, { Component } from 'react';
-import { scaleLinear } from 'd3-scale';
-import { interpolateLab } from 'd3-interpolate';
-
 import clickdrag from 'react-clickdrag';
 
 import './circle.css';
@@ -53,25 +50,20 @@ export default class Circles extends Component {
 
 	constructor(props) {
 		super(props);
-
-		this.colorScale = scaleLinear()
-			.domain([0, this.props.maxValue])
-			.range(['#FFF', '#000'])
-			.interpolate(interpolateLab);
+		this.colors = ['red', 'green', 'blue'];
 	}
 
 	render() {
-		const { scales, margins, svgSize, data, maxValue } = this.props;
+		const { scales, data } = this.props;
 		const { xScale, yScale } = scales;
-		const { height } = svgSize;
 
-		const circles = ( data.map(d => 
+		const circles = ( data.map((d, idx) => 
 			<DraggableCircle
-				key={d.title}
-				r={d.value / 2}
-				cx={xScale(d.title) + xScale.bandwidth()/2}
-				cy={yScale(d.value/2)}
-				fill={this.colorScale(d.value)}
+				key={idx}
+				r="5"
+				cx={xScale(d.x)}
+				cy={yScale(d.y)}
+				color={this.colors[d.label]}
 			/>
 		));
 
