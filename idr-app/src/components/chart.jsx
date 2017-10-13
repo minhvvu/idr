@@ -8,14 +8,17 @@ import Circles from './circles';
 
 export default class Chart extends Component {
 
-	constructor() {
-		super();
+	constructor(props) {
+		super(props);
 		this.xScale = scaleLinear();
 		this.yScale = scaleLinear();
 	}
 
-	render() {
+	movePoint(id, x, y) {
+		this.props.movePoint(id, x, y);
+	}
 
+	render() {
 		const margins = {top:50, right:20, bottom:100, left:60};
 		const svgSize = {width:800, height:500};
 		const data = this.props.data;
