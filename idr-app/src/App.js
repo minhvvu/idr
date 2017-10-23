@@ -35,6 +35,7 @@ class App extends Component {
   }
 
   movePoint(id, newX, newY) {
+    console.log("Client move point: ", id);
     this.socket.emit('inform_client_move', {id:id, x:newX, y:newY});
   }
 

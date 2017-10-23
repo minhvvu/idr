@@ -44,7 +44,11 @@ class Circle extends Component {
 	}
 }
 
-var DraggableCircle = clickdrag(Circle, {touch:true});
+var DraggableCircle = clickdrag(Circle, {
+	touch:true,
+	getSpecificEventData: function(d) {}
+});
+
 
 export default class Circles extends Component {
 
