@@ -12,7 +12,7 @@ function getStores() {
 
 function getState() {
   return {
-    todos: IDRStore.getState(),
+    dataset: IDRStore.getState(),
   };
 }
 

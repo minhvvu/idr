@@ -1,7 +1,5 @@
 //Counter.js
 
-'use strict';
-
 let _counter = 1;
 
 // simple counter for proving unique ids

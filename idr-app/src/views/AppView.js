@@ -3,11 +3,10 @@
 import React from 'react';
 
 function AppView(props) {
+  console.log("APPVIEW: ", props);
   return (
     <div>
-      <Header {...props} />
-      <Main {...props} />
-      <Footer {...props} />
+      Element count: {props.dataset.length}
     </div>
   );
 }

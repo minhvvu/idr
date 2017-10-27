@@ -11,7 +11,14 @@ const Actions = {
       type: IDRActionTypes.ADD_TODO,
       text,
     });
-  }
+  },
+
+  refreshDataset(dataset) {
+    IDRDispatcher.dispatch({
+        type: IDRActionTypes.REFRESH_DATASET,
+        dataset,
+    });
+  },
 
 };
 
