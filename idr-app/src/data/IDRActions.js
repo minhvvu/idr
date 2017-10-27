@@ -20,6 +20,14 @@ const Actions = {
     });
   },
 
+  movePoint(id, delta) {
+    IDRDispatcher.dispatch({
+      type: IDRActionTypes.MOVE_POINT,
+      id,
+      delta,
+    });
+  }
+
 };
 
 export default Actions;

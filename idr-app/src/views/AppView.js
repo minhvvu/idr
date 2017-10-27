@@ -1,12 +1,14 @@
 //AppView.js
 
 import React from 'react';
+import Chart from '../components/chart';
+
 
 function AppView(props) {
-  console.log("APPVIEW: ", props);
+  
   return (
     <div>
-      Element count: {props.dataset.length}
+      <Chart data={props.dataset} movePoint={()=>{}} />
     </div>
   );
 }
