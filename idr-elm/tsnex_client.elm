@@ -4,7 +4,85 @@
 module Main exposing (..)
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+import WebSocket
 
 
 main =
-    Html.text ("TSNEX_CLIENT")
+    Html.program
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
+
+
+echoServer : String
+echoServer =
+    "ws://127.0.0.1:5000/echo"
+
+
+
+-- MODEL
+
+
+type alias Model =
+    { input : String
+    , messages : List String
+    }
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( Model "" [], Cmd.none )
+
+
+
+-- UPDATE
+
+
+type Msg
+    = Input String
+    | SendMsg
+    | ReceiveMsg String
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg { input, messages } =
+    case msg of
+        Input newInput ->
+            ( Model newInput messages, Cmd.none )
+
+        SendMsg ->
+            ( Model "" messages, WebSocket.send echoServer input )
+
+        ReceiveMsg str ->
+            ( Model input (str :: messages), Cmd.none )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    WebSocket.listen echoServer ReceiveMsg
+
+
+
+-- VIEW
+
+
+view : Model -> Html Msg
+view model =
+    div []
+        [ div [] (List.map viewMessage model.messages)
+        , input [ onInput Input ] []
+        , button [ onClick SendMsg ] [ text "Send" ]
+        ]
+
+
+viewMessage : String -> Html Msg
+viewMessage msg =
+    div [] [ text msg ]
