@@ -18,9 +18,14 @@ main =
         }
 
 
+socketServer : String
+socketServer =
+    "ws://127.0.0.1:5000/tsnex"
+
+
 echoServer : String
 echoServer =
-    "ws://127.0.0.1:5000/echo"
+    socketServer ++ "/echo"
 
 
 

@@ -10,7 +10,7 @@ sockets = Sockets(app)
 
 all_data = []
 
-@sockets.route('/echo')
+@sockets.route('/tsnex/echo')
 def echo_socket(ws):
     while not ws.closed:
         message = ws.receive()
@@ -22,13 +22,25 @@ def echo_socket(ws):
 
 @app.route('/')
 def hello():
-    print("All data we have: ", all_data)
-    return 'Hello World!'
+    return "All data in server:\n" + ', '.join( map (str, all_data))
+
+
+def runserver(port=5000):
+    from gevent.wsgi import WSGIServer
+    from geventwebsocket.handler import WebSocketHandler
+
+    from werkzeug.serving import run_with_reloader
+
+    @run_with_reloader
+    def run_server():
+        print('Starting server at: 127.0.0.1:%s' % port)
+
+        app.debug = True
+        server = WSGIServer(('', port), app, handler_class=WebSocketHandler)
+        server.serve_forever()
+
+    run_server()
 
 
 if __name__ == "__main__":
-    from gevent import pywsgi
-    from geventwebsocket.handler import WebSocketHandler
-    app.debug = True
-    server = pywsgi.WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
-    server.serve_forever()
+    runserver(port=5000)
