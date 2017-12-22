@@ -21,10 +21,12 @@ def echo_socket(ws):
         n = np.random.randint(2, 10)
         x = np.random.randn(n)
         y = np.random.randn(n)
-        raw_data = [{'x': x[i], 'y': y[i]} for i in range(n)]
+        raw_data = [{'id': i, 'x': x[i], 'y': y[i]} for i in range(n)]
         all_data.append(raw_data)
 
         ws.send(json.dumps(raw_data))
+
+    print("Connection CLOSED")
 
 
 @app.route('/')

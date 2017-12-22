@@ -7,7 +7,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import WebSocket
-import Json.Decode as JD exposing (Decoder, string, float, list)
+import Json.Decode as JD exposing (Decoder, string, float, int, list)
 import Json.Decode.Pipeline as JDP exposing (decode, required)
 
 
@@ -35,7 +35,8 @@ getDataURI =
 
 
 type alias Point =
-    { x : Float
+    { id : Int
+    , x : Float
     , y : Float
     }
 
@@ -65,7 +66,7 @@ update msg { points } =
         NewData str ->
             case JD.decodeString listPointsDecoder str of
                 Err msg ->
-                    ( Model [ Point -99.0 -99.0 ], Cmd.none )
+                    ( Model [ Point -1 -99.0 -99.0 ], Cmd.none )
 
                 Ok listPoints ->
                     ( Model listPoints, Cmd.none )
@@ -77,6 +78,7 @@ update msg { points } =
 pointDecoder : Decoder Point
 pointDecoder =
     JDP.decode Point
+        |> JDP.required "id" int
         |> JDP.required "x" float
         |> JDP.required "y" float
 
@@ -108,5 +110,7 @@ view model =
 
 
 viewPoint : Point -> Html Msg
-viewPoint { x, y } =
-    div [] [ text ("client point: {" ++ (toString x) ++ "," ++ (toString y) ++ "}") ]
+viewPoint { id, x, y } =
+    div []
+        [ text ("id: " ++ toString id ++ ", x: " ++ toString x ++ ", y: " ++ toString y)
+        ]

@@ -2,7 +2,9 @@
 # minh, 20/12/2017
 
 from flask import Flask
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, send, emit
+import json
+import numpy as np
 
 app = Flask(__name__)
 app.config['SECREST_KEY'] = 'tsnex'
