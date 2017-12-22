@@ -7,6 +7,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import WebSocket
+import Json.Decode as JD exposing (Decoder, string, float, list)
+import Json.Decode.Pipeline as JDP exposing (decode, required)
 
 
 main =
@@ -23,24 +25,29 @@ socketServer =
     "ws://127.0.0.1:5000/tsnex"
 
 
-echoServer : String
-echoServer =
-    socketServer ++ "/echo"
+getDataURI : String
+getDataURI =
+    socketServer ++ "/get_data"
 
 
 
 -- MODEL
 
 
+type alias Point =
+    { x : Float
+    , y : Float
+    }
+
+
 type alias Model =
-    { input : String
-    , messages : List String
+    { points : List Point
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model "" [], Cmd.none )
+    ( Model [], WebSocket.send getDataURI "Client Get Init Data" )
 
 
 
@@ -48,22 +55,35 @@ init =
 
 
 type Msg
-    = Input String
-    | SendMsg
-    | ReceiveMsg String
+    = NewData String
+    | RequestData
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg { input, messages } =
+update msg { points } =
     case msg of
-        Input newInput ->
-            ( Model newInput messages, Cmd.none )
+        NewData str ->
+            case JD.decodeString listPointsDecoder str of
+                Err msg ->
+                    ( Model [ Point -99.0 -99.0 ], Cmd.none )
 
-        SendMsg ->
-            ( Model "" messages, WebSocket.send echoServer input )
+                Ok listPoints ->
+                    ( Model listPoints, Cmd.none )
 
-        ReceiveMsg str ->
-            ( Model input (str :: messages), Cmd.none )
+        RequestData ->
+            ( Model [], WebSocket.send getDataURI "Request data from client" )
+
+
+pointDecoder : Decoder Point
+pointDecoder =
+    JDP.decode Point
+        |> JDP.required "x" float
+        |> JDP.required "y" float
+
+
+listPointsDecoder : Decoder (List Point)
+listPointsDecoder =
+    JD.list pointDecoder
 
 
 
@@ -72,7 +92,7 @@ update msg { input, messages } =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    WebSocket.listen echoServer ReceiveMsg
+    WebSocket.listen getDataURI NewData
 
 
 
@@ -82,12 +102,11 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ div [] (List.map viewMessage model.messages)
-        , input [ onInput Input ] []
-        , button [ onClick SendMsg ] [ text "Send" ]
+        [ div [] (List.map viewPoint model.points)
+        , button [ onClick RequestData ] [ text "Request Data" ]
         ]
 
 
-viewMessage : String -> Html Msg
-viewMessage msg =
-    div [] [ text msg ]
+viewPoint : Point -> Html Msg
+viewPoint { x, y } =
+    div [] [ text ("client point: {" ++ (toString x) ++ "," ++ (toString y) ++ "}") ]

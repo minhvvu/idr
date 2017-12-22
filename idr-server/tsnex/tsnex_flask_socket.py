@@ -3,26 +3,33 @@
 
 from flask import Flask
 from flask_sockets import Sockets
-
+import json
+import numpy as np
 
 app = Flask(__name__)
 sockets = Sockets(app)
 
 all_data = []
 
-@sockets.route('/tsnex/echo')
+
+@sockets.route('/tsnex/get_data')
 def echo_socket(ws):
     while not ws.closed:
         message = ws.receive()
-        all_data.append(message)
         print("Receive msg: ", message)
-        print("All data: ", all_data)
-        ws.send(message)
+
+        n = np.random.randint(2, 10)
+        x = np.random.randn(n)
+        y = np.random.randn(n)
+        raw_data = [{'x': x[i], 'y': y[i]} for i in range(n)]
+        all_data.append(raw_data)
+
+        ws.send(json.dumps(raw_data))
 
 
 @app.route('/')
 def hello():
-    return "All data in server:\n" + ', '.join( map (str, all_data))
+    return "All data in server:\n" + ', '.join(map(str, all_data))
 
 
 def runserver(port=5000):
