@@ -18,7 +18,7 @@ def echo_socket(ws):
         message = ws.receive()
         print("Receive msg: ", message)
 
-        n = np.random.randint(2, 10)
+        n = np.random.randint(10, 20)
         x = np.random.randn(n)
         y = np.random.randn(n)
         raw_data = [{'id': i, 'x': x[i], 'y': y[i]} for i in range(n)]
