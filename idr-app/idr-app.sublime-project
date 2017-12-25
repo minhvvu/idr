@@ -11,13 +11,13 @@
 	"folders":
 	[
 		{
-			"path": "src"
-		},
-		{
 			"path": "/home/vmvu/Workspace/IDR/idr-elm"
 		},
 		{
 			"path": "/home/vmvu/Workspace/IDR/idr-server"
+		},
+		{
+			"path": "/home/vmvu/Workspace/fun/elm"
 		}
 	]
 }
