@@ -8,8 +8,51 @@ import Draggable
 import Draggable.Events exposing (onClick, onDragBy, onDragStart)
 import Msgs exposing (Msg)
 import Models exposing (Model)
+import Common exposing (..)
 import Plot.Circle exposing (..)
 import Plot.CircleGroup exposing (..)
+
+
+type alias PlotConfig =
+    { width : Float
+    , height : Float
+    , padding : Float
+    }
+
+
+config : PlotConfig
+config =
+    { width = 400.0
+    , height = 400.0
+    , padding = 30.0
+    }
+
+
+
+-- TODO think about AXES latter
+
+
+type alias Scatter =
+    { config : PlotConfig
+    , rawData : List Point
+    , xScale : ContinuousScale
+    , yScale : ContinuousScale
+    }
+
+
+createScatter : List Point -> Scatter
+createScatter points =
+    { config = config
+    , rawData = points
+    , xScale =
+        Scale.linear
+            ( minX points, maxX points )
+            ( 0, config.width - 2 * config.padding )
+    , yScale =
+        Scale.linear
+            ( minY points, maxY points )
+            ( config.height - 2 * config.padding, 0 )
+    }
 
 
 scatterPlot : Model -> Svg Msg
