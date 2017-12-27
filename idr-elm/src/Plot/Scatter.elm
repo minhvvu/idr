@@ -4,20 +4,24 @@ import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Visualization.Axis as Axis exposing (defaultOptions)
 import Visualization.Scale as Scale exposing (ContinuousScale)
-import Models exposing (Point)
+import Draggable
+import Draggable.Events exposing (onClick, onDragBy, onDragStart)
 import Msgs exposing (Msg)
+import Models exposing (Model)
+import Plot.Circle exposing (..)
+import Plot.CircleGroup exposing (..)
 
 
-scatterPlot : List Point -> Svg Msg
-scatterPlot points =
+scatterPlot : Model -> Svg Msg
+scatterPlot { points } =
     svg
         [ width <| px <| plotWidth
         , height <| px <| plotHeight
         ]
         [ drawAxis (plotHeight - padding) xAxis
         , drawAxis padding yAxis
-        , g [ transform ("translate(" ++ toString padding ++ ", " ++ toString padding ++ ")") ] <|
-            List.map circle points
+        , g [ transform ("translate(" ++ toString padding ++ ", " ++ toString padding ++ ")") ]
+            [ circleGroupView points ]
         ]
 
 
@@ -67,12 +71,13 @@ yAxis =
     Axis.axis { defaultOptions | orientation = Axis.Left, tickCount = 5 } yScale
 
 
-circle point =
-    g []
-        [ Svg.circle
-            [ cx <| toString <| Scale.convert xScale point.x
-            , cy <| toString <| Scale.convert yScale point.y
-            , r "3px"
-            ]
-            []
-        ]
+
+--circle point =
+--    g []
+--        [ Svg.circle
+--            [ cx <| toString <| Scale.convert xScale point.x
+--            , cy <| toString <| Scale.convert yScale point.y
+--            , r "3px"
+--            ]
+--            []
+--        ]

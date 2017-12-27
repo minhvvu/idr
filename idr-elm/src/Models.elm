@@ -1,23 +1,29 @@
 module Models exposing (..)
 
-
-type alias Point =
-    { id : Int
-    , x : Float
-    , y : Float
-    }
+import Draggable
+import Common exposing (..)
+import Plot.CircleGroup exposing (CircleGroup, emptyGroup)
 
 
 type alias Model =
-    { points : List Point
+    { points : CircleGroup
+    , drag : Draggable.State CircleId
     }
 
 
 initialModel : Model
 initialModel =
-    Model []
+    { points = emptyGroup
+    , drag = Draggable.init
+    }
+
+
+
+{- TODO how to defind an error-model -}
 
 
 errorModel : Model
 errorModel =
-    Model [ Point -1 -99.0 -99.0 ]
+    { points = emptyGroup
+    , drag = Draggable.init
+    }

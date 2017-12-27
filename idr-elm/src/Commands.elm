@@ -3,7 +3,7 @@ module Commands exposing (..)
 import WebSocket
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
-import Models exposing (Point)
+import Common exposing (Point)
 import Msgs exposing (Msg)
 
 
