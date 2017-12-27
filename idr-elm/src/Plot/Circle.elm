@@ -15,7 +15,6 @@ import Common exposing (..)
 type alias Circle =
     { id : CircleId
     , position : Vec2
-    , data : Vec2
     , class : String
     , color : String
     , clicked : Bool
@@ -26,7 +25,10 @@ type alias Circle =
 -}
 moveCircle : Draggable.Delta -> Circle -> Circle
 moveCircle delta circle =
-    { circle | position = circle.position |> Vector2.add (Vector2.fromTuple delta) }
+    { circle
+        | position =
+            circle.position |> Vector2.add (Vector2.fromTuple delta)
+    }
 
 
 {-| Click to select a circle
@@ -42,7 +44,6 @@ createCircle : Point -> Circle
 createCircle point =
     Circle
         (toCircleId point.id)
-        (Vector2.vec2 point.x point.y)
         (Vector2.vec2 point.x point.y)
         ""
         ""

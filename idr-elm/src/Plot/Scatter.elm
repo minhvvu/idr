@@ -1,4 +1,4 @@
-module Plot.Scatter exposing (scatterPlot)
+module Plot.Scatter exposing (scatterPlot, mapRawDataToScatterPlot)
 
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
@@ -53,6 +53,26 @@ createScatter points =
             ( minY points, maxY points )
             ( config.height - 2 * config.padding, 0 )
     }
+
+
+mapRawDataToScatterPlot : List Point -> CircleGroup
+mapRawDataToScatterPlot rawPoints =
+    let
+        scatter =
+            createScatter rawPoints
+
+        mappedPoints =
+            rawPoints
+                |> List.map
+                    (\p ->
+                        (Point
+                            p.id
+                            (Scale.convert scatter.xScale p.x)
+                            (Scale.convert scatter.yScale p.y)
+                        )
+                    )
+    in
+        createCircleGroup mappedPoints
 
 
 scatterPlot : Model -> Svg Msg

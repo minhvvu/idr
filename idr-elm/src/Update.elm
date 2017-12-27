@@ -4,6 +4,7 @@ import Draggable
 import Msgs exposing (Msg(..), myDragConfig)
 import Commands exposing (getNewData, decodeListPoints)
 import Models exposing (..)
+import Plot.Scatter exposing (mapRawDataToScatterPlot)
 import Plot.CircleGroup exposing (..)
 
 
@@ -36,4 +37,8 @@ updateNewData dataStr =
             ( Models.errorModel, Cmd.none )
 
         Ok listPoints ->
-            ( { initialModel | points = (createCircleGroup listPoints) }, Cmd.none )
+            ( { initialModel
+                | points = (mapRawDataToScatterPlot listPoints)
+              }
+            , Cmd.none
+            )
