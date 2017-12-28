@@ -12,6 +12,21 @@ toCircleId a =
     toString a
 
 
+type alias PlotConfig =
+    { width : Float
+    , height : Float
+    , padding : Float
+    }
+
+
+plotConfig : PlotConfig
+plotConfig =
+    { width = 600.0
+    , height = 600.0
+    , padding = 30.0
+    }
+
+
 type alias Point =
     { id : Int
     , x : Float

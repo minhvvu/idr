@@ -2,18 +2,20 @@ module Models exposing (..)
 
 import Draggable
 import Common exposing (..)
-import Plot.CircleGroup exposing (CircleGroup, emptyGroup)
+import Plot.Scatter exposing (Scatter, emptyScatter)
 
 
 type alias Model =
-    { points : CircleGroup
+    { rawData : List Point
+    , scatter : Scatter
     , drag : Draggable.State CircleId
     }
 
 
 initialModel : Model
 initialModel =
-    { points = emptyGroup
+    { rawData = []
+    , scatter = emptyScatter
     , drag = Draggable.init
     }
 
@@ -24,6 +26,7 @@ initialModel =
 
 errorModel : Model
 errorModel =
-    { points = emptyGroup
+    { rawData = []
+    , scatter = emptyScatter
     , drag = Draggable.init
     }

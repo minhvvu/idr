@@ -4,12 +4,14 @@ import Draggable
 import Msgs exposing (Msg(..), myDragConfig)
 import Commands exposing (getNewData, decodeListPoints)
 import Models exposing (..)
-import Plot.Scatter exposing (mapRawDataToScatterPlot)
+import Plot.Scatter exposing (createScatter)
 import Plot.CircleGroup exposing (..)
 
 
+{-| Big update function to handle all system messages
+-}
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ points } as model) =
+update msg ({ scatter } as model) =
     case msg of
         NewData dataStr ->
             updateNewData dataStr
@@ -18,27 +20,42 @@ update msg ({ points } as model) =
             ( Models.initialModel, getNewData )
 
         OnDragBy delta ->
-            { model | points = dragActiveBy delta points } ! []
+            let
+                newScatter =
+                    { scatter | points = dragActiveBy delta scatter.points }
+            in
+                { model | scatter = newScatter } ! []
 
         StartDragging circleId ->
-            { model | points = startDragging circleId points } ! []
+            let
+                newScatter =
+                    { scatter | points = startDragging circleId scatter.points }
+            in
+                { model | scatter = newScatter } ! []
 
         StopDragging ->
-            { model | points = stopDragging points } ! []
+            let
+                newScatter =
+                    { scatter | points = stopDragging scatter.points }
+            in
+                { model | scatter = newScatter } ! []
 
         DragMsg dragMsg ->
             Draggable.update myDragConfig dragMsg model
 
 
+{-| Util function to update new received data into model
+-}
 updateNewData : String -> ( Model, Cmd Msg )
 updateNewData dataStr =
     case decodeListPoints dataStr of
         Err msg ->
-            ( Models.errorModel, Cmd.none )
+            Debug.log "[Error Decode data]" ( Models.errorModel, Cmd.none )
 
-        Ok listPoints ->
+        Ok rawPoints ->
             ( { initialModel
-                | points = (mapRawDataToScatterPlot listPoints)
+                | rawData = rawPoints
+                , scatter = Plot.Scatter.createScatter rawPoints
               }
             , Cmd.none
             )

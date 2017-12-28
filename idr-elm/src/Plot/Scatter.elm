@@ -1,146 +1,104 @@
-module Plot.Scatter exposing (scatterPlot, mapRawDataToScatterPlot)
+module Plot.Scatter exposing (Scatter, scatterView, emptyScatter, createScatter)
 
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
-import Visualization.Axis as Axis exposing (defaultOptions)
 import Visualization.Scale as Scale exposing (ContinuousScale)
 import Draggable
-import Draggable.Events exposing (onClick, onDragBy, onDragStart)
 import Msgs exposing (Msg)
-import Models exposing (Model)
-import Common exposing (..)
+import Common exposing (PlotConfig, plotConfig, Point, minX, minY, maxX, maxY)
 import Plot.Circle exposing (..)
 import Plot.CircleGroup exposing (..)
 
 
-type alias PlotConfig =
-    { width : Float
-    , height : Float
-    , padding : Float
-    }
+--import Plot.Axes exposing (..)
 
 
-config : PlotConfig
-config =
-    { width = 400.0
-    , height = 400.0
-    , padding = 30.0
-    }
-
-
-
--- TODO think about AXES latter
-
-
+{-| Scatter Model contains data used for rendering a scatter plot
+-}
 type alias Scatter =
-    { config : PlotConfig
-    , rawData : List Point
+    { points : CircleGroup
     , xScale : ContinuousScale
     , yScale : ContinuousScale
+
+    --, axes : Axes msg
     }
 
 
+emptyScatter : Scatter
+emptyScatter =
+    { points = emptyGroup
+    , xScale = Scale.linear ( 0, 0 ) ( 0, 0 )
+    , yScale = Scale.linear ( 0, 0 ) ( 0, 0 )
+    }
+
+
+{-| Util function to create scatter model from list of raw points
+-}
 createScatter : List Point -> Scatter
-createScatter points =
-    { config = config
-    , rawData = points
-    , xScale =
-        Scale.linear
-            ( minX points, maxX points )
-            ( 0, config.width - 2 * config.padding )
-    , yScale =
-        Scale.linear
-            ( minY points, maxY points )
-            ( config.height - 2 * config.padding, 0 )
-    }
-
-
-mapRawDataToScatterPlot : List Point -> CircleGroup
-mapRawDataToScatterPlot rawPoints =
+createScatter rawPoints =
     let
-        scatter =
-            createScatter rawPoints
+        xScale =
+            Scale.linear
+                ( Common.minX rawPoints, Common.maxX rawPoints )
+                ( 0, plotConfig.width - 2 * plotConfig.padding )
 
+        yScale =
+            Scale.linear
+                ( Common.minY rawPoints, Common.maxY rawPoints )
+                ( plotConfig.height - 2 * plotConfig.padding, 0 )
+    in
+        { xScale = xScale
+        , yScale = yScale
+        , points = mapRawDataToScatterPlot rawPoints ( xScale, yScale )
+
+        --, axes = Axes.createAxes ( xScale, yScale )
+        }
+
+
+{-| Private function to create a list of plotted points from the raw data
+-}
+mapRawDataToScatterPlot : List Point -> ( ContinuousScale, ContinuousScale ) -> CircleGroup
+mapRawDataToScatterPlot rawPoints ( xScale, yScale ) =
+    let
         mappedPoints =
             rawPoints
                 |> List.map
                     (\p ->
                         (Point
                             p.id
-                            (Scale.convert scatter.xScale p.x)
-                            (Scale.convert scatter.yScale p.y)
+                            (Scale.convert xScale p.x)
+                            (Scale.convert yScale p.y)
                         )
                     )
     in
         createCircleGroup mappedPoints
 
 
-scatterPlot : Model -> Svg Msg
-scatterPlot { points } =
+{-| Public API for plot the scatter
+-}
+scatterView : Scatter -> Svg Msg
+scatterView { points } =
     svg
-        [ width <| px <| plotWidth
-        , height <| px <| plotHeight
+        [ width <| px <| plotConfig.width
+        , height <| px <| plotConfig.height
         ]
-        [ drawAxis (plotHeight - padding) xAxis
-        , drawAxis padding yAxis
-        , g [ transform ("translate(" ++ toString padding ++ ", " ++ toString padding ++ ")") ]
+        [ --drawAxes axes
+          drawScatter points
+        ]
+
+
+{-| Private function take plot the circles by calling the util function from `CircleGroup`
+-}
+drawScatter : CircleGroup -> Svg Msg
+drawScatter points =
+    let
+        padding =
+            toString plotConfig.padding
+    in
+        g [ transform ("translate(" ++ padding ++ ", " ++ padding ++ ")") ]
             [ circleGroupView points ]
-        ]
-
-
-drawAxis : Float -> Svg msg -> Svg msg
-drawAxis offset axis =
-    g [ transform ("translate(" ++ toString (padding) ++ ", " ++ toString (offset) ++ ")") ]
-        [ axis ]
 
 
 px : Float -> String
 px i =
     (toString i) ++ "px"
-
-
-plotWidth : Float
-plotWidth =
-    600
-
-
-plotHeight : Float
-plotHeight =
-    600
-
-
-padding : Float
-padding =
-    30
-
-
-xScale : ContinuousScale
-xScale =
-    Scale.linear ( -5, 5 ) ( 0, plotWidth - 2 * padding )
-
-
-yScale : ContinuousScale
-yScale =
-    Scale.linear ( -5, 5 ) ( plotHeight - 2 * padding, 0 )
-
-
-xAxis : Svg msg
-xAxis =
-    Axis.axis { defaultOptions | orientation = Axis.Bottom, tickCount = 5 } xScale
-
-
-yAxis : Svg msg
-yAxis =
-    Axis.axis { defaultOptions | orientation = Axis.Left, tickCount = 5 } yScale
-
-
-
---circle point =
---    g []
---        [ Svg.circle
---            [ cx <| toString <| Scale.convert xScale point.x
---            , cy <| toString <| Scale.convert yScale point.y
---            , r "3px"
---            ]
---            []
---        ]

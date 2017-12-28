@@ -25,6 +25,7 @@ def echo_socket(ws):
         all_data.append(raw_data)
 
         ws.send(json.dumps(raw_data))
+        print("Send data to client ok: number of records = ", x.shape[0])
 
     print("Connection CLOSED")
 
