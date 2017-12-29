@@ -21,8 +21,8 @@ type alias PlotConfig =
 
 plotConfig : PlotConfig
 plotConfig =
-    { width = 600.0
-    , height = 600.0
+    { width = 500.0
+    , height = 500.0
     , padding = 30.0
     }
 

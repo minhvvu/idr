@@ -8,9 +8,7 @@ import Msgs exposing (Msg)
 import Common exposing (PlotConfig, plotConfig, Point, minX, minY, maxX, maxY)
 import Plot.Circle exposing (..)
 import Plot.CircleGroup exposing (..)
-
-
---import Plot.Axes exposing (..)
+import Plot.Axes exposing (..)
 
 
 {-| Scatter Model contains data used for rendering a scatter plot
@@ -19,8 +17,6 @@ type alias Scatter =
     { points : CircleGroup
     , xScale : ContinuousScale
     , yScale : ContinuousScale
-
-    --, axes : Axes msg
     }
 
 
@@ -50,8 +46,6 @@ createScatter rawPoints =
         { xScale = xScale
         , yScale = yScale
         , points = mapRawDataToScatterPlot rawPoints ( xScale, yScale )
-
-        --, axes = Axes.createAxes ( xScale, yScale )
         }
 
 
@@ -77,13 +71,13 @@ mapRawDataToScatterPlot rawPoints ( xScale, yScale ) =
 {-| Public API for plot the scatter
 -}
 scatterView : Scatter -> Svg Msg
-scatterView { points } =
+scatterView { points, xScale, yScale } =
     svg
         [ width <| px <| plotConfig.width
         , height <| px <| plotConfig.height
         ]
-        [ --drawAxes axes
-          drawScatter points
+        [ drawAxes ( xScale, yScale )
+        , drawScatter points
         ]
 
 
