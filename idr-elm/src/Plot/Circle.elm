@@ -2,6 +2,7 @@ module Plot.Circle exposing (..)
 
 import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
 import Draggable
+import Html exposing (Html, div, text)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Events exposing (onMouseUp)
@@ -72,6 +73,23 @@ circleView { id, position, clicked } =
             []
 
 
+{-| Public API for drawing a indexed-svg circle (index by key)
+-}
 circleKeyedView : Circle -> ( CircleId, Svg Msg )
 circleKeyedView circle =
     ( circle.id, lazy circleView circle )
+
+
+{-| Public API for print the info of a circle
+-}
+circleTextView : Circle -> Html Msg
+circleTextView { id, position } =
+    div []
+        [ Html.text
+            ((toString id)
+                ++ ": (x = "
+                ++ (toString <| getX <| position)
+                ++ "; y = "
+                ++ (toString <| getY <| position)
+            )
+        ]

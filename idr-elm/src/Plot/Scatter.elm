@@ -1,5 +1,13 @@
-module Plot.Scatter exposing (Scatter, scatterView, emptyScatter, createScatter)
+module Plot.Scatter
+    exposing
+        ( Scatter
+        , scatterView
+        , emptyScatter
+        , createScatter
+        , movedPointsView
+        )
 
+import Html exposing (Html)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Visualization.Scale as Scale exposing (ContinuousScale)
@@ -96,3 +104,8 @@ drawScatter points =
 px : Float -> String
 px i =
     (toString i) ++ "px"
+
+
+movedPointsView : Scatter -> Html Msg
+movedPointsView { points } =
+    Plot.CircleGroup.movedPointsView points
