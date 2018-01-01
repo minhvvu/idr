@@ -7,11 +7,6 @@ type alias CircleId =
     String
 
 
-toCircleId : number -> String
-toCircleId a =
-    toString a
-
-
 type alias PlotConfig =
     { width : Float
     , height : Float
@@ -28,7 +23,7 @@ plotConfig =
 
 
 type alias Point =
-    { id : Int
+    { id : String
     , x : Float
     , y : Float
     }

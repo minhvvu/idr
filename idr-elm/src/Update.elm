@@ -2,7 +2,7 @@ module Update exposing (..)
 
 import Draggable
 import Msgs exposing (Msg(..), myDragConfig)
-import Commands exposing (getNewData, decodeListPoints)
+import Commands exposing (getNewData, decodeListPoints, sendMovedPoints)
 import Models exposing (..)
 import Plot.Scatter exposing (createScatter)
 import Plot.CircleGroup exposing (..)
@@ -42,6 +42,13 @@ update msg ({ scatter } as model) =
 
         DragMsg dragMsg ->
             Draggable.update myDragConfig dragMsg model
+
+        SendMovedPoints ->
+            let
+                movedPoints =
+                    getMovedPoints scatter.points
+            in
+                ( model, sendMovedPoints movedPoints )
 
 
 {-| Util function to update new received data into model

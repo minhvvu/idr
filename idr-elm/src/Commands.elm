@@ -1,6 +1,7 @@
 module Commands exposing (..)
 
 import WebSocket
+import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
 import Common exposing (Point)
@@ -15,6 +16,11 @@ socketServer =
 getDataURI : String
 getDataURI =
     socketServer ++ "/get_data"
+
+
+movedPointsURI : String
+movedPointsURI =
+    socketServer ++ "/moved_points"
 
 
 listenToNewData : Sub Msg
@@ -32,10 +38,15 @@ getNewData =
     WebSocket.send getDataURI "Request data from client"
 
 
+sendMovedPoints : List Point -> Cmd Msg
+sendMovedPoints points =
+    WebSocket.send movedPointsURI (Encode.encode 4 (encodeListPoints points))
+
+
 pointDecoder : Decode.Decoder Point
 pointDecoder =
     decode Point
-        |> required "id" Decode.int
+        |> required "id" Decode.string
         |> required "x" Decode.float
         |> required "y" Decode.float
 
@@ -48,3 +59,17 @@ listPointsDecoder =
 decodeListPoints : String -> Result String (List Point)
 decodeListPoints str =
     Decode.decodeString listPointsDecoder str
+
+
+encodePoint : Point -> Encode.Value
+encodePoint point =
+    Encode.object
+        [ ( "id", Encode.string point.id )
+        , ( "x", Encode.float point.x )
+        , ( "y", Encode.float point.y )
+        ]
+
+
+encodeListPoints : List Point -> Encode.Value
+encodeListPoints points =
+    Encode.list (List.map encodePoint points)

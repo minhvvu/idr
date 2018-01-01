@@ -106,6 +106,8 @@ px i =
     (toString i) ++ "px"
 
 
+{-| Public API for calling drawing a list of moved circle in CircleGroup
+-}
 movedPointsView : Scatter -> Html Msg
 movedPointsView { points } =
     Plot.CircleGroup.movedPointsView points

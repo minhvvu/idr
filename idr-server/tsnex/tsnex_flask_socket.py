@@ -13,7 +13,7 @@ all_data = []
 
 
 @sockets.route('/tsnex/get_data')
-def echo_socket(ws):
+def get_data(ws):
     while not ws.closed:
         message = ws.receive()
         print("Receive msg: ", message)
@@ -21,13 +21,20 @@ def echo_socket(ws):
         n = np.random.randint(10, 20)
         x = np.random.randn(n)
         y = np.random.randn(n)
-        raw_data = [{'id': i, 'x': x[i], 'y': y[i]} for i in range(n)]
+        raw_data = [{'id': str(i), 'x': x[i], 'y': y[i]} for i in range(n)]
         all_data.append(raw_data)
 
         ws.send(json.dumps(raw_data))
         print("Send data to client ok: number of records = ", x.shape[0])
 
     print("Connection CLOSED")
+
+
+@sockets.route('/tsnex/moved_points')
+def client_moved_points(ws):
+    while not ws.closed:
+        message = ws.receive()
+        print("Client moved points: ", message)
 
 
 @app.route('/')

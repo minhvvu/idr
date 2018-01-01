@@ -138,3 +138,10 @@ movedPointsView : CircleGroup -> Html Msg
 movedPointsView { movedCircles } =
     div []
         (movedCircles |> List.map Plot.Circle.circleTextView)
+
+
+{-| Public API to get a list of moved circles and convert them to List Point
+-}
+getMovedPoints : CircleGroup -> List Point
+getMovedPoints { movedCircles } =
+    movedCircles |> List.map Plot.Circle.circleToPoint

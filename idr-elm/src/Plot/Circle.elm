@@ -50,7 +50,7 @@ toggleClicked circle =
 createCircle : Point -> Circle
 createCircle point =
     Circle
-        (toCircleId point.id)
+        point.id
         (Vector2.vec2 point.x point.y)
         ""
         ""
@@ -100,6 +100,13 @@ circleTextView { id, position } =
                 ++ ")"
             )
         ]
+
+
+{-| Public API to get basic info of a circle and make a Point record
+-}
+circleToPoint : Circle -> Point
+circleToPoint c =
+    Point c.id (getX c.position) (getY c.position)
 
 
 {-| Public API for correcting the position of a circle

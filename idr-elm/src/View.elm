@@ -13,4 +13,5 @@ view model =
         [ div [] [ button [ onClick Msgs.RequestData ] [ Html.text "Request Data" ] ]
         , scatterView model.scatter
         , movedPointsView model.scatter
+        , div [] [ button [ onClick Msgs.SendMovedPoints ] [ Html.text "Send Moved Points" ] ]
         ]
