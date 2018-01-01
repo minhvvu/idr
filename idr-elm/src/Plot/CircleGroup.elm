@@ -76,12 +76,21 @@ startDragging circleId group =
 {-| When stop dragging the circles, the `movingCircles` is empty
 -}
 stopDragging : CircleGroup -> CircleGroup
-stopDragging ({ movingCircles, movedCircles } as group) =
-    { group
-        | idleCircles = getAll group
-        , movedCircles = addMovedCircleFrom movingCircles movedCircles
-        , movingCircles = []
-    }
+stopDragging group =
+    let
+        allCircles =
+            getAll group
+
+        movedCircles =
+            addMovedCircleFrom group.movingCircles group.movedCircles
+
+        movingCircles =
+            []
+    in
+        { idleCircles = allCircles
+        , movedCircles = movedCircles
+        , movingCircles = movingCircles
+        }
 
 
 {-| Drag the moving circles by applying `moveCircle` to each circle
@@ -101,8 +110,15 @@ addMovedCircleFrom movingCircles movedCircles =
         Maybe.Nothing ->
             movedCircles
 
-        Maybe.Just a ->
-            a :: movedCircles
+        Maybe.Just circle ->
+            let
+                searchCond =
+                    \c -> c.id == circle.id
+
+                ( duplicatedMovedPoints, otherMovedPoints ) =
+                    List.partition searchCond movedCircles
+            in
+                circle :: otherMovedPoints
 
 
 {-| Public API for rendering the circles in group

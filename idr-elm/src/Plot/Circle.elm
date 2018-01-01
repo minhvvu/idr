@@ -26,10 +26,16 @@ type alias Circle =
 -}
 moveCircle : Draggable.Delta -> Circle -> Circle
 moveCircle delta circle =
-    { circle
-        | position =
+    let
+        tempPos =
             circle.position |> Vector2.add (Vector2.fromTuple delta)
-    }
+
+        newPos =
+            correctPosition tempPos
+    in
+        { circle
+            | position = newPos
+        }
 
 
 {-| Click to select a circle
@@ -91,5 +97,23 @@ circleTextView { id, position } =
                 ++ (toString <| getX <| position)
                 ++ "; y = "
                 ++ (toString <| getY <| position)
+                ++ ")"
             )
         ]
+
+
+{-| Public API for correcting the position of a circle
+-}
+correctPosition : Vec2 -> Vec2
+correctPosition pos =
+    pos
+
+
+
+--let
+--    correctedX =
+--        Basics.min plotConfig.width <| Basics.max 0 <| getX pos
+--    correctedY =
+--        Basics.min plotConfig.height <| Basics.max 0 <| getY pos
+--in
+--    Vector2.vec2 correctedX correctedY
