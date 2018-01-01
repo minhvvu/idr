@@ -18,7 +18,7 @@ type alias Circle =
     , position : Vec2
     , class : String
     , color : String
-    , clicked : Bool
+    , selected : Bool
     }
 
 
@@ -40,9 +40,9 @@ moveCircle delta circle =
 
 {-| Click to select a circle
 -}
-toggleClicked : Circle -> Circle
-toggleClicked circle =
-    { circle | clicked = not circle.clicked }
+setSelected : Circle -> Circle
+setSelected circle =
+    { circle | selected = True }
 
 
 {-| Util function to create a circle
@@ -60,19 +60,26 @@ createCircle point =
 {-| Util function to draw a circle
 -}
 circleView : Circle -> Svg Msg
-circleView { id, position, clicked } =
+circleView { id, position, selected } =
     let
+        {- http://htmlcolorcodes.com/ -}
         color =
-            if clicked then
-                "red"
+            "#27AE60"
+
+        strokeColor =
+            if selected then
+                "#E67E22"
             else
-                "lightblue"
+                "#D5D8DC"
     in
         Svg.circle
             [ cx (toString (getX position))
             , cy (toString (getY position))
-            , r "5"
+            , r "8"
             , fill color
+            , stroke strokeColor
+            , strokeWidth "2"
+            , Svg.Attributes.cursor "move"
             , Draggable.mouseTrigger id DragMsg
             , onMouseUp StopDragging
             ]

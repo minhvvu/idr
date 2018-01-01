@@ -4,7 +4,7 @@ import Draggable
 import Msgs exposing (Msg(..), myDragConfig)
 import Commands exposing (getNewData, decodeListPoints, sendMovedPoints)
 import Models exposing (..)
-import Plot.Scatter exposing (createScatter)
+import Plot.Scatter exposing (createScatter, getMovedPoints)
 import Plot.CircleGroup exposing (..)
 
 
@@ -46,7 +46,7 @@ update msg ({ scatter } as model) =
         SendMovedPoints ->
             let
                 movedPoints =
-                    getMovedPoints scatter.points
+                    Plot.Scatter.getMovedPoints scatter
             in
                 ( model, sendMovedPoints movedPoints )
 

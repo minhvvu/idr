@@ -24,6 +24,9 @@ emptyGroup =
 
 
 {-| Util function to get all circle in a group
+-- Maybe BUG here: we have 3 groups, but how to get a list of all "unique" circles?
+-- Observed BUG: when drag a (t+1) point, the (t) point disappears.
+-- NOTE: the order of points in the final list: the recently interacted is on top
 -}
 getAll : CircleGroup -> List Circle
 getAll group =
@@ -64,8 +67,8 @@ startDragging circleId group =
                 Maybe.Nothing ->
                     []
 
-                Maybe.Just a ->
-                    List.singleton a
+                Maybe.Just circle ->
+                    List.singleton <| Plot.Circle.setSelected circle
     in
         { group
             | idleCircles = other
@@ -127,7 +130,6 @@ circleGroupView : CircleGroup -> Svg Msg
 circleGroupView group =
     group
         |> getAll
-        |> List.reverse
         |> List.map circleKeyedView
         |> Svg.Keyed.node "g" []
 

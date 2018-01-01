@@ -5,6 +5,7 @@ module Plot.Scatter
         , emptyScatter
         , createScatter
         , movedPointsView
+        , getMovedPoints
         )
 
 import Html exposing (Html)
@@ -111,3 +112,23 @@ px i =
 movedPointsView : Scatter -> Html Msg
 movedPointsView { points } =
     Plot.CircleGroup.movedPointsView points
+
+
+{-| Public API for getting a list of moved circles and map them to the domain value
+-}
+getMovedPoints : Scatter -> List Point
+getMovedPoints { points, xScale, yScale } =
+    let
+        movedPoint =
+            Plot.CircleGroup.getMovedPoints points
+
+        invertDomain =
+            (\p ->
+                (Point
+                    p.id
+                    (Scale.invert xScale p.x)
+                    (Scale.invert yScale p.y)
+                )
+            )
+    in
+        List.map invertDomain movedPoint
