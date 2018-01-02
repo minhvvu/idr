@@ -51,11 +51,45 @@ createCircleGroup points =
     points |> List.foldl addCircle emptyGroup
 
 
+{-| Workaround to fix the strange bug (BUG 1):
+
+  - A normal flow message: [StartDragging -> (OnDragBy) -> StopDragging]
+
+  - A bug: [StartDragging -> (OnDragBy)] -> [StartDragging ...]
+
+  - Nomarlly, system fires `DragMsg Msg DragAt` and our program triggers `OnDragBy`,
+    the same for (`DragMsg Msg StopDragging`, `StopDragging`).
+    But a strange flow can happens:
+    sys: DragMsg Msg DragAt
+    sys: DragMsg Msg StopDragging
+    app: OnDragBy
+    app: NO StopDragging <- BUG here
+      - A `theorical` solution is adding e.preventDefault() for the event listening func,
+        but in ELM, I found no way to do so.
+
+      - Fix by manually check the `movingCircles`
+        whenever the StartDragging is fired
+
+-}
+correctCircleGroup : CircleGroup -> CircleGroup
+correctCircleGroup oldGroup =
+    if List.isEmpty oldGroup.movingCircles then
+        oldGroup
+    else
+        {- There is still a moving circle but the StopDragging is not fired
+           Do exactly when having a StopDragging
+        -}
+        stopDragging oldGroup
+
+
 {-| When start moving the circle(s), add them into moving list
 -}
 startDragging : CircleId -> CircleGroup -> CircleGroup
-startDragging circleId group =
+startDragging circleId oldGroup =
     let
+        group =
+            correctCircleGroup oldGroup
+
         searchCond =
             \c -> c.id == circleId
 
@@ -137,13 +171,20 @@ circleGroupView group =
 {-| Public API for drawing a list of moved circles
 -}
 movedPointsView : CircleGroup -> Html Msg
-movedPointsView { movedCircles } =
+movedPointsView group =
     div []
-        (movedCircles |> List.map Plot.Circle.circleTextView)
+        (group
+            |> correctCircleGroup
+            |> .movedCircles
+            |> List.map Plot.Circle.circleTextView
+        )
 
 
 {-| Public API to get a list of moved circles and convert them to List Point
 -}
 getMovedPoints : CircleGroup -> List Point
-getMovedPoints { movedCircles } =
-    movedCircles |> List.map Plot.Circle.circleToPoint
+getMovedPoints group =
+    group
+        |> correctCircleGroup
+        |> .movedCircles
+        |> List.map Plot.Circle.circleToPoint

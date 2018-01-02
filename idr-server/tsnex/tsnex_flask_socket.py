@@ -35,6 +35,9 @@ def client_moved_points(ws):
     while not ws.closed:
         message = ws.receive()
         print("Client moved points: ", message)
+        if (message is not None):
+            moved_points = json.loads(message)
+            print("Parsed json: ", moved_points)
 
 
 @app.route('/')

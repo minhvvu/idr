@@ -73,17 +73,20 @@ circleView { id, position, selected } =
                 "#D5D8DC"
     in
         Svg.circle
-            [ cx (toString (getX position))
-            , cy (toString (getY position))
-            , r "8"
-            , fill color
-            , stroke strokeColor
-            , strokeWidth "2"
-            , Svg.Attributes.cursor "move"
-            , Draggable.mouseTrigger id DragMsg
-            , onMouseUp StopDragging
+            ([ cx (toString (getX position))
+             , cy (toString (getY position))
+             , r "8"
+             , fill color
+             , stroke strokeColor
+             , strokeWidth "2"
+             , Svg.Attributes.cursor "move"
+             , Draggable.mouseTrigger id DragMsg
+             , Svg.Events.onMouseUp StopDragging
+             ]
+                ++ (Draggable.touchTriggers id DragMsg)
+            )
+            [ Svg.title [] [ Svg.text id ]
             ]
-            []
 
 
 {-| Public API for drawing a indexed-svg circle (index by key)
