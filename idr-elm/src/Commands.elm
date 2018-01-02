@@ -65,6 +65,7 @@ pointDecoder =
         |> required "id" Decode.string
         |> required "x" Decode.float
         |> required "y" Decode.float
+        |> required "label" Decode.string
 
 
 {-| Util function to describle how to encode a Point object to json

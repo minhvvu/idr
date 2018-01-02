@@ -16,10 +16,27 @@ import Common exposing (..)
 type alias Circle =
     { id : CircleId
     , position : Vec2
-    , class : String
-    , color : String
+    , label : String
     , selected : Bool
     }
+
+
+{-| Util function to create a circle
+-}
+createCircle : Point -> Circle
+createCircle point =
+    Circle
+        point.id
+        (Vector2.vec2 point.x point.y)
+        point.label
+        False
+
+
+{-| Public API to get basic info of a circle and make a Point record
+-}
+circleToPoint : Circle -> Point
+circleToPoint c =
+    Point c.id (getX c.position) (getY c.position) c.label
 
 
 {-| Move a circle to a new position
@@ -45,26 +62,14 @@ setSelected circle =
     { circle | selected = True }
 
 
-{-| Util function to create a circle
--}
-createCircle : Point -> Circle
-createCircle point =
-    Circle
-        point.id
-        (Vector2.vec2 point.x point.y)
-        ""
-        ""
-        False
-
-
 {-| Util function to draw a circle
 -}
 circleView : Circle -> Svg Msg
-circleView { id, position, selected } =
+circleView { id, position, label, selected } =
     let
         {- http://htmlcolorcodes.com/ -}
         color =
-            "#27AE60"
+            Common.labelToColorStr label
 
         strokeColor =
             if selected then
@@ -85,7 +90,7 @@ circleView { id, position, selected } =
              ]
                 ++ (Draggable.touchTriggers id DragMsg)
             )
-            [ Svg.title [] [ Svg.text id ]
+            [ Svg.title [] [ Svg.text id ] -- for tooltip
             ]
 
 
@@ -99,24 +104,20 @@ circleKeyedView circle =
 {-| Public API for print the info of a circle
 -}
 circleTextView : Circle -> Html Msg
-circleTextView { id, position } =
+circleTextView { id, position, label } =
     div []
         [ Html.text
-            ((toString id)
-                ++ ": (x = "
+            ("[label:"
+                ++ label
+                ++ "]{id:"
+                ++ (toString id)
+                ++ ", (x = "
                 ++ (toString <| getX <| position)
                 ++ "; y = "
                 ++ (toString <| getY <| position)
-                ++ ")"
+                ++ ")}"
             )
         ]
-
-
-{-| Public API to get basic info of a circle and make a Point record
--}
-circleToPoint : Circle -> Point
-circleToPoint c =
-    Point c.id (getX c.position) (getY c.position)
 
 
 {-| Public API for correcting the position of a circle

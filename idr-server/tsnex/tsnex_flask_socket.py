@@ -4,7 +4,8 @@
 from flask import Flask
 from flask_sockets import Sockets
 import json
-import numpy as np
+
+from tsnex import test_embedding
 
 app = Flask(__name__)
 sockets = Sockets(app)
@@ -18,14 +19,24 @@ def get_data(ws):
         message = ws.receive()
         print("Receive msg: ", message)
 
-        n = np.random.randint(10, 20)
-        x = np.random.randn(n)
-        y = np.random.randn(n)
-        raw_data = [{'id': str(i), 'x': x[i], 'y': y[i]} for i in range(n)]
+        # n = np.random.randint(10, 20)
+        # x = np.random.randn(n)
+        # y = np.random.randn(n)
+        # raw_data = [{'id': str(i), 'x': x[i], 'y': y[i]} for i in range(n)]
+
+        X, y = test_embedding()
+        raw_data = [
+            {
+                'id': str(i),
+                'x': float(X[i][0]),
+                'y': float(X[i][1]),
+                'label': str(y[i])
+            } for i in range(len(y))
+        ]
         all_data.append(raw_data)
 
         ws.send(json.dumps(raw_data))
-        print("Send data to client ok: number of records = ", x.shape[0])
+        print("Send data to client ok: number of records = ", X.shape[0])
 
     print("Connection CLOSED")
 

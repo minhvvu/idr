@@ -1,10 +1,46 @@
 module Common exposing (..)
 
 import List.Extra exposing (maximumBy, minimumBy)
+import Array
+import Color exposing (..)
+import Visualization.Scale exposing (category10)
 
 
 type alias CircleId =
     String
+
+
+labelToColorStr : String -> String
+labelToColorStr label =
+    let
+        labelId =
+            label
+                |> String.toInt
+                |> Result.toMaybe
+                |> Maybe.withDefault 0
+    in
+        category10
+            |> Array.fromList
+            |> Array.get labelId
+            |> Maybe.withDefault Color.black
+            |> colorToString
+
+
+colorToString : Color -> String
+colorToString color =
+    let
+        { red, green, blue, alpha } =
+            toRgb color
+    in
+        "rgba("
+            ++ (red |> toString)
+            ++ ","
+            ++ (green |> toString)
+            ++ ", "
+            ++ (blue |> toString)
+            ++ ","
+            ++ (alpha |> toString)
+            ++ ")"
 
 
 type alias PlotConfig =
@@ -26,6 +62,7 @@ type alias Point =
     { id : String
     , x : Float
     , y : Float
+    , label : String
     }
 
 
