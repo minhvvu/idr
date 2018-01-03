@@ -18,6 +18,8 @@ class ConsumerQueue(object):
     dataQueue = queue.Queue()
     dataCount = 0
 
+    isPaused = False
+
     def __new__(cls, val):
         if ConsumerQueue.__instance is None:
             ConsumerQueue.__instance = object.__new__(cls)
@@ -40,3 +42,7 @@ class ConsumerQueue(object):
     def pop(self):
         value = self.dataQueue.get() if not self.dataQueue.empty() else None
         return value
+
+    def togglePause(self):
+        self.isPaused = not self.isPaused
+        print("Server is paused!" if self.isPaused else "Server is running!")

@@ -54,7 +54,11 @@ def test_get_data_iterative(ws):
 def pause_server(ws):
     while not ws.closed:
         message = ws.receive()
-        print("Pause server command: ", message)
+        if message is not None:
+            print("Pause server command: ", message)
+            conQueue.togglePause()
+            # TODO: can not pause server 
+            # because this code is in separated request with `get_data`
 
 
 @sockets.route('/tsnex/moved_points')
