@@ -13,6 +13,7 @@ type Msg
     | OnDragBy Draggable.Delta
     | StopDragging
     | SendMovedPoints
+    | PauseServer
 
 
 myDragConfig : Draggable.Config CircleId Msg

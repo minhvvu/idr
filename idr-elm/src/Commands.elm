@@ -29,6 +29,13 @@ movedPointsURI =
     socketServer ++ "/moved_points"
 
 
+{-| Socket endpoint for pausing server
+-}
+pauseServerURI : String
+pauseServerURI =
+    socketServer ++ "/pause_server"
+
+
 {-| Client subscription to listen to the new data from server
 -}
 listenToNewData : Sub Msg
@@ -55,6 +62,13 @@ getNewData =
 sendMovedPoints : List Point -> Cmd Msg
 sendMovedPoints points =
     WebSocket.send movedPointsURI (encodeListPoints points)
+
+
+{-| Client command to pause server
+-}
+sendPauseServerCmd : Cmd Msg
+sendPauseServerCmd =
+    WebSocket.send pauseServerURI "Client request to pause server"
 
 
 {-| Util function to describe how to deocde json to a Point object

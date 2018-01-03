@@ -6,29 +6,31 @@ from flask_sockets import Sockets
 import json
 import time
 
-from tsnex import test_embedding
+from consumer_queue import ConsumerQueue
+from tsnex import test_embedding, load_dataset
+
 
 app = Flask(__name__)
 sockets = Sockets(app)
 
-all_data = []
+conQueue = ConsumerQueue("ConsumerQueue in Websocket")
 
 
 @sockets.route('/tsnex/get_data')
 def get_data(ws):
+
     while not ws.closed:
         message = ws.receive()
         print("Receive msg: ", message)
+        if message is not None:  # client subscription
+            test_get_data_iterative(ws)
 
-        # n = np.random.randint(10, 20)
-        # x = np.random.randn(n)
-        # y = np.random.randn(n)
-        # raw_data = [{'id': str(i), 'x': x[i], 'y': y[i]} for i in range(n)]
 
-        X_iter, y = test_embedding()
-        n_iter = X_iter.shape[-1]
-        for i in range(n_iter):
-            X = X_iter[..., i]
+def test_get_data_iterative(ws):
+    def auto_send():
+        X = conQueue.pop()
+        if X is not None:
+            # if conQueue.dataCount % 5 == 0:
             raw_data = [
                 {
                     'id': str(i),
@@ -37,12 +39,22 @@ def get_data(ws):
                     'label': str(y[i])
                 } for i in range(len(y))
             ]
-            if (i % 5 == 0):
+            if not ws.closed:
                 ws.send(json.dumps(raw_data))
-                print("Iteration: ", i)
-                time.sleep(0.2)
+            else:
+                print("SOCKET DIE")
 
-    print("Connection CLOSED")
+    conQueue.registerCallback(auto_send)
+
+    X, y = load_dataset()
+    test_embedding(X)
+
+
+@sockets.route('/tsnex/pause_server')
+def pause_server(ws):
+    while not ws.closed:
+        message = ws.receive()
+        print("Pause server command: ", message)
 
 
 @sockets.route('/tsnex/moved_points')
@@ -57,7 +69,7 @@ def client_moved_points(ws):
 
 @app.route('/')
 def hello():
-    return "All data in server:\n" + ', '.join(map(str, all_data))
+    return "Root of socket server. Default URI for client: ws://localhost:5000"
 
 
 def runserver(port=5000):

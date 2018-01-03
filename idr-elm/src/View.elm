@@ -10,7 +10,10 @@ import Plot.Scatter exposing (scatterView, movedPointsView)
 view : Model -> Html Msg
 view model =
     div []
-        [ div [] [ button [ onClick Msgs.RequestData ] [ Html.text "Request Data" ] ]
+        [ div []
+            [ button [ onClick Msgs.RequestData ] [ Html.text "Request Data" ]
+            , button [ onClick Msgs.PauseServer ] [ Html.text "Pause Server" ]
+            ]
         , scatterView model.scatter
         , movedPointsView model.scatter
         , div [] [ button [ onClick Msgs.SendMovedPoints ] [ Html.text "Send Moved Points" ] ]

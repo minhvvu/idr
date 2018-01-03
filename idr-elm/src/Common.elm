@@ -47,6 +47,10 @@ type alias PlotConfig =
     { width : Float
     , height : Float
     , padding : Float
+    , circleRadius : Float
+    , strokeWidth : Float
+    , defaultStrokeColor : String
+    , selectedStrokeColor : String
     }
 
 
@@ -54,7 +58,11 @@ plotConfig : PlotConfig
 plotConfig =
     { width = 900.0
     , height = 650.0
-    , padding = 30.0
+    , padding = 50.0
+    , circleRadius = 7
+    , strokeWidth = 2
+    , defaultStrokeColor = "#D5D8DC"
+    , selectedStrokeColor = "#E67E22"
     }
 
 

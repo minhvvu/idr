@@ -73,17 +73,17 @@ circleView { id, position, label, selected } =
 
         strokeColor =
             if selected then
-                "#E67E22"
+                plotConfig.selectedStrokeColor
             else
-                "#D5D8DC"
+                plotConfig.defaultStrokeColor
     in
         Svg.circle
-            ([ cx (toString (getX position))
-             , cy (toString (getY position))
-             , r "8"
+            ([ cx (position |> getX |> round |> toString)
+             , cy (position |> getY |> round |> toString)
+             , r (toString plotConfig.circleRadius)
              , fill color
              , stroke strokeColor
-             , strokeWidth "2"
+             , strokeWidth (toString plotConfig.strokeWidth)
              , Svg.Attributes.cursor "move"
              , Draggable.mouseTrigger id DragMsg
              , Svg.Events.onMouseUp StopDragging
@@ -112,9 +112,9 @@ circleTextView { id, position, label } =
                 ++ "]{id:"
                 ++ (toString id)
                 ++ ", (x = "
-                ++ (toString <| getX <| position)
+                ++ (toString <| round <| getX <| position)
                 ++ "; y = "
-                ++ (toString <| getY <| position)
+                ++ (toString <| round <| getY <| position)
                 ++ ")}"
             )
         ]

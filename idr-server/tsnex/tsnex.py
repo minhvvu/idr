@@ -5,17 +5,24 @@ from sklearn.manifold import TSNE
 
 import numpy as np
 from numpy import linalg
-from time import time
+from time import time, sleep
 
-iris = datasets.load_digits()
+from consumer_queue import ConsumerQueue
 
-X_train = iris.data[:500]
-y = iris.target[:500]
-print(X_train.shape)
-print(len(y))
+conQueue = ConsumerQueue("ConsumerQueue in TSNEX module")
 
 
-def test_embedding():
+def load_dataset():
+    dataset = datasets.load_digits()
+
+    X = dataset.data[:200]
+    y = dataset.target[:200]
+    print(X.shape)
+    print(len(y))
+    return X, y
+
+
+def test_embedding(X):
     old_gradient_fnc = sklearn.manifold.t_sne._gradient_descent
 
     positions = []
@@ -104,9 +111,15 @@ def test_embedding():
         best_iter = i = it
 
         tic = time()
+        print("\nGradien Descent:")
         for i in range(it, n_iter):
+
             # save the current position
-            positions.append(p.copy())
+            position = p.copy().reshape(-1, 2)
+            conQueue.push(position)
+            if (i % 5 == 0):
+                print_progress(i, n_iter)
+                sleep(0.1)
 
             error, grad = objective(p, *args, **kwargs)
             grad_norm = linalg.norm(grad)
@@ -148,18 +161,27 @@ def test_embedding():
 
         return p, error, i
 
+    print("START EMBEDDING")
     sklearn.manifold.t_sne._gradient_descent = _gradient_descent
 
     tsne = TSNE(n_components=2, random_state=0, n_iter=1000)
 
-    X_projected = tsne.fit_transform(X_train)
+    X_projected = tsne.fit_transform(X)
 
-    X_iter = np.dstack(position.reshape(-1, 2) for position in positions)
-    print(X_iter.shape)
+    # X_iter = np.dstack(position.reshape(-1, 2) for position in positions)
 
     sklearn.manifold.t_sne._gradient_descent = old_gradient_fnc
+    print("\nEMBEDDING DONE")
 
-    return (X_iter, y)
+    return X_projected
 
 
-test_embedding()
+import sys
+
+
+def print_progress(i, n):
+    percent = int(100.0 * i / n)
+    n_gap = int(percent / 2)
+    sys.stdout.write('\r')
+    sys.stdout.write("[%s] %d%%" % ('=' * n_gap, percent))
+    sys.stdout.flush()
