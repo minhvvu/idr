@@ -4,6 +4,7 @@
 from flask import Flask
 from flask_sockets import Sockets
 import json
+import time
 
 from tsnex import test_embedding
 
@@ -24,19 +25,22 @@ def get_data(ws):
         # y = np.random.randn(n)
         # raw_data = [{'id': str(i), 'x': x[i], 'y': y[i]} for i in range(n)]
 
-        X, y = test_embedding()
-        raw_data = [
-            {
-                'id': str(i),
-                'x': float(X[i][0]),
-                'y': float(X[i][1]),
-                'label': str(y[i])
-            } for i in range(len(y))
-        ]
-        all_data.append(raw_data)
-
-        ws.send(json.dumps(raw_data))
-        print("Send data to client ok: number of records = ", X.shape[0])
+        X_iter, y = test_embedding()
+        n_iter = X_iter.shape[-1]
+        for i in range(n_iter):
+            X = X_iter[..., i]
+            raw_data = [
+                {
+                    'id': str(i),
+                    'x': float(X[i][0]),
+                    'y': float(X[i][1]),
+                    'label': str(y[i])
+                } for i in range(len(y))
+            ]
+            if (i % 5 == 0):
+                ws.send(json.dumps(raw_data))
+                print("Iteration: ", i)
+                time.sleep(0.2)
 
     print("Connection CLOSED")
 
