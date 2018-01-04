@@ -1,4 +1,6 @@
 # tsnex.py
+# interactive tsne: https://www.oreilly.com/learning/an-illustrated-introduction-to-the-t-sne-algorithm
+
 import sklearn
 from sklearn import datasets
 from sklearn.manifold import TSNE
@@ -15,8 +17,8 @@ conQueue = ConsumerQueue("ConsumerQueue in TSNEX module")
 def load_dataset():
     dataset = datasets.load_digits()
 
-    X = dataset.data[:200]
-    y = dataset.target[:200]
+    X = dataset.data[:400]
+    y = dataset.target[:400]
     print(X.shape)
     print(len(y))
     return X, y

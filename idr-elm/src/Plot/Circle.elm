@@ -90,7 +90,11 @@ circleView { id, position, label, selected } =
              ]
                 ++ (Draggable.touchTriggers id DragMsg)
             )
-            [ Svg.title [] [ Svg.text id ] -- for tooltip
+            [ Svg.title []
+                -- for tooltip
+                [ Svg.text
+                    ("Label: " ++ label ++ ", id: " ++ id)
+                ]
             ]
 
 

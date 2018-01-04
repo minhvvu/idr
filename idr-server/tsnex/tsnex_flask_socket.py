@@ -57,7 +57,7 @@ def pause_server(ws):
         if message is not None:
             print("Pause server command: ", message)
             conQueue.togglePause()
-            # TODO: can not pause server 
+            # TODO: can not pause server
             # because this code is in separated request with `get_data`
 
 
