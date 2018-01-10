@@ -123,7 +123,10 @@ def test_embedding(X):
                 print_progress(i, n_iter)
                 sleep(0.1)
 
+            # meeting 05/01: how to take into account the user feedbacks
+            # I = indices of elements thqt are not yet fixed
             error, grad = objective(p, *args, **kwargs)
+            # grad = grad[I]
             grad_norm = linalg.norm(grad)
 
             inc = update * grad < 0.0
@@ -134,6 +137,7 @@ def test_embedding(X):
             grad *= gains
             update = momentum * update - learning_rate * grad
             p += update
+            # p[I] += update
 
             if (i + 1) % n_iter_check == 0:
                 toc = time()

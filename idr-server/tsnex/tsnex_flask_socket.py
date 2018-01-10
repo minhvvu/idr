@@ -1,5 +1,6 @@
 # tsnex_flask_socket.py
 # using: https://github.com/kennethreitz/flask-sockets
+# TODO: Think about to use Flask-SocketIO (must change client too)
 
 from flask import Flask
 from flask_sockets import Sockets
