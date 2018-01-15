@@ -6,9 +6,10 @@ from flask import Flask
 from flask_sockets import Sockets
 import json
 import time
+import numpy as np
 
 from utils import ConsumerQueue, get_dataset_from_db, set_dataset_to_db
-from tsnex import test_embedding, load_dataset
+from tsnex import do_embedding, load_dataset
 
 
 app = Flask(__name__)
@@ -50,7 +51,7 @@ def get_data_iterative(ws):
     X, y = load_dataset()
     print("Load dataset OK: X.shape={}, y.shape={}".format(X.shape, y.shape))
 
-    X_projected = test_embedding(X, n_iter=400)
+    X_projected = do_embedding(X, n_iter=400, continuous=False)
     set_dataset_to_db(X_projected, y)
     print("Update new embedding Ok")
 
@@ -70,10 +71,41 @@ def pause_server(ws):
 def client_moved_points(ws):
     while not ws.closed:
         message = ws.receive()
-        print("Client moved points: ", message)
         if (message is not None):
             moved_points = json.loads(message)
-            print("Parsed json: ", moved_points)
+            n_moved = len(moved_points)
+
+            X, y = load_dataset()
+            print("Load dataset OK: X.shape={}, y.shape={}".format(X.shape, y.shape))
+
+            n_points = X.shape[0]
+
+            new_X = []
+            new_y = []
+            moved_ids = []
+
+            for i in range(n_moved):
+                point = moved_points[i]
+                point_id = int(point['id'])
+                point_x = float(point['x'])
+                point_y = float(point['y'])
+
+                print("Moved point: ", point_id, point_x, point_y)
+                moved_ids.append(point_id)
+                new_X.append([point_x, point_y])
+                new_y.append(y[point_id])
+
+            for i in range(n_points):
+                if i not in moved_ids:
+                    new_X.append([X[i][0], X[i][1]])
+                    new_y.append(y[i])
+
+            new_X = np.array(new_X)
+            new_y = np.array(new_y)
+
+            X_projected = do_embedding(new_X, n_iter=100, continuous=True)
+            set_dataset_to_db(X_projected, new_y)
+            print("Update new embedding Ok")
 
 
 @app.route('/')
