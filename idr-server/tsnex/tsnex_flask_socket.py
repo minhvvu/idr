@@ -32,7 +32,6 @@ def get_data_iterative(ws):
     def auto_send():
         X = conQueue.pop()
         if X is not None:
-            # if conQueue.dataCount % 5 == 0:
             raw_data = [
                 {
                     'id': str(i),
@@ -49,7 +48,6 @@ def get_data_iterative(ws):
     conQueue.registerCallback(auto_send)
 
     X, y = load_dataset()
-    print("Load dataset OK: X.shape={}, y.shape={}".format(X.shape, y.shape))
 
     X_projected = do_embedding(X, n_iter=400, continuous=False)
     set_dataset_to_db(X_projected, y)
@@ -75,10 +73,10 @@ def client_moved_points(ws):
             moved_points = json.loads(message)
             n_moved = len(moved_points)
 
-            X, y = load_dataset()
-            print("Load dataset OK: X.shape={}, y.shape={}".format(X.shape, y.shape))
-
+            X, y = get_dataset_from_db()
             n_points = X.shape[0]
+            print("Get previous embedding from Redis: X.shape={}, y.shape={}".format(
+                X.shape, y.shape))
 
             new_X = []
             new_y = []
@@ -90,22 +88,21 @@ def client_moved_points(ws):
                 point_x = float(point['x'])
                 point_y = float(point['y'])
 
-                print("Moved point: ", point_id, point_x, point_y)
                 moved_ids.append(point_id)
                 new_X.append([point_x, point_y])
                 new_y.append(y[point_id])
 
             for i in range(n_points):
                 if i not in moved_ids:
-                    new_X.append([X[i][0], X[i][1]])
+                    new_X.append(X[i, :])
                     new_y.append(y[i])
 
             new_X = np.array(new_X)
             new_y = np.array(new_y)
 
-            X_projected = do_embedding(new_X, n_iter=100, continuous=True)
+            X_projected = do_embedding(new_X, n_iter=400, continuous=True)
             set_dataset_to_db(X_projected, new_y)
-            print("Update new embedding Ok")
+            print("Update new embedding from moved points OK")
 
 
 @app.route('/')

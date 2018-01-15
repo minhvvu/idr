@@ -9,6 +9,7 @@ type alias Model =
     { rawData : List Point
     , scatter : Scatter
     , drag : Draggable.State CircleId
+    , ready : Bool
     }
 
 
@@ -17,6 +18,7 @@ initialModel =
     { rawData = []
     , scatter = emptyScatter
     , drag = Draggable.init
+    , ready = true
     }
 
 
@@ -29,4 +31,5 @@ errorModel =
     { rawData = []
     , scatter = emptyScatter
     , drag = Draggable.init
+    , ready = false
     }

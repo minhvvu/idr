@@ -163,18 +163,18 @@ def my_gradient_descent(objective, p0, it, n_iter,
     return p, error, i
 
 
-def do_embedding(X, n_iter=1000, continuous=False):
-
+def do_embedding(X, n_iter=400, continuous=False):
     if not continuous:
-        print("START EMBEDDING")
+        tsne.init = 'random'
         X_projected = tsne.fit_transform(X)
-        print("\nEMBEDDING DONE")
         return X_projected
-
     else:
-        objective = tsne._kl_divergence
-        next_X = my_gradient_descent(objective, p0=X, it=0, n_iter=n_iter)
-        return next_X
+        # next time, can not run this function because input is now 2-dim, not 64-dim
+        X_projected, err, i = my_gradient_descent(
+            # folk params
+            objective=sklearn.manifold.t_sne._kl_divergence_bh,
+            p0=X, it=0, n_iter=n_iter)
+        return X_projected
 
 
 def print_progress(i, n):
@@ -186,7 +186,7 @@ def print_progress(i, n):
 
 
 positions = []
-n_iter = 300
+n_iter = 400
 sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
 tsne = TSNE(n_components=2, random_state=0, n_iter=n_iter, verbose=1)
 tsne._EXPLORATION_N_ITER = 100

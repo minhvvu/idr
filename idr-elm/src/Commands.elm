@@ -57,6 +57,14 @@ getNewData =
     WebSocket.send getDataURI "Request data from client"
 
 
+{-| Client command to inform server about its `readiness`
+to receive new data from the next iteration
+-}
+getNewDataAck : Bool -> Cmd Msg
+getNewDataAck readiness =
+    WebSocket.send getDataURI readiness
+
+
 {-| Client command to send a list of Points to server
 -}
 sendMovedPoints : List Point -> Cmd Msg
@@ -120,9 +128,8 @@ encodeListPoints : List Point -> String
 encodeListPoints points =
     let
         pretyPrint =
+            -- set to zero for disable prety json string
             1
-
-        {--0 for disable prety json string --}
     in
         points
             |> listPointEncoder
