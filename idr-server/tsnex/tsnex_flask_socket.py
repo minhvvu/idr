@@ -50,10 +50,10 @@ def get_data_iterative(ws):
     X, y = load_dataset()
     print("Load dataset OK: X.shape={}, y.shape={}".format(X.shape, y.shape))
 
-    X_projected = test_embedding(X)
+    X_projected = test_embedding(X, n_iter=400)
     set_dataset_to_db(X_projected, y)
     print("Update new embedding Ok")
-    
+
 
 @sockets.route('/tsnex/pause_server')
 def pause_server(ws):

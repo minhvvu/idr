@@ -23,7 +23,7 @@ def load_dataset():
     return X, y
 
 
-def test_embedding(X):
+def test_embedding(X, n_iter=1000):
     old_gradient_fnc = sklearn.manifold.t_sne._gradient_descent
 
     positions = []
@@ -168,12 +168,14 @@ def test_embedding(X):
 
     print("START EMBEDDING")
     sklearn.manifold.t_sne._gradient_descent = _gradient_descent
-
-    tsne = TSNE(n_components=2, random_state=0, n_iter=1000)
+    
+    tsne = TSNE(n_components=2, random_state=0, n_iter=n_iter, verbose=1)
+    tsne._EXPLORATION_N_ITER = 100
 
     X_projected = tsne.fit_transform(X)
 
     sklearn.manifold.t_sne._gradient_descent = old_gradient_fnc
+    #sklearn.manifold.t_sne._EXPLORATION_N_ITER = 250
     print("\nEMBEDDING DONE")
 
     return X_projected
