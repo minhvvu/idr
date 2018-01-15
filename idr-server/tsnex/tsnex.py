@@ -8,8 +8,9 @@ from sklearn.manifold import TSNE
 import numpy as np
 from numpy import linalg
 from time import time, sleep
+import json
 
-from consumer_queue import ConsumerQueue
+from utils import ConsumerQueue, set_dataset_to_db
 
 conQueue = ConsumerQueue("ConsumerQueue in TSNEX module")
 
@@ -19,9 +20,11 @@ def load_dataset():
 
     X = dataset.data[:400]
     y = dataset.target[:400]
-    print(X.shape)
-    print(len(y))
-    return X, y
+    print("Sample dataset: X.shape={}, len(y)={}".format(X.shape, len(y)))
+
+    set_dataset_to_db(X, y)
+
+    return True
 
 
 def test_embedding(X):
