@@ -1,5 +1,5 @@
-# ConsumerQueue.py
-# a Singleton class that holds the intermediate data
+# utils.py
+# ConsumerQueue a Singleton class that holds the intermediate data
 # produced by TSNE in each iteration
 
 import queue

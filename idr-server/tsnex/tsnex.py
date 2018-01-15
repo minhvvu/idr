@@ -17,14 +17,10 @@ conQueue = ConsumerQueue("ConsumerQueue in TSNEX module")
 
 def load_dataset():
     dataset = datasets.load_digits()
-
     X = dataset.data[:400]
     y = dataset.target[:400]
     print("Sample dataset: X.shape={}, len(y)={}".format(X.shape, len(y)))
-
-    set_dataset_to_db(X, y)
-
-    return True
+    return X, y
 
 
 def test_embedding(X):
@@ -176,8 +172,6 @@ def test_embedding(X):
     tsne = TSNE(n_components=2, random_state=0, n_iter=1000)
 
     X_projected = tsne.fit_transform(X)
-
-    # X_iter = np.dstack(position.reshape(-1, 2) for position in positions)
 
     sklearn.manifold.t_sne._gradient_descent = old_gradient_fnc
     print("\nEMBEDDING DONE")

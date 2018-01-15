@@ -7,7 +7,7 @@ from flask_sockets import Sockets
 import json
 import time
 
-from utils import ConsumerQueue, get_dataset_from_db
+from utils import ConsumerQueue, get_dataset_from_db, set_dataset_to_db
 from tsnex import test_embedding, load_dataset
 
 
@@ -24,10 +24,10 @@ def get_data(ws):
         message = ws.receive()
         print("Receive msg: ", message)
         if message is not None:  # client subscription
-            test_get_data_iterative(ws)
+            get_data_iterative(ws)
 
 
-def test_get_data_iterative(ws):
+def get_data_iterative(ws):
     def auto_send():
         X = conQueue.pop()
         if X is not None:
@@ -47,11 +47,13 @@ def test_get_data_iterative(ws):
 
     conQueue.registerCallback(auto_send)
 
-    if load_dataset():
-        X, y = get_dataset_from_db()
-        print("Load dataset OK: X.shape={}, y.shape={}".format(X.shape, y.shape))
-        test_embedding(X)
+    X, y = load_dataset()
+    print("Load dataset OK: X.shape={}, y.shape={}".format(X.shape, y.shape))
 
+    X_projected = test_embedding(X)
+    set_dataset_to_db(X_projected, y)
+    print("Update new embedding Ok")
+    
 
 @sockets.route('/tsnex/pause_server')
 def pause_server(ws):
