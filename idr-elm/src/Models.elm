@@ -10,6 +10,8 @@ type alias Model =
     , scatter : Scatter
     , drag : Draggable.State CircleId
     , ready : Bool
+    , current_it : Int
+    , debugMsg : String
     }
 
 
@@ -19,6 +21,8 @@ initialModel =
     , scatter = emptyScatter
     , drag = Draggable.init
     , ready = True
+    , current_it = 0
+    , debugMsg = "Client ready"
     }
 
 
@@ -32,4 +36,6 @@ errorModel =
     , scatter = emptyScatter
     , drag = Draggable.init
     , ready = False
+    , current_it = -1
+    , debugMsg = "Error occurs"
     }

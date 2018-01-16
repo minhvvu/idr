@@ -16,8 +16,14 @@ update msg ({ scatter, ready } as model) =
         NewData dataStr ->
             updateNewData model dataStr
 
-        RequestData ->
-            ( Models.initialModel, getNewData )
+        LoadDataset ->
+            ( Models.initialModel, loadDataset )
+
+        DatasetStatus status ->
+            { model | debugMsg = status } ! []
+
+        DoEmbedding ->
+            ( model, doEmbedding model.current_it )
 
         OnDragBy delta ->
             let

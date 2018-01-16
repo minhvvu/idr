@@ -11,10 +11,11 @@ view : Model -> Html Msg
 view model =
     div []
         [ div []
-            [ button [ onClick Msgs.RequestData ] [ text "Request Data" ]
+            [ button [ onClick Msgs.LoadDataset ] [ text "Load dataset (MNIST)" ]
             , button [ onClick Msgs.PauseServer ] [ text "Pause Server" ]
             , button [ onClick Msgs.ContinueServer ] [ text "Continue Server" ]
             ]
+        , div [] [ text model.debugMsg ]
         , scatterView model.scatter
         , movedPointsView model.scatter
         , div [] [ button [ onClick Msgs.SendMovedPoints ] [ text "Send Moved Points" ] ]

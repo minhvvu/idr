@@ -15,11 +15,39 @@ socketServer =
     "ws://127.0.0.1:5000/tsnex"
 
 
+{-| Socket endpoint for loading a new dataset
+-}
+loadDatasetURI : String
+loadDatasetURI =
+    socketServer ++ "/load_dataset"
+
+
+{-| Client command to load a new dataset
+-}
+loadDataset : Cmd Msg
+loadDataset =
+    WebSocket.send loadDatasetURI "MNIST"
+
+
 {-| Socket endpoint for transforming data from server to client
 -}
 getDataURI : String
 getDataURI =
     socketServer ++ "/get_data"
+
+
+{-| Socket endpoint for calling function to do embedding
+-}
+doEmbeddingURI : String
+doEmbeddingURI =
+    socketServer ++ "/do_embedding"
+
+
+{-| Client command request to do embedding with param is the iteration
+-}
+doEmbedding : Int -> Cmd Msg
+doEmbedding iteration =
+    WebSocket.send doEmbeddingURI (toString iteration)
 
 
 {-| Socket endpoint for transforming list of moved points from client to server
@@ -40,21 +68,32 @@ continueServerURI =
 -}
 listenToNewData : Sub Msg
 listenToNewData =
-    WebSocket.listen getDataURI Msgs.NewData
+    Sub.batch
+        [ WebSocket.listen loadDatasetURI Msgs.DatasetStatus
+        , WebSocket.listen getDataURI Msgs.NewData
+        ]
 
 
 {-| Client command to request the initial data
 -}
 getInitData : Cmd Msg
 getInitData =
-    WebSocket.send getDataURI "Get Initial Data"
+    Cmd.none
+
+
+
+-- WebSocket.send getDataURI "Get Initial Data"
 
 
 {-| Client command to request new data
 -}
 getNewData : Cmd Msg
 getNewData =
-    WebSocket.send getDataURI "Request data from client"
+    Cmd.none
+
+
+
+-- WebSocket.send getDataURI "Request data from client"
 
 
 {-| Client command to inform server about its `readiness`
@@ -62,23 +101,32 @@ to receive new data from the next iteration
 -}
 getNewDataAck : Bool -> Cmd Msg
 getNewDataAck ready =
-    WebSocket.send getDataURI ("ACK=" ++ (toString ready))
+    Cmd.none
 
 
 
+-- WebSocket.send getDataURI ("ACK=" ++ (toString ready))
 {- ! Client command to continue server after being paused -}
 
 
 sendContinue : Cmd Msg
 sendContinue =
-    WebSocket.send continueServerURI "ACK=True"
+    Cmd.none
+
+
+
+--    WebSocket.send continueServerURI "ACK=True"
 
 
 {-| Client command to send a list of Points to server
 -}
 sendMovedPoints : List Point -> Cmd Msg
 sendMovedPoints points =
-    WebSocket.send movedPointsURI (encodeListPoints points)
+    Cmd.none
+
+
+
+-- WebSocket.send movedPointsURI (encodeListPoints points)
 
 
 {-| Util function to describe how to deocde json to a Point object

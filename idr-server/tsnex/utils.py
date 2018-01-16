@@ -11,7 +11,7 @@ redis_db = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 KEY_PREFIX = 'tsnex_demo01_'
 
-server_status = {
+initial_server_status = {
     'current_it': 0,
     'ready': True
 }
@@ -60,9 +60,26 @@ def get_dataset_from_db():
 def set_server_status(statusObj):
     set_to_db(key='status', str_value=json.dump(statusObj))
 
+
 def get_server_status():
     status = get_from_db(key='status')
     return json.loads(status)
+
+
+def set_ready_status(ready):
+    statusObj = get_server_status()
+    statusObj['ready'] = ready
+    set_server_status(statusObj)
+
+def increase_iteration():
+    statusObj = get_server_status()
+    statusObj['current_it'] += 1
+    set_server_status(statusObj)
+
+def get_current_iteration():
+    statusObj = get_server_status()
+    return statusObj['current_it']
+
 
 
 class ConsumerQueue(object):

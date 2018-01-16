@@ -14,7 +14,7 @@ import Msgs exposing (Msg(..))
 
 init : ( Model, Cmd Msg )
 init =
-    ( initialModel, getInitData )
+    ( initialModel, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

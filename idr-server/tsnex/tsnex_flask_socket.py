@@ -9,8 +9,9 @@ import time
 import numpy as np
 
 from utils import ConsumerQueue, get_dataset_from_db, set_dataset_to_db
+import utils
 from tsnex import do_embedding, load_dataset
-
+import tsnex
 
 app = Flask(__name__)
 sockets = Sockets(app)
@@ -18,7 +19,25 @@ sockets = Sockets(app)
 conQueue = ConsumerQueue("ConsumerQueue in Websocket")
 
 
-@sockets.route('/tsnex/get_data')
+@sockets.route('/tsnex/load_dataset')
+def do_load_dataset(ws):
+    while not ws.closed:
+        datasetName = ws.receive()
+        if datasetName is not None:
+            if datasetName.upper() in ['MNIST']:
+                X, y = tsnex.load_dataset()
+                result = {
+                    'shape_X': X.shape,
+                    'shape_y': y.shape
+                }
+
+                utils.set_dataset_to_db(X, y)
+                ws.send(json.dumps(result))
+            else:
+                ws.send("Dataset {} is not supported".format(datasetName))
+
+
+@sockets.route('/tsnex/get_data_xxx')
 def get_data(ws):
 
     while not ws.closed:
@@ -67,7 +86,7 @@ def continue_server(ws):
     while not ws.closed:
         message = ws.receive()
         if message is not None and message == "ACK=True":
-            conQueue.continueServer()
+            utils.set_ready_status(ready=True)
             
 
 @sockets.route('/tsnex/moved_points')
