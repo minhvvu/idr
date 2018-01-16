@@ -5,39 +5,106 @@
 import queue
 import json
 import numpy as np
-
 import redis
+
+
+# redis database to store the dataset and the intermediate results
 redis_db = redis.StrictRedis(host='localhost', port=6379, db=0)
 
+# prefix key to store data in redis
 KEY_PREFIX = 'tsnex_demo01_'
 
-initial_server_status = {
+# channel name for store intermediate data in redis
+DATA_CHANNEL = 'tsnex_X_embedding'
+
+# publish/subscribe object in redis
+pubsub = redis_db.pubsub()
+pubsub.subscribe(DATA_CHANNEL)
+
+
+# status object to store some server infos
+server_status = {
+    'tick_frequence': 0.5,
+    'n_jump': 5,
     'current_it': 0,
     'ready': True
 }
 
+# dataset meta data
+dataset_meta_data = {
+    'n_total': 0,
+    'original_dim': 0,
+    'reduced_dim': 0,
+    'shape_X': [0, 0],
+    'type_X': None,
+    'shape_y': [0],
+    'type_y': None
+}
 
-def public_data(X):
-    redis_db.publish(DATA_CHANNEL, X.ravel().tostring())
 
-def my_handler(msg):
-    print("MY HANDLER: ", msg['type'])
-    if msg['type'] == 'message':
-        print(len(msg['type']))
-    else: print('other message')
+def publish_data(X):
+    """ Push intermediate result into a redis channel
+    """
+    data_str = X.ravel().tostring()
+    # note that float data type is written as float32
+    redis_db.publish(DATA_CHANNEL, data_str)
 
 
-DATA_CHANNEL = 'tsnex_X_embedding'
-p = redis_db.pubsub()
-p.subscribe(**{DATA_CHANNEL: my_handler})
+def get_subscribed_data():
+    """ Get subscribled from published channel in redis
+    """
+    msg = pubsub.get_message()
+    if msg is None or msg['type'] != 'message':
+        return None
+
+    data_str = msg['data']
+    n_total = dataset_meta_data['n_total']
+    reduced_dim = dataset_meta_data['reduced_dim']
+    data_obj = np.fromstring(data_str, dtype=np.float32)
+    data_arr = data_obj.reshape([n_total, reduced_dim])
+    return data_arr
 
 
 def set_to_db(key, str_value):
+    """ Set binary string value into redis by key
+    """
     redis_db.set(KEY_PREFIX + key, str_value)
 
 
 def get_from_db(key):
+    """ Get binary string value from redis by key
+    """
     return redis_db.get(KEY_PREFIX + key)
+
+
+def set_ndarray(name, arr):
+    """ Set numpy ndarray to key name in redis
+    """
+    set_to_db(key=name, str_value=arr.ravel().tostring())
+
+
+def get_ndarray(name, arr_shape, arr_type):
+    """ Get numpy ndarray from redis by key and reshape
+    """
+    arr_str = get_from_db(key=name)
+    return np.fromstring(arr_str, dtype=np.dtype(arr_type)) \
+        .reshape(arr_shape)
+
+
+def get_X():
+    """ Util function to get original X
+    """
+    return get_ndarray(name='X_original',
+        arr_shape=dataset_meta_data['shape_X'],
+        arr_type=dataset_meta_data['type_X'])
+
+
+def get_y():
+    """ Util function to get original y
+    """
+    return get_ndarray(name='y_original',
+        arr_shape=dataset_meta_data['shape_y'],
+        arr_type=dataset_meta_data['type_y'])
 
 
 def set_dataset_to_db(X, y):
@@ -74,7 +141,7 @@ def get_dataset_from_db():
 
 def set_server_status(statusObj=None):
     if statusObj is None:
-        statusObj = initial_server_status
+        statusObj = server_status
     set_to_db(key='status', str_value=json.dumps(statusObj))
 
 
@@ -88,19 +155,21 @@ def set_ready_status(ready):
     statusObj['ready'] = ready
     set_server_status(statusObj)
 
+
 def get_ready_status():
     statusObj = get_server_status()
     return statusObj['ready']
+
 
 def increase_iteration():
     statusObj = get_server_status()
     statusObj['current_it'] += 1
     set_server_status(statusObj)
 
+
 def get_current_iteration():
     statusObj = get_server_status()
     return statusObj['current_it']
-
 
 
 class ConsumerQueue(object):

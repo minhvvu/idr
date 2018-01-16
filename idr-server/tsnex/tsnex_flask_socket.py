@@ -2,23 +2,28 @@
 # using: https://github.com/kennethreitz/flask-sockets
 # TODO: Think about to use Flask-SocketIO (must change client too)
 
+
+import threading
+
 from flask import Flask
 from flask_sockets import Sockets
 import json
 import time
 import numpy as np
 
-from utils import ConsumerQueue, get_dataset_from_db, set_dataset_to_db
-import utils
 from tsnex import do_embedding, load_dataset
 import tsnex
+
+
+from utils import ConsumerQueue, get_dataset_from_db, set_dataset_to_db
+import utils
+
 
 app = Flask(__name__)
 sockets = Sockets(app)
 
 conQueue = ConsumerQueue("ConsumerQueue in Websocket")
 
-import threading
 
 
 @sockets.route('/tsnex/load_dataset')
@@ -28,26 +33,60 @@ def do_load_dataset(ws):
         if datasetName is not None:
             if datasetName.upper() in ['MNIST']:
                 X, y = tsnex.load_dataset()
-                result = {
+                utils.dataset_meta_data = {
+                    'n_total': X.shape[0],
+                    'original_dim': X.shape[1],
+                    'reduced_dim': 2,
                     'shape_X': X.shape,
-                    'shape_y': y.shape
+                    'type_X': X.dtype.name,
+                    'shape_y': y.shape,
+                    'type_y': y.dtype.name
                 }
-
-                utils.set_dataset_to_db(X, y)
-                ws.send(json.dumps(result))
+                utils.set_ndarray(name='X_original', arr=X)
+                utils.set_ndarray(name='y_original', arr=y)
+                ws.send(json.dumps(utils.dataset_meta_data))
             else:
                 ws.send("Dataset {} is not supported".format(datasetName))
 
 
 @sockets.route('/tsnex/do_embedding')
 def do_embedding(ws):
+
+    def send_to_client():
+        while True:
+            X_embedded = utils.get_subscribed_data()
+            if X_embedded is not None:
+                y = utils.get_y()
+                raw_points = [{
+                    'id': str(i),
+                    'x': float(X_embedded[i][0]),
+                    'y': float(X_embedded[i][1]),
+                    'label': str(y[i])
+                } for i in range(y.shape[0])]
+                ws.send(json.dumps(raw_points))
+            time.sleep(utils.server_status['tick_frequence'])
+
     while not ws.closed:
         message = ws.receive()
-        if message is not None:
+        if message is not None and message != 'None':
             client_iteration = int(message)
             if (client_iteration == 0):
-                t = threading.Thread(target=tsnex.boostrap_do_embedding)
-                t.start()
+
+                # original X
+                X = utils.get_X()
+
+                # start a thread to do embedding
+                t1 = threading.Thread(
+                    name='tsnex_gradient_descent',
+                    target=tsnex.boostrap_do_embedding,
+                    args=(X,)) # use args=(X, ) to specific args is a tuple
+                t1.start()
+
+                # start a thread to listen to the intermediate result
+                t2 = threading.Thread(
+                    name='pubsub_from_redis',
+                    target=send_to_client)
+                t2.start()
         else:
             print("[Error]do_embedding with message = {}".format(message))
 
@@ -104,7 +143,7 @@ def continue_server(ws):
             print("Receive continous command, set random")
             hehe = random.randint(0, 10)
             utils.set_ready_status(ready=hehe%2)
-            utils.p.get_message()
+            utils.pubsub.get_message()
             
 
 @sockets.route('/tsnex/moved_points')

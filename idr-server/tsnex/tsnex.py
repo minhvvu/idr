@@ -118,16 +118,14 @@ def my_gradient_descent(objective, p0, it, n_iter,
         while not utils.get_ready_status():
             sleep(1)
 
-        # save the current position
-        position = p.copy().reshape(-1, 2)
+        if (i % utils.server_status['n_jump'] == 0):
+            # save the current position
+            position = p.copy() #.reshape(-1, 2)
+            # show to client
+            utils.publish_data(position)
 
-        # show to client
-        utils.public_data(position)
-
-        # conQueue.push(position)
-        if (i % 5 == 0):
             print_progress(i, n_iter)
-            sleep(0.4)
+            sleep(utils.server_status['tick_frequence'])
 
         # meeting 05/01: how to take into account the user feedbacks
         # I = indices of elements thqt are not yet fixed
@@ -174,7 +172,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
     return p, error, i
 
 
-def boostrap_do_embedding():
+def boostrap_do_embedding(X):
     """
     Boostrap to start doing embedding:
     Initialize the tsne object, setup params
@@ -187,7 +185,6 @@ def boostrap_do_embedding():
     tsne._EXPLORATION_N_ITER = 100       
     tsne.init = 'random'
 
-    X, y = utils.get_dataset_from_db()
     X_projected = tsne.fit_transform(X)
     
     print("Embedding done: ", X_projected[:10])
