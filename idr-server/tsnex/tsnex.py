@@ -115,12 +115,18 @@ def my_gradient_descent(objective, p0, it, n_iter,
     print("\nGradien Descent:")
     for i in range(it, n_iter):
 
+        while not utils.get_ready_status():
+            sleep(1)
+
         # save the current position
         position = p.copy().reshape(-1, 2)
+
+        # show to client
+        utils.public_data(position)
+
         # conQueue.push(position)
         if (i % 5 == 0):
             print_progress(i, n_iter)
-            print(utils.get_ready_status())
             sleep(0.4)
 
         # meeting 05/01: how to take into account the user feedbacks

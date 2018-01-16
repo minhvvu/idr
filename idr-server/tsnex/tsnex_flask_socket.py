@@ -104,6 +104,7 @@ def continue_server(ws):
             print("Receive continous command, set random")
             hehe = random.randint(0, 10)
             utils.set_ready_status(ready=hehe%2)
+            utils.p.get_message()
             
 
 @sockets.route('/tsnex/moved_points')

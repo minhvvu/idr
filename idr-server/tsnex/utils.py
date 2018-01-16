@@ -17,6 +17,21 @@ initial_server_status = {
 }
 
 
+def public_data(X):
+    redis_db.publish(DATA_CHANNEL, X.ravel().tostring())
+
+def my_handler(msg):
+    print("MY HANDLER: ", msg['type'])
+    if msg['type'] == 'message':
+        print(len(msg['type']))
+    else: print('other message')
+
+
+DATA_CHANNEL = 'tsnex_X_embedding'
+p = redis_db.pubsub()
+p.subscribe(**{DATA_CHANNEL: my_handler})
+
+
 def set_to_db(key, str_value):
     redis_db.set(KEY_PREFIX + key, str_value)
 
