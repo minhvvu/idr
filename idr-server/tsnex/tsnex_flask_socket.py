@@ -18,6 +18,8 @@ sockets = Sockets(app)
 
 conQueue = ConsumerQueue("ConsumerQueue in Websocket")
 
+import threading
+
 
 @sockets.route('/tsnex/load_dataset')
 def do_load_dataset(ws):
@@ -35,6 +37,19 @@ def do_load_dataset(ws):
                 ws.send(json.dumps(result))
             else:
                 ws.send("Dataset {} is not supported".format(datasetName))
+
+
+@sockets.route('/tsnex/do_embedding')
+def do_embedding(ws):
+    while not ws.closed:
+        message = ws.receive()
+        if message is not None:
+            client_iteration = int(message)
+            if (client_iteration == 0):
+                t = threading.Thread(target=tsnex.boostrap_do_embedding)
+                t.start()
+        else:
+            print("[Error]do_embedding with message = {}".format(message))
 
 
 @sockets.route('/tsnex/get_data_xxx')
@@ -80,13 +95,15 @@ def get_data_iterative(ws):
     set_dataset_to_db(X_projected, y)
     print("Update new embedding Ok")
 
-
+import random
 @sockets.route('/tsnex/continue_server')
 def continue_server(ws):
     while not ws.closed:
         message = ws.receive()
-        if message is not None and message == "ACK=True":
-            utils.set_ready_status(ready=True)
+        if message is not None:
+            print("Receive continous command, set random")
+            hehe = random.randint(0, 10)
+            utils.set_ready_status(ready=hehe%2)
             
 
 @sockets.route('/tsnex/moved_points')

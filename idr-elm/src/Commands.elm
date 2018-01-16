@@ -64,13 +64,21 @@ continueServerURI =
     socketServer ++ "/continue_server"
 
 
+{-| Client command to continue server after being paused
+-}
+sendContinue : Cmd Msg
+sendContinue =
+    WebSocket.send continueServerURI "ACK=True"
+
+
 {-| Client subscription to listen to the new data from server
 -}
 listenToNewData : Sub Msg
 listenToNewData =
     Sub.batch
         [ WebSocket.listen loadDatasetURI Msgs.DatasetStatus
-        , WebSocket.listen getDataURI Msgs.NewData
+
+        --, WebSocket.listen getDataURI Msgs.NewData
         ]
 
 
@@ -106,16 +114,6 @@ getNewDataAck ready =
 
 
 -- WebSocket.send getDataURI ("ACK=" ++ (toString ready))
-{- ! Client command to continue server after being paused -}
-
-
-sendContinue : Cmd Msg
-sendContinue =
-    Cmd.none
-
-
-
---    WebSocket.send continueServerURI "ACK=True"
 
 
 {-| Client command to send a list of Points to server

@@ -57,8 +57,10 @@ def get_dataset_from_db():
     return X, y
 
 
-def set_server_status(statusObj):
-    set_to_db(key='status', str_value=json.dump(statusObj))
+def set_server_status(statusObj=None):
+    if statusObj is None:
+        statusObj = initial_server_status
+    set_to_db(key='status', str_value=json.dumps(statusObj))
 
 
 def get_server_status():
@@ -70,6 +72,10 @@ def set_ready_status(ready):
     statusObj = get_server_status()
     statusObj['ready'] = ready
     set_server_status(statusObj)
+
+def get_ready_status():
+    statusObj = get_server_status()
+    return statusObj['ready']
 
 def increase_iteration():
     statusObj = get_server_status()

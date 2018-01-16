@@ -11,9 +11,13 @@ from numpy import linalg
 from time import time, sleep
 import json
 
+import utils
 from utils import ConsumerQueue, set_dataset_to_db
 
 conQueue = ConsumerQueue("ConsumerQueue in TSNEX module")
+
+positions = []
+n_iter = 400
 
 
 def load_dataset():
@@ -111,15 +115,12 @@ def my_gradient_descent(objective, p0, it, n_iter,
     print("\nGradien Descent:")
     for i in range(it, n_iter):
 
-        while not conQueue.isReady():
-            sleep(1)
-
         # save the current position
         position = p.copy().reshape(-1, 2)
         # conQueue.push(position)
         if (i % 5 == 0):
-            conQueue.push(position)
             print_progress(i, n_iter)
+            print(utils.get_ready_status())
             sleep(0.4)
 
         # meeting 05/01: how to take into account the user feedbacks
@@ -167,6 +168,25 @@ def my_gradient_descent(objective, p0, it, n_iter,
     return p, error, i
 
 
+def boostrap_do_embedding():
+    """
+    Boostrap to start doing embedding:
+    Initialize the tsne object, setup params
+    """
+
+    utils.set_server_status(statusObj=None)
+
+    sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
+    tsne = TSNE(n_components=2, random_state=0, n_iter=n_iter, verbose=1)
+    tsne._EXPLORATION_N_ITER = 100       
+    tsne.init = 'random'
+
+    X, y = utils.get_dataset_from_db()
+    X_projected = tsne.fit_transform(X)
+    
+    print("Embedding done: ", X_projected[:10])
+
+
 def do_embedding(X, n_iter=400, continuous=False):
     if not continuous:
         tsne.init = 'random'
@@ -188,9 +208,3 @@ def print_progress(i, n):
     sys.stdout.write("[%s] %d%%" % ('=' * n_gap, percent))
     sys.stdout.flush()
 
-
-positions = []
-n_iter = 400
-sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
-tsne = TSNE(n_components=2, random_state=0, n_iter=n_iter, verbose=1)
-tsne._EXPLORATION_N_ITER = 100
