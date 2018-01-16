@@ -11,19 +11,12 @@ import json
 import time
 import numpy as np
 
-from tsnex import do_embedding, load_dataset
 import tsnex
-
-
-from utils import ConsumerQueue, get_dataset_from_db, set_dataset_to_db
 import utils
 
 
 app = Flask(__name__)
 sockets = Sockets(app)
-
-conQueue = ConsumerQueue("ConsumerQueue in Websocket")
-
 
 
 @sockets.route('/tsnex/load_dataset')
@@ -74,12 +67,13 @@ def do_embedding(ws):
 
                 # original X
                 X = utils.get_X()
+                max_iter = 500
 
                 # start a thread to do embedding
                 t1 = threading.Thread(
                     name='tsnex_gradient_descent',
                     target=tsnex.boostrap_do_embedding,
-                    args=(X,)) # use args=(X, ) to specific args is a tuple
+                    args=(X, max_iter, )) # use args=(X, ) to specific args is a tuple
                 t1.start()
 
                 # start a thread to listen to the intermediate result
@@ -90,49 +84,6 @@ def do_embedding(ws):
         else:
             print("[Error]do_embedding with message = {}".format(message))
 
-
-@sockets.route('/tsnex/get_data_xxx')
-def get_data(ws):
-
-    while not ws.closed:
-        message = ws.receive()
-        print("Receive msg: ", message)
-        if message is not None:  # client subscription
-            if message.startswith("ACK"):
-                if message == "ACK=False":
-                    conQueue.pauseServer()
-            else:
-                get_data_iterative(ws)
-
-
-def get_data_iterative(ws):
-    n_sent = 0
-
-    def auto_send():
-        X = conQueue.pop()
-        if X is not None:
-            raw_data = [
-                {
-                    'id': str(i),
-                    'x': float(X[i][0]),
-                    'y': float(X[i][1]),
-                    'label': str(y[i])
-                } for i in range(len(y))
-            ]
-            nonlocal n_sent
-            if not ws.closed and n_sent < 10:
-                ws.send(json.dumps(raw_data))
-                n_sent += 1
-            else:
-                pass
-
-    conQueue.registerCallback(auto_send)
-
-    X, y = load_dataset()
-
-    X_projected = do_embedding(X, n_iter=400, continuous=False)
-    set_dataset_to_db(X_projected, y)
-    print("Update new embedding Ok")
 
 import random
 @sockets.route('/tsnex/continue_server')

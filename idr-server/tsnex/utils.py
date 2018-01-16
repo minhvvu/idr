@@ -2,6 +2,7 @@
 # ConsumerQueue a Singleton class that holds the intermediate data
 # produced by TSNE in each iteration
 
+import sys
 import queue
 import json
 import numpy as np
@@ -24,7 +25,7 @@ pubsub.subscribe(DATA_CHANNEL)
 
 # status object to store some server infos
 server_status = {
-    'tick_frequence': 0.5,
+    'tick_frequence': 0.2,
     'n_jump': 5,
     'current_it': 0,
     'ready': True
@@ -172,49 +173,9 @@ def get_current_iteration():
     return statusObj['current_it']
 
 
-class ConsumerQueue(object):
-    """ A queue that stores all intermediate result of TSNE
-        Each element in queue is waiting to be sent to client
-        Singleton implementation from:
-        http://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html
-    """
-
-    __instance = None
-
-    callback = None
-    dataQueue = queue.Queue()
-    dataCount = 0
-
-    ready = True
-
-    def __new__(cls, val):
-        if ConsumerQueue.__instance is None:
-            ConsumerQueue.__instance = object.__new__(cls)
-
-        ConsumerQueue.__instance.val = val
-        return ConsumerQueue.__instance
-
-    def registerCallback(self, callback):
-        print("Register callback: ", callback)
-        self.callback = callback
-
-    def push(self, item):
-        self.dataQueue.put(item)
-        self.dataCount += 1
-        if self.callback is not None:
-            self.callback()
-        else:
-            print("[Error] Callback is not available")
-
-    def pop(self):
-        value = self.dataQueue.get() if not self.dataQueue.empty() else None
-        return value
-
-    def pauseServer(self):
-        self.ready = False
-
-    def continueServer(self):
-        self.ready = True
-
-    def isReady(self):
-        return self.ready
+def print_progress(i, n):
+    percent = int(100.0 * i / n)
+    n_gap = int(percent / 2)
+    sys.stdout.write('\r')
+    sys.stdout.write("[%s] %d%%" % ('=' * n_gap, percent))
+    sys.stdout.flush()

@@ -1,6 +1,6 @@
 # tsnex.py
 # interactive tsne: https://www.oreilly.com/learning/an-illustrated-introduction-to-the-t-sne-algorithm
-import sys
+# /opt/anaconda3/lib/python3.6/site-packages/sklearn/manifold/t_sne.py
 
 import sklearn
 from sklearn import datasets
@@ -12,12 +12,6 @@ from time import time, sleep
 import json
 
 import utils
-from utils import ConsumerQueue, set_dataset_to_db
-
-conQueue = ConsumerQueue("ConsumerQueue in TSNEX module")
-
-positions = []
-n_iter = 400
 
 
 def load_dataset():
@@ -124,7 +118,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             # show to client
             utils.publish_data(position)
 
-            print_progress(i, n_iter)
+            utils.print_progress(i, n_iter)
             sleep(utils.server_status['tick_frequence'])
 
         # meeting 05/01: how to take into account the user feedbacks
@@ -172,7 +166,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
     return p, error, i
 
 
-def boostrap_do_embedding(X):
+def boostrap_do_embedding(X, max_iter=400):
     """
     Boostrap to start doing embedding:
     Initialize the tsne object, setup params
@@ -181,33 +175,9 @@ def boostrap_do_embedding(X):
     utils.set_server_status(statusObj=None)
 
     sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
-    tsne = TSNE(n_components=2, random_state=0, n_iter=n_iter, verbose=1)
+    tsne = TSNE(n_components=2, random_state=0, n_iter=max_iter, verbose=1)
     tsne._EXPLORATION_N_ITER = 100       
     tsne.init = 'random'
 
     X_projected = tsne.fit_transform(X)
-    
-    print("Embedding done: ", X_projected[:10])
-
-
-def do_embedding(X, n_iter=400, continuous=False):
-    if not continuous:
-        tsne.init = 'random'
-        X_projected = tsne.fit_transform(X)
-        return X_projected
-    else:
-        # next time, can not run this function because input is now 2-dim, not 64-dim
-        X_projected, err, i = my_gradient_descent(
-            # folk params
-            objective=sklearn.manifold.t_sne._kl_divergence_bh,
-            p0=X, it=0, n_iter=n_iter)
-        return X_projected
-
-
-def print_progress(i, n):
-    percent = int(100.0 * i / n)
-    n_gap = int(percent / 2)
-    sys.stdout.write('\r')
-    sys.stdout.write("[%s] %d%%" % ('=' * n_gap, percent))
-    sys.stdout.flush()
-
+    return X_projected

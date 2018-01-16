@@ -33,7 +33,7 @@ loadDataset =
 -}
 getDataURI : String
 getDataURI =
-    socketServer ++ "/get_data"
+    socketServer ++ "/do_embedding"
 
 
 {-| Socket endpoint for calling function to do embedding
@@ -77,8 +77,7 @@ listenToNewData : Sub Msg
 listenToNewData =
     Sub.batch
         [ WebSocket.listen loadDatasetURI Msgs.DatasetStatus
-
-        --, WebSocket.listen getDataURI Msgs.NewData
+        , WebSocket.listen getDataURI Msgs.NewData
         ]
 
 
