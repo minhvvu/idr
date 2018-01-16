@@ -31,9 +31,9 @@ movedPointsURI =
 
 {-| Socket endpoint for pausing server
 -}
-pauseServerURI : String
-pauseServerURI =
-    socketServer ++ "/pause_server"
+continueServerURI : String
+continueServerURI =
+    socketServer ++ "/continue_server"
 
 
 {-| Client subscription to listen to the new data from server
@@ -61,8 +61,17 @@ getNewData =
 to receive new data from the next iteration
 -}
 getNewDataAck : Bool -> Cmd Msg
-getNewDataAck readiness =
-    WebSocket.send getDataURI readiness
+getNewDataAck ready =
+    WebSocket.send getDataURI ("ACK=" ++ (toString ready))
+
+
+
+{- ! Client command to continue server after being paused -}
+
+
+sendContinue : Cmd Msg
+sendContinue =
+    WebSocket.send continueServerURI "ACK=True"
 
 
 {-| Client command to send a list of Points to server
@@ -70,13 +79,6 @@ getNewDataAck readiness =
 sendMovedPoints : List Point -> Cmd Msg
 sendMovedPoints points =
     WebSocket.send movedPointsURI (encodeListPoints points)
-
-
-{-| Client command to pause server
--}
-sendPauseServerCmd : Cmd Msg
-sendPauseServerCmd =
-    WebSocket.send pauseServerURI "Client request to pause server"
 
 
 {-| Util function to describe how to deocde json to a Point object

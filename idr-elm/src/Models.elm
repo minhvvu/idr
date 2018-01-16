@@ -18,7 +18,7 @@ initialModel =
     { rawData = []
     , scatter = emptyScatter
     , drag = Draggable.init
-    , ready = true
+    , ready = True
     }
 
 
@@ -31,5 +31,5 @@ errorModel =
     { rawData = []
     , scatter = emptyScatter
     , drag = Draggable.init
-    , ready = false
+    , ready = False
     }

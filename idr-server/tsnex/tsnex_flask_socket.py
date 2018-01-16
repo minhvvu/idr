@@ -25,10 +25,16 @@ def get_data(ws):
         message = ws.receive()
         print("Receive msg: ", message)
         if message is not None:  # client subscription
-            get_data_iterative(ws)
+            if message.startswith("ACK"):
+                if message == "ACK=False":
+                    conQueue.pauseServer()
+            else:
+                get_data_iterative(ws)
 
 
 def get_data_iterative(ws):
+    n_sent = 0
+
     def auto_send():
         X = conQueue.pop()
         if X is not None:
@@ -40,10 +46,12 @@ def get_data_iterative(ws):
                     'label': str(y[i])
                 } for i in range(len(y))
             ]
-            if not ws.closed:
+            nonlocal n_sent
+            if not ws.closed and n_sent < 10:
                 ws.send(json.dumps(raw_data))
+                n_sent += 1
             else:
-                print("SOCKET DIE")
+                pass
 
     conQueue.registerCallback(auto_send)
 
@@ -54,16 +62,13 @@ def get_data_iterative(ws):
     print("Update new embedding Ok")
 
 
-@sockets.route('/tsnex/pause_server')
-def pause_server(ws):
+@sockets.route('/tsnex/continue_server')
+def continue_server(ws):
     while not ws.closed:
         message = ws.receive()
-        if message is not None:
-            print("Pause server command: ", message)
-            conQueue.togglePause()
-            # TODO: can not pause server
-            # because this code is in separated request with `get_data`
-
+        if message is not None and message == "ACK=True":
+            conQueue.continueServer()
+            
 
 @sockets.route('/tsnex/moved_points')
 def client_moved_points(ws):

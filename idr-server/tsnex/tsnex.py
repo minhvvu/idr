@@ -111,12 +111,16 @@ def my_gradient_descent(objective, p0, it, n_iter,
     print("\nGradien Descent:")
     for i in range(it, n_iter):
 
+        while not conQueue.isReady():
+            sleep(1)
+
         # save the current position
         position = p.copy().reshape(-1, 2)
-        conQueue.push(position)
+        # conQueue.push(position)
         if (i % 5 == 0):
+            conQueue.push(position)
             print_progress(i, n_iter)
-            sleep(0.1)
+            sleep(0.4)
 
         # meeting 05/01: how to take into account the user feedbacks
         # I = indices of elements thqt are not yet fixed

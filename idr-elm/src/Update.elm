@@ -11,10 +11,10 @@ import Plot.CircleGroup exposing (..)
 {-| Big update function to handle all system messages
 -}
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ scatter } as model) =
+update msg ({ scatter, ready } as model) =
     case msg of
         NewData dataStr ->
-            updateNewData dataStr
+            updateNewData model dataStr
 
         RequestData ->
             ( Models.initialModel, getNewData )
@@ -51,13 +51,16 @@ update msg ({ scatter } as model) =
                 ( model, sendMovedPoints movedPoints )
 
         PauseServer ->
-            ( model, sendPauseServerCmd )
+            { model | ready = False } ! []
+
+        ContinueServer ->
+            ( { model | ready = True }, sendContinue )
 
 
 {-| Util function to update new received data into model
 -}
-updateNewData : String -> ( Model, Cmd Msg )
-updateNewData dataStr =
+updateNewData : Model -> String -> ( Model, Cmd Msg )
+updateNewData { ready } dataStr =
     case decodeListPoints dataStr of
         Err msg ->
             Debug.log "[Error Decode data]" ( Models.errorModel, Cmd.none )
@@ -67,5 +70,5 @@ updateNewData dataStr =
                 | rawData = rawPoints
                 , scatter = Plot.Scatter.createScatter rawPoints
               }
-            , Cmd.none
+            , getNewDataAck ready
             )

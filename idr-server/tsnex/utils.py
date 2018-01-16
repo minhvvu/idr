@@ -11,6 +11,11 @@ redis_db = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 KEY_PREFIX = 'tsnex_demo01_'
 
+server_status = {
+    'current_it': 0,
+    'ready': True
+}
+
 
 def set_to_db(key, str_value):
     redis_db.set(KEY_PREFIX + key, str_value)
@@ -52,6 +57,14 @@ def get_dataset_from_db():
     return X, y
 
 
+def set_server_status(statusObj):
+    set_to_db(key='status', str_value=json.dump(statusObj))
+
+def get_server_status():
+    status = get_from_db(key='status')
+    return json.loads(status)
+
+
 class ConsumerQueue(object):
     """ A queue that stores all intermediate result of TSNE
         Each element in queue is waiting to be sent to client
@@ -65,7 +78,7 @@ class ConsumerQueue(object):
     dataQueue = queue.Queue()
     dataCount = 0
 
-    isPaused = False
+    ready = True
 
     def __new__(cls, val):
         if ConsumerQueue.__instance is None:
@@ -90,6 +103,11 @@ class ConsumerQueue(object):
         value = self.dataQueue.get() if not self.dataQueue.empty() else None
         return value
 
-    def togglePause(self):
-        self.isPaused = not self.isPaused
-        print("Server is paused!" if self.isPaused else "Server is running!")
+    def pauseServer(self):
+        self.ready = False
+
+    def continueServer(self):
+        self.ready = True
+
+    def isReady(self):
+        return self.ready

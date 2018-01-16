@@ -7,7 +7,6 @@ import Common exposing (CircleId)
 
 type Msg
     = NewData String
-    | NewDataAck Bool
     | RequestData
     | DragMsg (Draggable.Msg CircleId)
     | StartDragging CircleId
@@ -15,6 +14,7 @@ type Msg
     | StopDragging
     | SendMovedPoints
     | PauseServer
+    | ContinueServer
 
 
 myDragConfig : Draggable.Config CircleId Msg
