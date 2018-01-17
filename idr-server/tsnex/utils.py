@@ -24,14 +24,16 @@ pubsub.subscribe(DATA_CHANNEL)
 
 
 # status object to store some server infos
+# TODO: Save the config to redis
 server_status = {
-    'tick_frequence': 0.2,
+    'tick_frequence': 0.1,
     'n_jump': 5,
     'current_it': 0,
     'ready': True
 }
 
 # dataset meta data
+# TODO: Save this config to redis
 dataset_meta_data = {
     'n_total': 0,
     'original_dim': 0,

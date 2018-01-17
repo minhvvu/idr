@@ -44,45 +44,64 @@ def do_load_dataset(ws):
 
 @sockets.route('/tsnex/do_embedding')
 def do_embedding(ws):
-
-    def send_to_client():
-        while True:
-            X_embedded = utils.get_subscribed_data()
-            if X_embedded is not None:
-                y = utils.get_y()
-                raw_points = [{
-                    'id': str(i),
-                    'x': float(X_embedded[i][0]),
-                    'y': float(X_embedded[i][1]),
-                    'label': str(y[i])
-                } for i in range(y.shape[0])]
-                ws.send(json.dumps(raw_points))
-            time.sleep(utils.server_status['tick_frequence'])
-
+    """ Endpoint to hold all dataframes of the intermediate results
+    """
     while not ws.closed:
         message = ws.receive()
         if message is not None and message != 'None':
             client_iteration = int(message)
             if (client_iteration == 0):
-
-                # original X
-                X = utils.get_X()
-                max_iter = 500
-
-                # start a thread to do embedding
-                t1 = threading.Thread(
-                    name='tsnex_gradient_descent',
-                    target=tsnex.boostrap_do_embedding,
-                    args=(X, max_iter, )) # use args=(X, ) to specific args is a tuple
-                t1.start()
-
-                # start a thread to listen to the intermediate result
-                t2 = threading.Thread(
-                    name='pubsub_from_redis',
-                    target=send_to_client)
-                t2.start()
+                do_boostrap(ws)
+            else:
+                pass
         else:
             print("[Error]do_embedding with message = {}".format(message))
+
+
+def do_boostrap(ws):
+    """ Util function to do boostrap for setting up the two threads:
+        + A thread do embedding and publish the intermediate result to redis
+        + A second thread subscribes a channel on redis
+            to read the intermediate result and send it to client
+    """                 
+    X = utils.get_X()
+    max_iter = 500
+
+    # start a thread to do embedding
+    t1 = threading.Thread(
+        name='tsnex_gradient_descent',
+        target=tsnex.boostrap_do_embedding,
+        args=(X, max_iter, )) # specific that `args` is a tuple
+    t1.start()
+
+    # start a thread to listen to the intermediate result
+    t2 = threading.Thread(
+        name='pubsub_from_redis',
+        target=run_send_to_client,
+        args=(ws,))
+    t2.start()
+
+
+def run_send_to_client(ws):
+    """ Main loop of the thread that read the subscribed data
+        and turn it into a json object and send back to client.
+        The returned message is a dataframe in `/tsnex/do_embedding` route
+    """
+    while True:
+        X_embedded = utils.get_subscribed_data()
+        
+        if X_embedded is not None:
+            y = utils.get_y()
+            raw_points = [{
+                'id': str(i),
+                'x': float(X_embedded[i][0]),
+                'y': float(X_embedded[i][1]),
+                'label': str(y[i])
+            } for i in range(y.shape[0])]
+        
+            ws.send(json.dumps(raw_points))
+        
+        time.sleep(utils.server_status['tick_frequence'])
 
 
 import random
