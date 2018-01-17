@@ -107,22 +107,21 @@ def run_send_to_client(ws):
                 'label': str(y[i])
             } for i in range(y.shape[0])]
         
-            ws.send(json.dumps(raw_points))
+            if not ws.closed:
+                utils.pause_server()
+                ws.send(json.dumps(raw_points))
 
         status = utils.get_server_status(['tick_frequence'])
         time.sleep(status['tick_frequence'])
+
 
 
 @sockets.route('/tsnex/continue_server')
 def continue_server(ws):
     while not ws.closed:
         message = ws.receive()
-        print("Receive continue_server")
-        # if message:
-        #     print("Receive continous command, set random")
-        #     hehe = random.randint(0, 10)
-        #     utils.set_ready_status(ready=hehe%2)
-        #     utils.pubsub.get_message()
+        if message:
+            utils.continue_server()
             
 
 @sockets.route('/tsnex/moved_points')

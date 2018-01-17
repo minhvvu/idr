@@ -13,6 +13,7 @@ import Plot.CircleGroup exposing (..)
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg ({ scatter, ready } as model) =
     case msg of
+        {- Do embedding commands -}
         LoadDataset ->
             ( Models.initialModel, loadDataset )
 
@@ -25,6 +26,24 @@ update msg ({ scatter, ready } as model) =
         EmbeddingResult dataStr ->
             updateNewData model dataStr
 
+        {- Control server command -}
+        PauseServer ->
+            { model | ready = False } ! []
+
+        ContinueServer ->
+            -- if we wish to run the server `manually`
+            -- do not set the `ready` flag to `True`
+            ( { model | ready = True }, sendContinue )
+
+        {- Client interact commands -}
+        SendMovedPoints ->
+            let
+                movedPoints =
+                    Plot.Scatter.getMovedPoints scatter
+            in
+                ( model, sendMovedPoints movedPoints )
+
+        {- Drag circle in scatter plot commands -}
         OnDragBy delta ->
             let
                 newScatter =
@@ -49,19 +68,6 @@ update msg ({ scatter, ready } as model) =
         DragMsg dragMsg ->
             Draggable.update myDragConfig dragMsg model
 
-        SendMovedPoints ->
-            let
-                movedPoints =
-                    Plot.Scatter.getMovedPoints scatter
-            in
-                ( model, sendMovedPoints movedPoints )
-
-        PauseServer ->
-            { model | ready = False } ! []
-
-        ContinueServer ->
-            ( { model | ready = True }, sendContinue )
-
 
 {-| Util function to update new received data into model
 -}
@@ -72,10 +78,16 @@ updateNewData { ready } dataStr =
             Debug.log "[Error Decode data]" ( Models.errorModel, Cmd.none )
 
         Ok rawPoints ->
-            ( { initialModel
-                | rawData = rawPoints
-                , scatter = Plot.Scatter.createScatter rawPoints
-              }
-            , Cmd.none
-              -- getNewDataAck ready
-            )
+            let
+                nextCommand =
+                    if ready then
+                        sendContinue
+                    else
+                        Cmd.none
+            in
+                ( { initialModel
+                    | rawData = rawPoints
+                    , scatter = Plot.Scatter.createScatter rawPoints
+                  }
+                , nextCommand
+                )

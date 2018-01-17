@@ -38,9 +38,9 @@ pubsub.subscribe(DATA_CHANNEL)
 
 # status object to store some server infos
 initial_server_status = {
-    'tick_frequence': 0.1,
+    'tick_frequence': 0.05,
     'n_jump': 5,
-    'current_iter': 0,
+    'client_iter': 0,
     'max_iter': 500,
     'ready': True
 }
@@ -82,8 +82,32 @@ def get_server_status(fields=[]):
 
 
 def get_ready_status():
+    """ Get a `ready` flag in a server status object.
+        This flag controls wherether the computational loop will continue or not
+    """
     statusObj = get_server_status(fields=['ready'])
     return statusObj['ready']
+
+
+def pause_server():
+    """ After sending one dataframe containing the intermediate result to client,
+        the server is paused in order to wait for the next command from client.
+        The client can pause for a while to interact with the result,
+        or it will send automatically an ACK to make the server to continue.
+    """
+    status = get_server_status(fields=['client_iter'])
+    next_client_iter = status['client_iter'] + 1
+    update_server_status({
+        'client_iter': next_client_iter,
+        'ready': False
+    })
+
+
+def continue_server():
+    """ Util function to set a `ready` flag of server status object to True
+        in order to make the computational loop continue running
+    """
+    update_server_status({'ready': True})
 
 
 # Skeleton dataset meta data.

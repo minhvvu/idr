@@ -108,16 +108,20 @@ def my_gradient_descent(objective, p0, it, n_iter,
     tic = time()
     print("\nGradien Descent:")
     for i in range(it, n_iter):
-
-        while False == utils.get_ready_status():
-            sleep(1)
-
+        # get some fixed server status params
         status = utils.get_server_status(['n_jump', 'tick_frequence'])
+
+        # wait for the `ready` flag to become `True` in order to continue
+        # note that, this flag can be changed at any time
+        # so for consitently checking this flag, get it directly from redis.
+        while False == utils.get_ready_status():
+            sleep(status['tick_frequence']/2)
+
+        # after `n_jump` computation iteration, publish the intermediate result
         if (i % status['n_jump'] == 0):
             # save the current position and show to client
             position = p.copy()
             utils.publish_data(position)
-
             utils.print_progress(i, n_iter)
             sleep(status['tick_frequence'])
 
