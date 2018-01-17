@@ -109,17 +109,17 @@ def my_gradient_descent(objective, p0, it, n_iter,
     print("\nGradien Descent:")
     for i in range(it, n_iter):
 
-        while not utils.get_ready_status():
+        while False == utils.get_ready_status():
             sleep(1)
 
-        if (i % utils.server_status['n_jump'] == 0):
-            # save the current position
-            position = p.copy() #.reshape(-1, 2)
-            # show to client
+        status = utils.get_server_status(['n_jump', 'tick_frequence'])
+        if (i % status['n_jump'] == 0):
+            # save the current position and show to client
+            position = p.copy()
             utils.publish_data(position)
 
             utils.print_progress(i, n_iter)
-            sleep(utils.server_status['tick_frequence'])
+            sleep(status['tick_frequence'])
 
         # meeting 05/01: how to take into account the user feedbacks
         # I = indices of elements thqt are not yet fixed
@@ -171,9 +171,8 @@ def boostrap_do_embedding(X, max_iter=400):
     Boostrap to start doing embedding:
     Initialize the tsne object, setup params
     """
-
-    utils.set_server_status(statusObj=None)
-
+    print("[TSNEX] Thread to do embedding is starting ... ")
+    
     sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
     tsne = TSNE(n_components=2, random_state=0, n_iter=max_iter, verbose=1)
     tsne._EXPLORATION_N_ITER = 100       

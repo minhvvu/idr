@@ -15,6 +15,19 @@ redis_db = redis.StrictRedis(host='localhost', port=6379, db=0)
 # prefix key to store data in redis
 KEY_PREFIX = 'tsnex_demo01_'
 
+
+def set_to_db(key, str_value):
+    """ Set binary string value into redis by key
+    """
+    redis_db.set(KEY_PREFIX + key, str_value)
+
+
+def get_from_db(key):
+    """ Get binary string value from redis by key
+    """
+    return redis_db.get(KEY_PREFIX + key)
+
+
 # channel name for store intermediate data in redis
 DATA_CHANNEL = 'tsnex_X_embedding'
 
@@ -24,17 +37,58 @@ pubsub.subscribe(DATA_CHANNEL)
 
 
 # status object to store some server infos
-# TODO: Save the config to redis
-server_status = {
+initial_server_status = {
     'tick_frequence': 0.1,
     'n_jump': 5,
-    'current_it': 0,
+    'current_iter': 0,
+    'max_iter': 500,
     'ready': True
 }
 
-# dataset meta data
-# TODO: Save this config to redis
-dataset_meta_data = {
+
+def set_server_status():
+    """ Set status object to redis.
+    """
+    set_to_db(key='status', str_value=json.dumps(initial_server_status))
+
+
+def update_server_status(userStatusObj):
+    """ Update the existed server status object in redis.
+        It merges the user-defined status object and the old one.
+        http://treyhunner.com/2016/02/how-to-merge-dictionaries-in-python/
+    """
+    oldStatusStr = get_from_db(key='status')
+    oldStatusObj = json.loads(oldStatusStr)
+    mergeObj = {**oldStatusObj, **userStatusObj}
+    set_to_db(key='status', str_value=json.dumps(mergeObj))
+
+
+def get_dict_from_db(key, fields=[]):
+    """ Get a python dict object from redis.
+        Return the required fields or all dict if the fields are not specified.
+    """
+    dataStr = get_from_db(key=key)
+    dataObj = json.loads(dataStr)
+    if not fields:
+        return dataObj
+    else:
+        return {field: dataObj[field] for field in fields}
+
+
+def get_server_status(fields=[]):
+    """ Get server status object from redis.
+    """
+    return get_dict_from_db(key='status', fields=fields)
+
+
+def get_ready_status():
+    statusObj = get_server_status(fields=['ready'])
+    return statusObj['ready']
+
+
+# Skeleton dataset meta data.
+# The actual metatdata will be filled when the dataset being loaded.
+skeleton_dataset_metadata = {
     'n_total': 0,
     'original_dim': 0,
     'reduced_dim': 0,
@@ -43,6 +97,18 @@ dataset_meta_data = {
     'shape_y': [0],
     'type_y': None
 }
+
+
+def set_dataset_metadata(metadata):
+    """ Set dataset meta object to redis
+    """
+    set_to_db(key='metadata', str_value=json.dumps(metadata))
+
+
+def get_dataset_metadata(fields=[]):
+    """ Get meta data from redis and return the required fields
+    """
+    return get_dict_from_db(key='metadata', fields=fields)
 
 
 def publish_data(X):
@@ -57,28 +123,19 @@ def get_subscribed_data():
     """ Get subscribled from published channel in redis
     """
     msg = pubsub.get_message()
-    if msg is None or msg['type'] != 'message':
+    if not msg or msg['type'] != 'message':
         return None
 
-    data_str = msg['data']
-    n_total = dataset_meta_data['n_total']
-    reduced_dim = dataset_meta_data['reduced_dim']
-    data_obj = np.fromstring(data_str, dtype=np.float32)
+    metadata = get_dataset_metadata(['n_total', 'reduced_dim'])
+    n_total = metadata['n_total']
+    reduced_dim = metadata['reduced_dim']
+
+    data_obj = np.fromstring(msg['data'], dtype=np.float32)
     data_arr = data_obj.reshape([n_total, reduced_dim])
     return data_arr
 
 
-def set_to_db(key, str_value):
-    """ Set binary string value into redis by key
-    """
-    redis_db.set(KEY_PREFIX + key, str_value)
-
-
-def get_from_db(key):
-    """ Get binary string value from redis by key
-    """
-    return redis_db.get(KEY_PREFIX + key)
-
+### Utils function to get/set numpy ndarray
 
 def set_ndarray(name, arr):
     """ Set numpy ndarray to key name in redis
@@ -94,88 +151,30 @@ def get_ndarray(name, arr_shape, arr_type):
         .reshape(arr_shape)
 
 
+### Utils function for get dataset
+
 def get_X():
     """ Util function to get original X
     """
+    metadata = get_dataset_metadata(['shape_X', 'type_X'])
     return get_ndarray(name='X_original',
-        arr_shape=dataset_meta_data['shape_X'],
-        arr_type=dataset_meta_data['type_X'])
+        arr_shape=metadata['shape_X'],
+        arr_type=metadata['type_X'])
 
 
 def get_y():
     """ Util function to get original y
     """
+    metadata = get_dataset_metadata(['shape_y', 'type_y'])
     return get_ndarray(name='y_original',
-        arr_shape=dataset_meta_data['shape_y'],
-        arr_type=dataset_meta_data['type_y'])
-
-
-def set_dataset_to_db(X, y):
-    meta_data = {
-        'shape_X': X.shape,
-        'type_X': X.dtype.name,
-        'shape_y': y.shape,
-        'type_y': y.dtype.name
-    }
-
-    meta_str = json.dumps(meta_data)
-    X_str = X.ravel().tostring()
-    y_str = y.ravel().tostring()
-
-    set_to_db(key='meta', str_value=meta_str)
-    set_to_db(key='X', str_value=X_str)
-    set_to_db(key='y', str_value=y_str)
-
-
-def get_dataset_from_db():
-    meta_str = get_from_db(key='meta')
-    X_str = get_from_db(key='X')
-    y_str = get_from_db(key='y')
-
-    meta_obj = json.loads(meta_str)
-    type_X = np.dtype(meta_obj['type_X'])
-    type_y = np.dtype(meta_obj['type_y'])
-
-    X = np.fromstring(X_str, dtype=type_X).reshape(meta_obj['shape_X'])
-    y = np.fromstring(y_str, dtype=type_y).reshape(meta_obj['shape_y'])
-
-    return X, y
-
-
-def set_server_status(statusObj=None):
-    if statusObj is None:
-        statusObj = server_status
-    set_to_db(key='status', str_value=json.dumps(statusObj))
-
-
-def get_server_status():
-    status = get_from_db(key='status')
-    return json.loads(status)
-
-
-def set_ready_status(ready):
-    statusObj = get_server_status()
-    statusObj['ready'] = ready
-    set_server_status(statusObj)
-
-
-def get_ready_status():
-    statusObj = get_server_status()
-    return statusObj['ready']
-
-
-def increase_iteration():
-    statusObj = get_server_status()
-    statusObj['current_it'] += 1
-    set_server_status(statusObj)
-
-
-def get_current_iteration():
-    statusObj = get_server_status()
-    return statusObj['current_it']
+        arr_shape=metadata['shape_y'],
+        arr_type=metadata['type_y'])
 
 
 def print_progress(i, n):
+    """ Print processbar like: 
+        [=================================================] 99%
+    """
     percent = int(100.0 * i / n)
     n_gap = int(percent / 2)
     sys.stdout.write('\r')
