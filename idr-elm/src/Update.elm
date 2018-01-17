@@ -33,7 +33,7 @@ update msg ({ scatter, ready } as model) =
         ContinueServer ->
             -- if we wish to run the server `manually`
             -- do not set the `ready` flag to `True`
-            ( { model | ready = True }, sendContinue )
+            ( { model | ready = True }, sendContinue model.current_it )
 
         {- Client interact commands -}
         SendMovedPoints ->
@@ -72,7 +72,7 @@ update msg ({ scatter, ready } as model) =
 {-| Util function to update new received data into model
 -}
 updateNewData : Model -> String -> ( Model, Cmd Msg )
-updateNewData { ready } dataStr =
+updateNewData ({ ready, current_it } as model) dataStr =
     case decodeListPoints dataStr of
         Err msg ->
             Debug.log "[Error Decode data]" ( Models.errorModel, Cmd.none )
@@ -81,12 +81,13 @@ updateNewData { ready } dataStr =
             let
                 nextCommand =
                     if ready then
-                        sendContinue
+                        sendContinue (current_it + 1)
                     else
                         Cmd.none
             in
-                ( { initialModel
-                    | rawData = rawPoints
+                ( { model
+                    | current_it = current_it + 1
+                    , rawData = rawPoints
                     , scatter = Plot.Scatter.createScatter rawPoints
                   }
                 , nextCommand

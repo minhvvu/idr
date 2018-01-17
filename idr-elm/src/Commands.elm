@@ -29,14 +29,6 @@ loadDataset =
     WebSocket.send loadDatasetURI "MNIST"
 
 
-
---{-| Socket endpoint for transforming data from server to client
----}
---getDataURI : String
---getDataURI =
---    socketServer ++ "/do_embedding"
-
-
 {-| Socket endpoint for calling function to do embedding
 -}
 doEmbeddingURI : String
@@ -62,11 +54,7 @@ movedPointsURI =
 -}
 sendMovedPoints : List Point -> Cmd Msg
 sendMovedPoints points =
-    Cmd.none
-
-
-
--- WebSocket.send movedPointsURI (encodeListPoints points)
+    WebSocket.send movedPointsURI (encodeListPoints points)
 
 
 {-| Socket endpoint for pausing server
@@ -78,9 +66,9 @@ continueServerURI =
 
 {-| Client command to continue server after being paused
 -}
-sendContinue : Cmd Msg
-sendContinue =
-    WebSocket.send continueServerURI "ACK=True"
+sendContinue : Int -> Cmd Msg
+sendContinue currentIteration =
+    WebSocket.send continueServerURI (toString currentIteration)
 
 
 {-| Client subscription to listen to the new data from server
@@ -91,28 +79,6 @@ listenToNewData =
         [ WebSocket.listen loadDatasetURI Msgs.DatasetStatus
         , WebSocket.listen doEmbeddingURI Msgs.EmbeddingResult
         ]
-
-
-
---{-| Client command to request the initial data
----}
---getInitData : Cmd Msg
---getInitData =
---    Cmd.none
----- WebSocket.send getDataURI "Get Initial Data"
---{-| Client command to request new data
----}
---getNewData : Cmd Msg
---getNewData =
---    Cmd.none
----- WebSocket.send getDataURI "Request data from client"
---{-| Client command to inform server about its `readiness`
---to receive new data from the next iteration
----}
---getNewDataAck : Bool -> Cmd Msg
---getNewDataAck ready =
---    Cmd.none
----- WebSocket.send getDataURI ("ACK=" ++ (toString ready))
 
 
 {-| Util function to describe how to deocde json to a Point object

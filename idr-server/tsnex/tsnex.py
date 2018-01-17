@@ -1,20 +1,20 @@
 # tsnex.py
-# interactive tsne: https://www.oreilly.com/learning/an-illustrated-introduction-to-the-t-sne-algorithm
-# /opt/anaconda3/lib/python3.6/site-packages/sklearn/manifold/t_sne.py
+# interactive tsne:
+# https://www.oreilly.com/learning/an-illustrated-introduction-to-the-t-sne-algorithm
 
 import sklearn
 from sklearn import datasets
 from sklearn.manifold import TSNE
-
 import numpy as np
 from numpy import linalg
 from time import time, sleep
 import json
-
 import utils
 
 
 def load_dataset():
+    """ Util function for loading some predefined dataset in sklearn
+    """
     dataset = datasets.load_digits()
     X = dataset.data[:400]
     y = dataset.target[:400]
@@ -22,6 +22,24 @@ def load_dataset():
     return X, y
 
 
+def boostrap_do_embedding(X, max_iter=400):
+    """
+    Boostrap to start doing embedding:
+    Initialize the tsne object, setup params
+    """
+    print("[TSNEX] Thread to do embedding is starting ... ")
+
+    sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
+    tsne = TSNE(n_components=2, random_state=0, n_iter=max_iter, verbose=1)
+    tsne._EXPLORATION_N_ITER = 100
+    tsne.init = 'random'
+
+    X_projected = tsne.fit_transform(X)
+    return X_projected
+
+
+# Folk this internal function in
+# /opt/anaconda3/lib/python3.6/site-packages/sklearn/manifold/t_sne.py
 def my_gradient_descent(objective, p0, it, n_iter,
                         n_iter_check=1, n_iter_without_progress=300,
                         momentum=0.8, learning_rate=200.0, min_gain=0.01,
@@ -115,7 +133,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
         # note that, this flag can be changed at any time
         # so for consitently checking this flag, get it directly from redis.
         while False == utils.get_ready_status():
-            sleep(status['tick_frequence']/2)
+            sleep(status['tick_frequence'])
 
         # after `n_jump` computation iteration, publish the intermediate result
         if (i % status['n_jump'] == 0):
@@ -168,19 +186,3 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 break
 
     return p, error, i
-
-
-def boostrap_do_embedding(X, max_iter=400):
-    """
-    Boostrap to start doing embedding:
-    Initialize the tsne object, setup params
-    """
-    print("[TSNEX] Thread to do embedding is starting ... ")
-    
-    sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
-    tsne = TSNE(n_components=2, random_state=0, n_iter=max_iter, verbose=1)
-    tsne._EXPLORATION_N_ITER = 100       
-    tsne.init = 'random'
-
-    X_projected = tsne.fit_transform(X)
-    return X_projected

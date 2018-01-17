@@ -121,6 +121,9 @@ def continue_server(ws):
     while not ws.closed:
         message = ws.receive()
         if message:
+            # status = utils.get_server_status(fields=['client_iter'])
+            # print("Current_it: client = {}, server = {}" \
+            #     .format(message, status['client_iter']))
             utils.continue_server()
             
 
