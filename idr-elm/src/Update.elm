@@ -13,9 +13,6 @@ import Plot.CircleGroup exposing (..)
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg ({ scatter, ready } as model) =
     case msg of
-        NewData dataStr ->
-            updateNewData model dataStr
-
         LoadDataset ->
             ( Models.initialModel, loadDataset )
 
@@ -24,6 +21,9 @@ update msg ({ scatter, ready } as model) =
 
         DoEmbedding ->
             ( model, doEmbedding model.current_it )
+
+        EmbeddingResult dataStr ->
+            updateNewData model dataStr
 
         OnDragBy delta ->
             let
@@ -76,5 +76,6 @@ updateNewData { ready } dataStr =
                 | rawData = rawPoints
                 , scatter = Plot.Scatter.createScatter rawPoints
               }
-            , getNewDataAck ready
+            , Cmd.none
+              -- getNewDataAck ready
             )

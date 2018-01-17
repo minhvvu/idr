@@ -6,7 +6,7 @@ module Main exposing (..)
 import Draggable
 import Html exposing (program)
 import Models exposing (Model, initialModel)
-import Commands exposing (getInitData, listenToNewData)
+import Commands exposing (listenToNewData)
 import Update exposing (update)
 import View exposing (view)
 import Msgs exposing (Msg(..))
