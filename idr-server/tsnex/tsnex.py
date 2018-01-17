@@ -141,6 +141,12 @@ def my_gradient_descent(objective, p0, it, n_iter,
             position = p.copy()
             utils.publish_data(position)
             utils.print_progress(i, n_iter)
+
+            # store the current position in a seperated key in redis
+            # this data can be used with the moved points from user
+            utils.set_ndarray(name='X_embedded', arr=position)
+            
+            # pause, while the other thread sends the published data to client
             sleep(status['tick_frequence'])
 
         # meeting 05/01: how to take into account the user feedbacks
@@ -184,5 +190,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
                     print("[t-SNE] Iteration %d: gradient norm %f. Finished."
                           % (i + 1, grad_norm))
                 break
+
+
 
     return p, error, i

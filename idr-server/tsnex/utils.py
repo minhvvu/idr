@@ -143,20 +143,32 @@ def publish_data(X):
     redis_db.publish(DATA_CHANNEL, data_str)
 
 
+def decode_X_embedded(data_str):
+    """ Util function for getting the ndarray X_embedded from redis
+    """
+    metadata = get_dataset_metadata(['n_total', 'reduced_dim'])
+    n_total = metadata['n_total']
+    reduced_dim = metadata['reduced_dim']
+
+    data_obj = np.fromstring(data_str, dtype=np.float32)
+    data_arr = data_obj.reshape([n_total, reduced_dim])
+    return data_arr
+
+
 def get_subscribed_data():
     """ Get subscribled from published channel in redis
     """
     msg = pubsub.get_message()
     if not msg or msg['type'] != 'message':
         return None
+    return decode_X_embedded(data_str=msg['data'])
 
-    metadata = get_dataset_metadata(['n_total', 'reduced_dim'])
-    n_total = metadata['n_total']
-    reduced_dim = metadata['reduced_dim']
 
-    data_obj = np.fromstring(msg['data'], dtype=np.float32)
-    data_arr = data_obj.reshape([n_total, reduced_dim])
-    return data_arr
+def get_X_embedded():
+    """ Util function to get X_embedded from redies
+    """
+    data_str = get_from_db(key='X_embedded')
+    return decode_X_embedded(data_str)
 
 
 ### Utils function to get/set numpy ndarray

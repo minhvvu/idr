@@ -134,12 +134,9 @@ def client_moved_points(ws):
         if message:
             moved_points = json.loads(message)
             n_moved = len(moved_points)
-            print("Receive moved points: ", moved_points)
 
-        #     X, y = get_dataset_from_db()
-        #     n_points = X.shape[0]
-        #     print("Get previous embedding from Redis: X.shape={}, y.shape={}".format(
-        #         X.shape, y.shape))
+            X_embedded = utils.get_X_embedded()
+            n_points = X_embedded.shape[0]
 
         #     new_X = []
         #     new_y = []
