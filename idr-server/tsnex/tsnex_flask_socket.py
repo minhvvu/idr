@@ -133,36 +133,19 @@ def client_moved_points(ws):
         message = ws.receive()
         if message:
             moved_points = json.loads(message)
-            n_moved = len(moved_points)
+            moved_ids = [int(p['id']) for p in moved_points]
 
             X_embedded = utils.get_X_embedded()
+            y = utils.get_y()
             n_points = X_embedded.shape[0]
 
-        #     new_X = []
-        #     new_y = []
-        #     moved_ids = []
+            new_indexes = moved_ids + \
+                [i for i in range(n_points) if i not in moved_ids]
 
-        #     for i in range(n_moved):
-        #         point = moved_points[i]
-        #         point_id = int(point['id'])
-        #         point_x = float(point['x'])
-        #         point_y = float(point['y'])
+            new_X_embedded = X_embedded[new_indexes]
+            new_y = y[new_indexes]
 
-        #         moved_ids.append(point_id)
-        #         new_X.append([point_x, point_y])
-        #         new_y.append(y[point_id])
 
-        #     for i in range(n_points):
-        #         if i not in moved_ids:
-        #             new_X.append(X[i, :])
-        #             new_y.append(y[i])
-
-        #     new_X = np.array(new_X)
-        #     new_y = np.array(new_y)
-
-        #     X_projected = do_embedding(new_X, n_iter=400, continuous=True)
-        #     set_dataset_to_db(X_projected, new_y)
-        #     print("Update new embedding from moved points OK")
 
 
 @app.route('/')
