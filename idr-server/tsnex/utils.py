@@ -47,7 +47,7 @@ initial_server_status = {
     'tick_frequence': 0.05,
     'n_jump': 2,
     'client_iter': 0,
-    'max_iter': 400,
+    'max_iter': 2000,
     'ready': True,
     'should_break': False
 }
@@ -225,8 +225,9 @@ def print_progress(i, n):
     """ Print processbar like: 
         [=================================================] 99%
     """
-    percent = int(100.0 * i / n)
-    n_gap = int(percent / 2)
+    # percent = int(100.0 * i / n)
+    # n_gap = int(percent / 2)
     sys.stdout.write('\r')
-    sys.stdout.write("[%s] %d%%" % ('=' * n_gap, percent))
+    #sys.stdout.write("[%s] %d%%" % ('=' * n_gap, percent))
+    sys.stdout.write("[%s] (%d)"%('='*int(i/50), i))
     sys.stdout.flush()

@@ -17,8 +17,8 @@ def load_dataset():
     """ Util function for loading some predefined dataset in sklearn
     """
     dataset = datasets.load_digits()
-    X = dataset.data[:400]
-    y = dataset.target[:400]
+    X = dataset.data[:500]
+    y = dataset.target[:500]
     print("Sample dataset: X.shape={}, len(y)={}".format(X.shape, len(y)))
     return X, y
 
@@ -33,7 +33,13 @@ def boostrap_do_embedding(X, max_iter=400, shared_queue=None):
     shared_interaction['queue'] = shared_queue
 
     sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
-    tsne = TSNE(n_components=2, random_state=0, n_iter=max_iter, verbose=1)
+    tsne = TSNE(
+        n_components=2,
+        random_state=0,
+        n_iter_without_progress=500,
+        n_iter=max_iter,
+        verbose=1
+    )
     tsne._EXPLORATION_N_ITER = 100
     tsne.init = 'random'
 
@@ -130,7 +136,10 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
     shared_queue = shared_interaction['queue']
     print("\nGradien Descent:")
-    for i in range(it, n_iter):
+    # for i in range(it, n_iter):
+    while True:
+        i += 1
+
         # get some fixed server status params
         status = utils.get_server_status(
             ['n_jump', 'tick_frequence', 'should_break'])
@@ -159,10 +168,11 @@ def my_gradient_descent(objective, p0, it, n_iter,
         while False == utils.get_ready_status():
             sleep(status['tick_frequence'])
 
+        moved_ids = []
         if not shared_queue.empty():
             # get client interacted points (pulled to top of `new_embedding`)
             shared_item = shared_queue.get()
-            n_moved = shared_item['n_moved']
+            moved_ids = shared_item['moved_ids']
             new_embedding = shared_item['new_embedding']
 
             # calculate gradient without touching the first `n_moved` points
@@ -174,6 +184,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
             pass
 
         error, grad = objective(p, *args, **kwargs)
+        if moved_ids:
+            grad[moved_ids] = 0
         grad_norm = linalg.norm(grad)
 
         inc = update * grad < 0.0
@@ -183,6 +195,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
         np.clip(gains, min_gain, np.inf, out=gains)
         grad *= gains
         update = momentum * update - learning_rate * grad
+        if moved_ids:
+            update[moved_ids] = 0
         p += update
 
         if (i + 1) % n_iter_check == 0:
@@ -209,7 +223,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 if verbose >= 2:
                     print("[t-SNE] Iteration %d: gradient norm %f. Finished."
                           % (i + 1, grad_norm))
-                break
+                # break
 
 
 

@@ -165,31 +165,12 @@ def client_moved_points(ws):
                 [float(p['x']), float(p['y'])] for p in moved_points
             ]
 
-            X_embedded = utils.get_X_embedded()
-            n_points = X_embedded.shape[0]
-            n_moved = len(moved_points)
-
-            # pull the indexes of moved points to top of the list of all points
-            new_indexes = moved_ids + \
-                [i for i in range(n_points) if i not in moved_ids]
-
-            # # store the newly ordered label
-            # y = utils.get_y()
-            # new_y = y[new_indexes]
-            # utils.set_ndarray(name='y_original', arr=new_y)
-
-            # update new coordonates
-            new_X_embedded = X_embedded # [new_indexes]
-            #new_X_embedded[0:n_moved] = moved_coordinates
+            new_X_embedded = utils.get_X_embedded()
             new_X_embedded[moved_ids] = moved_coordinates
-
-            # share new embedded data with TSNEX
             shared_states['interaction_data'].put({
-                'n_moved': n_moved,
+                'moved_ids': moved_ids,
                 'new_embedding': new_X_embedded
             })
-
-            # let TSNEX continue to run
             utils.continue_server()
 
 

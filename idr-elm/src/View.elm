@@ -19,6 +19,6 @@ view model =
             ]
         , div [] [ text model.debugMsg ]
         , scatterView model.scatter
-        , movedPointsView model.scatter
         , div [] [ button [ onClick Msgs.SendMovedPoints ] [ text "Send Moved Points" ] ]
+        , movedPointsView model.scatter
         ]
