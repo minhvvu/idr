@@ -167,16 +167,13 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
             # calculate gradient without touching the first `n_moved` points
             p = new_embedding.ravel() # note to ravel the 2-d input array
-            kwargs['skip_num_points'] = n_moved
+            # kwargs['skip_num_points'] = n_moved
         else:
             # reset `kwargs['skip_num_points']` if it is previously touched
             # kwargs['skip_num_points'] = 0
             pass
 
-        # meeting 05/01: how to take into account the user feedbacks
-        # I = indices of elements thqt are not yet fixed
         error, grad = objective(p, *args, **kwargs)
-        # grad = grad[I]
         grad_norm = linalg.norm(grad)
 
         inc = update * grad < 0.0
@@ -187,7 +184,6 @@ def my_gradient_descent(objective, p0, it, n_iter,
         grad *= gains
         update = momentum * update - learning_rate * grad
         p += update
-        # p[I] += update
 
         if (i + 1) % n_iter_check == 0:
             toc = time()
