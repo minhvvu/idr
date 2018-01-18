@@ -28,6 +28,12 @@ def get_from_db(key):
     return redis_db.get(KEY_PREFIX + key)
 
 
+def clean_data():
+    """ Util function to flush all keys of the current db
+    """
+    redis_db.flushdb()
+
+
 # channel name for store intermediate data in redis
 DATA_CHANNEL = 'tsnex_X_embedding'
 
@@ -42,7 +48,8 @@ initial_server_status = {
     'n_jump': 2,
     'client_iter': 0,
     'max_iter': 400,
-    'ready': True
+    'ready': True,
+    'should_break': False
 }
 
 
@@ -87,6 +94,13 @@ def get_ready_status():
     """
     statusObj = get_server_status(fields=['ready'])
     return statusObj['ready']
+
+
+def time_to_break():
+    """ Util function to check if it's time to break the thread
+    """
+    status = get_server_status(fields=['should_break'])
+    return status['should_break']
 
 
 def pause_server():

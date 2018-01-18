@@ -7,18 +7,36 @@ from flask import Flask
 from flask_sockets import Sockets
 import json
 import time
+import queue
 import numpy as np
 
 import tsnex
 import utils
 
-
+# flask-socket application
 app = Flask(__name__)
 sockets = Sockets(app)
+
+# Shared states between threads
+shared_states = {
+    # interactive data from client will be put in a queue
+    # this queue will be shared will a thread running tsne code
+    # so that tsne can take into account of client interation.
+    'interaction_data': queue.Queue(),
+
+    # thread to run tsne
+    'thread_tsnex': None,
+
+    # thread to send intermediate data to client
+    'thread_pubsub': None
+}
+
 
 
 @sockets.route('/tsnex/load_dataset')
 def do_load_dataset(ws):
+    """ Socket endpoint to receive command to load a dataset
+    """
     while not ws.closed:
         datasetName = ws.receive()
         if datasetName:
@@ -46,7 +64,7 @@ def do_load_dataset(ws):
 
 @sockets.route('/tsnex/do_embedding')
 def do_embedding(ws):
-    """ Endpoint to hold all dataframes of the intermediate results
+    """ Socket endpoint to hold all dataframes of the intermediate results
     """
     while not ws.closed:
         message = ws.receive()
@@ -76,18 +94,21 @@ def do_boostrap(ws):
     max_iter = utils.initial_server_status['max_iter']
 
     # start a thread to do embedding
+    # note to inject a queue containing the interaction_data
     t1 = threading.Thread(
         name='tsnex_gradient_descent',
         target=tsnex.boostrap_do_embedding,
-        args=(X, max_iter, )) # specific that `args` is a tuple
+        args=(X, max_iter, shared_states['interaction_data'], ))
     t1.start()
+    shared_states['thread_tsnex'] = t1
 
     # start a thread to listen to the intermediate result
     t2 = threading.Thread(
         name='pubsub_from_redis',
         target=run_send_to_client,
-        args=(ws,))
+        args=(ws,)) # specific that `args` is a tuple
     t2.start()
+    shared_states['thread_pubsub'] = t2
 
 
 def run_send_to_client(ws):
@@ -111,24 +132,30 @@ def run_send_to_client(ws):
                 utils.pause_server()
                 ws.send(json.dumps(raw_points))
 
-        status = utils.get_server_status(['tick_frequence'])
-        time.sleep(status['tick_frequence'])
-
+        status = utils.get_server_status(['tick_frequence', 'should_break'])
+        if (status['should_break']):
+            break
+        else:
+            time.sleep(status['tick_frequence'])
 
 
 @sockets.route('/tsnex/continue_server')
 def continue_server(ws):
+    """ Socket endpoint to receive command to continue server after being paused.
+    """
     while not ws.closed:
         message = ws.receive()
         if message:
             # status = utils.get_server_status(fields=['client_iter'])
-            # print("Current_it: client = {}, server = {}" \
+            # print("Synchronizing current_it: client = {}, server = {}" \
             #     .format(message, status['client_iter']))
             utils.continue_server()
             
 
 @sockets.route('/tsnex/moved_points')
 def client_moved_points(ws):
+    """ Socket endpoint to receive the moved points from client interaction.
+    """
     while not ws.closed:
         message = ws.receive()
         if message:
@@ -136,24 +163,72 @@ def client_moved_points(ws):
             moved_ids = [int(p['id']) for p in moved_points]
 
             X_embedded = utils.get_X_embedded()
-            y = utils.get_y()
             n_points = X_embedded.shape[0]
 
+            # pull the indexes of moved points to top of the list of all points
             new_indexes = moved_ids + \
                 [i for i in range(n_points) if i not in moved_ids]
 
-            new_X_embedded = X_embedded[new_indexes]
+            # store the newly ordered label
+            y = utils.get_y()
             new_y = y[new_indexes]
+            utils.set_ndarray(name='y_original', arr=new_y)
+
+            # share new embedded data with TSNEX
+            new_X_embedded = X_embedded[new_indexes]
+            shared_states['interaction_data'].put({
+                'n_moved': len(moved_ids),
+                'new_embedding': new_X_embedded
+            })
+
+            # let TSNEX continue to run
+            utils.continue_server()
 
 
+@sockets.route('/tsnex/reset')
+def reset_data(ws):
+    """ Socket endpoint to reset the data on server.
+    """
+    while not ws.closed:
+        message = ws.receive()
+        if message and message == "ConfirmReset":
+            print("[Reset]Receive Reset command from client. Do reset!")
+
+            # set a flag to denote it's time to break all running thread
+            utils.update_server_status({'should_break': True})
+
+            # let the tsnex thread to jump out of waiting status
+            utils.continue_server()
+            
+            # stop all threads
+            print("[Reset]Stopping the running threads ... ")
+            shared_states['thread_tsnex'].join(timeout=1)
+            shared_states['thread_pubsub'].join(timeout=1)
+            time.sleep(2.5)
+            print("[Reset]Threads stopped")
+            
+            # clean interaction data in queue
+            print("[Reset]Cleaning data ... ")
+            while not shared_states['interaction_data'].empty():
+                shared_states['interaction_data'].get()
+
+            # flush all data in redis
+            utils.clean_data()
+
+            print("[Reset]Done!")
 
 
 @app.route('/')
 def hello():
+    """ Show index page if access socket server from browser
+    """
     return "Root of socket server. Default URI for client: ws://localhost:5000"
 
 
 def runserver(port=5000):
+    """ Starting point to run development socket server
+        with auto reset when code changed.
+    """
     from gevent.wsgi import WSGIServer
     from geventwebsocket.handler import WebSocketHandler
 

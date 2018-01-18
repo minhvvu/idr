@@ -10,13 +10,14 @@ type Msg
     | DatasetStatus String -- [receive] server response dataset info
     | DoEmbedding -- [send] do embedding
     | EmbeddingResult String -- [receive] the intermediate result
+    | PauseServer -- [send] pause server
+    | ContinueServer -- [send] unpause server
+    | SendMovedPoints -- [send] send moved points to server
+    | ResetData -- [send] send reset data command
     | DragMsg (Draggable.Msg CircleId) -- draggable message
     | StartDragging CircleId
     | OnDragBy Draggable.Delta
     | StopDragging
-    | SendMovedPoints
-    | PauseServer
-    | ContinueServer
 
 
 myDragConfig : Draggable.Config CircleId Msg

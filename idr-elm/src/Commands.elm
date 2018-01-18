@@ -71,6 +71,20 @@ sendContinue currentIteration =
     WebSocket.send continueServerURI (toString currentIteration)
 
 
+{-| Socket endpoint for reseting data
+-}
+resetURI : String
+resetURI =
+    socketServer ++ "/reset"
+
+
+{-| Client command to reset data
+-}
+sendReset : Cmd Msg
+sendReset =
+    WebSocket.send resetURI "ConfirmReset"
+
+
 {-| Client subscription to listen to the new data from server
 -}
 listenToNewData : Sub Msg

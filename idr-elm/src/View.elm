@@ -15,6 +15,7 @@ view model =
             , button [ onClick DoEmbedding ] [ text "Do Embedding" ]
             , button [ onClick PauseServer ] [ text "Pause Server" ]
             , button [ onClick ContinueServer ] [ text "Continue Server" ]
+            , button [ onClick ResetData ] [ text "Reset Data" ]
             ]
         , div [] [ text model.debugMsg ]
         , scatterView model.scatter

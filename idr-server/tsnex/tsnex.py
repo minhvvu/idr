@@ -11,6 +11,7 @@ from time import time, sleep
 import json
 import utils
 
+shared_interaction = {'queue': None}
 
 def load_dataset():
     """ Util function for loading some predefined dataset in sklearn
@@ -22,12 +23,14 @@ def load_dataset():
     return X, y
 
 
-def boostrap_do_embedding(X, max_iter=400):
+def boostrap_do_embedding(X, max_iter=400, shared_queue=None):
     """
     Boostrap to start doing embedding:
     Initialize the tsne object, setup params
     """
     print("[TSNEX] Thread to do embedding is starting ... ")
+
+    shared_interaction['queue'] = shared_queue
 
     sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
     tsne = TSNE(n_components=2, random_state=0, n_iter=max_iter, verbose=1)
@@ -124,16 +127,17 @@ def my_gradient_descent(objective, p0, it, n_iter,
     best_iter = i = it
 
     tic = time()
+
+    shared_queue = shared_interaction['queue']
     print("\nGradien Descent:")
     for i in range(it, n_iter):
         # get some fixed server status params
-        status = utils.get_server_status(['n_jump', 'tick_frequence'])
+        status = utils.get_server_status(
+            ['n_jump', 'tick_frequence', 'should_break'])
 
-        # wait for the `ready` flag to become `True` in order to continue
-        # note that, this flag can be changed at any time
-        # so for consitently checking this flag, get it directly from redis.
-        while False == utils.get_ready_status():
-            sleep(status['tick_frequence'])
+        # check if we have to terminate this thread
+        if (status['should_break']):
+            return p, error, i
 
         # after `n_jump` computation iteration, publish the intermediate result
         if (i % status['n_jump'] == 0):
@@ -148,6 +152,26 @@ def my_gradient_descent(objective, p0, it, n_iter,
             
             # pause, while the other thread sends the published data to client
             sleep(status['tick_frequence'])
+
+        # wait for the `ready` flag to become `True` in order to continue
+        # note that, this flag can be changed at any time
+        # so for consitently checking this flag, get it directly from redis.
+        while False == utils.get_ready_status():
+            sleep(status['tick_frequence'])
+
+        if not shared_queue.empty():
+            # get client interacted points (pulled to top of `new_embedding`)
+            shared_item = shared_queue.get()
+            n_moved = shared_item['n_moved']
+            new_embedding = shared_item['new_embedding']
+
+            # calculate gradient without touching the first `n_moved` points
+            p = new_embedding.ravel() # note to ravel the 2-d input array
+            kwargs['skip_num_points'] = n_moved
+        else:
+            # reset `kwargs['skip_num_points']` if it is previously touched
+            # kwargs['skip_num_points'] = 0
+            pass
 
         # meeting 05/01: how to take into account the user feedbacks
         # I = indices of elements thqt are not yet fixed

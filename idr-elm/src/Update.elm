@@ -35,6 +35,9 @@ update msg ({ scatter, ready } as model) =
             -- do not set the `ready` flag to `True`
             ( { model | ready = True }, sendContinue model.current_it )
 
+        ResetData ->
+            ( Models.initialModel, sendReset )
+
         {- Client interact commands -}
         SendMovedPoints ->
             let
