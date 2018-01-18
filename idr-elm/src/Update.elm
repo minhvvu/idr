@@ -44,7 +44,7 @@ update msg ({ scatter, ready } as model) =
                 movedPoints =
                     Plot.Scatter.getMovedPoints scatter
             in
-                ( model, sendMovedPoints movedPoints )
+                ( { model | ready = True }, sendMovedPoints movedPoints )
 
         {- Drag circle in scatter plot commands -}
         OnDragBy delta ->
