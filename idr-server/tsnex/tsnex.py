@@ -175,6 +175,9 @@ def my_gradient_descent(objective, p0, it, n_iter,
             moved_ids = shared_item['moved_ids']
             new_embedding = shared_item['new_embedding']
 
+            # save a list of fixed points from client
+            utils.set_fixed_points(moved_ids)
+
             # calculate gradient without touching the first `n_moved` points
             p = new_embedding.ravel() # note to ravel the 2-d input array
             # kwargs['skip_num_points'] = n_moved

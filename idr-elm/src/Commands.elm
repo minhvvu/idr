@@ -104,6 +104,7 @@ pointDecoder =
         |> required "x" Decode.float
         |> required "y" Decode.float
         |> required "label" Decode.string
+        |> required "fixed" Decode.bool
 
 
 {-| Util function to describle how to encode a Point object to json

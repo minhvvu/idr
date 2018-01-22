@@ -71,6 +71,7 @@ type alias Point =
     , x : Float
     , y : Float
     , label : String
+    , fixed : Bool
     }
 
 

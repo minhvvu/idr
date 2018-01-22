@@ -220,6 +220,14 @@ def get_y():
         arr_shape=metadata['shape_y'],
         arr_type=metadata['type_y'])
 
+### Utils function to get/set fixed points from client
+def set_fixed_points(points):
+    set_to_db(key='fixed_points', str_value=json.dumps(points))
+
+def get_fixed_points():
+    str_value = get_from_db(key='fixed_points')
+    return json.loads(str_value) if str_value is not None else []
+
 
 def print_progress(i, n):
     """ Print processbar like: 

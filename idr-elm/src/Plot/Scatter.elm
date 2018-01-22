@@ -72,6 +72,7 @@ mapRawDataToScatterPlot rawPoints ( xScale, yScale ) =
                             (Scale.convert xScale p.x)
                             (Scale.convert yScale p.y)
                             p.label
+                            p.fixed
                         )
                     )
     in
@@ -130,6 +131,7 @@ getMovedPoints { points, xScale, yScale } =
                     (Scale.invert xScale p.x)
                     (Scale.invert yScale p.y)
                     p.label
+                    p.fixed
                 )
             )
     in

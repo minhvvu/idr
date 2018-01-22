@@ -18,6 +18,7 @@ type alias Circle =
     , position : Vec2
     , label : String
     , selected : Bool
+    , fixed : Bool
     }
 
 
@@ -29,14 +30,15 @@ createCircle point =
         point.id
         (Vector2.vec2 point.x point.y)
         point.label
-        False
+        {- the point is not selected by default -} False
+        point.fixed
 
 
 {-| Public API to get basic info of a circle and make a Point record
 -}
 circleToPoint : Circle -> Point
 circleToPoint c =
-    Point c.id (getX c.position) (getY c.position) c.label
+    Point c.id (getX c.position) (getY c.position) c.label c.fixed
 
 
 {-| Move a circle to a new position
@@ -65,7 +67,7 @@ setSelected circle =
 {-| Util function to draw a circle
 -}
 circleView : Circle -> Svg Msg
-circleView { id, position, label, selected } =
+circleView { id, position, label, selected, fixed } =
     let
         {- http://htmlcolorcodes.com/ -}
         color =
@@ -74,6 +76,8 @@ circleView { id, position, label, selected } =
         strokeColor =
             if selected then
                 plotConfig.selectedStrokeColor
+            else if fixed then
+                "red"
             else
                 plotConfig.defaultStrokeColor
     in

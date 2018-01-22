@@ -119,13 +119,16 @@ def run_send_to_client(ws):
     print("[PUBSUB] Thread to read subscribed data is starting ... ")
     while True:
         X_embedded = utils.get_subscribed_data()
+        fixed_points = utils.get_fixed_points()
+        
         if X_embedded is not None:
             y = utils.get_y()
             raw_points = [{
                 'id': str(i),
                 'x': float(X_embedded[i][0]),
                 'y': float(X_embedded[i][1]),
-                'label': str(y[i])
+                'label': str(y[i]),
+                'fixed': i in fixed_points
             } for i in range(y.shape[0])]
         
             if not ws.closed:
