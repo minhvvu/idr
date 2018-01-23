@@ -11,6 +11,8 @@ from time import time, sleep
 import json
 import utils
 
+import matplotlib.pyplot as plt
+
 shared_interaction = {'queue': None}
 
 def load_dataset(name='MNIST'):
@@ -151,6 +153,10 @@ def my_gradient_descent(objective, p0, it, n_iter,
     tic = time()
 
     shared_queue = shared_interaction['queue']
+
+    # store gradients to draw heat map
+    grads = []
+
     print("\nGradien Descent:")
     for i in range(it, n_iter):
     # while True:
@@ -203,6 +209,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             pass
 
         error, grad = objective(p, *args, **kwargs)
+        grads.append(grad)
         if moved_ids:
             grad[moved_ids] = 0
         grad_norm = linalg.norm(grad)
@@ -245,7 +252,9 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 # break
 
 
-
+    # draw grads
+    plt.imshow(grads, cmap='jet', interpolation='nearest')
+    plt.savefig('grads_{}'.format(i))
     return p, error, i
 
 

@@ -47,7 +47,7 @@ initial_server_status = {
     'tick_frequence': 0.05,
     'n_jump': 2,
     'client_iter': 0,
-    'max_iter': 2000,
+    'max_iter': 1000,
     'ready': True,
     'should_break': False
 }
