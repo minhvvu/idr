@@ -87,8 +87,8 @@ scatterView { points, xScale, yScale } =
         [ width <| px <| plotConfig.width
         , height <| px <| plotConfig.height
         ]
-        [ drawAxes ( xScale, yScale )
-        , drawScatter points
+        [ -- drawAxes ( xScale, yScale )
+            drawScatter points
         ]
 
 

@@ -3,7 +3,8 @@ module Common exposing (..)
 import List.Extra exposing (maximumBy, minimumBy)
 import Array
 import Color exposing (..)
-import Visualization.Scale exposing (category10)
+import Visualization.Scale exposing (category20a)
+-- http://package.elm-lang.org/packages/gampleman/elm-visualization/latest/Visualization-Scale
 
 
 type alias CircleId =
@@ -19,7 +20,7 @@ labelToColorStr label =
                 |> Result.toMaybe
                 |> Maybe.withDefault 0
     in
-        category10
+        category20a
             |> Array.fromList
             |> Array.get labelId
             |> Maybe.withDefault Color.black

@@ -13,13 +13,29 @@ import utils
 
 shared_interaction = {'queue': None}
 
-def load_dataset():
+def load_dataset(name='MNIST'):
     """ Util function for loading some predefined dataset in sklearn
     """
+    if name == 'COIL20':
+        return load_coil_20()
+    else:
+        return load_mnist()
+
+
+def load_coil_20():
+    import scipy.io
+    mat = scipy.io.loadmat("../data/COIL20.mat")
+    X = mat['X']
+    y = mat['Y'][:, 0]
+    print("COIL-20: X.shape={}, len(y)={}".format(X.shape, len(y)))
+    return X, y
+
+
+def load_mnist():
     dataset = datasets.load_digits()
-    X = dataset.data[:500]
-    y = dataset.target[:500]
-    print("Sample dataset: X.shape={}, len(y)={}".format(X.shape, len(y)))
+    X = dataset.data
+    y = dataset.target
+    print("MNIST small: X.shape={}, len(y)={}".format(X.shape, len(y)))
     return X, y
 
 
@@ -136,8 +152,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
     shared_queue = shared_interaction['queue']
     print("\nGradien Descent:")
-    # for i in range(it, n_iter):
-    while True:
+    for i in range(it, n_iter):
+    # while True:
         i += 1
 
         # get some fixed server status params
@@ -231,3 +247,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
 
     return p, error, i
+
+
+if __name__ == '__main__':
+    X, y = load_dataset()
+    print(X.shape, y.shape)
