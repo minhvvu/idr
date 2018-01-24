@@ -3,7 +3,6 @@
 # https://www.oreilly.com/learning/an-illustrated-introduction-to-the-t-sne-algorithm
 
 import sklearn
-from sklearn import datasets
 from sklearn.manifold import TSNE
 import numpy as np
 from numpy import linalg
@@ -15,33 +14,7 @@ import matplotlib.pyplot as plt
 
 shared_interaction = {'queue': None}
 
-def load_dataset(name='MNIST'):
-    """ Some available dataset: MNIST_small, COIL-20
-    """
-    if name == 'COIL20':
-        return load_coil_20()
-    else:
-        return load_mnist()
-
-
-def load_coil_20():
-    import scipy.io
-    mat = scipy.io.loadmat("../data/COIL20.mat")
-    X = mat['X']
-    y = mat['Y'][:, 0]
-    print("COIL-20: X.shape={}, len(y)={}".format(X.shape, len(y)))
-    return X, y
-
-
-def load_mnist():
-    dataset = datasets.load_digits()
-    X = dataset.data[:400,]
-    y = dataset.target[:400,]
-    print("MNIST small: X.shape={}, len(y)={}".format(X.shape, len(y)))
-    return X, y
-
-
-def boostrap_do_embedding(X, max_iter=400, shared_queue=None):
+def boostrap_do_embedding(X, max_iter=500, shared_queue=None):
     """
     Boostrap to start doing embedding:
     Initialize the tsne object, setup params
@@ -58,7 +31,7 @@ def boostrap_do_embedding(X, max_iter=400, shared_queue=None):
         n_iter=max_iter,
         verbose=1
     )
-    tsne._EXPLORATION_N_ITER = 100
+    tsne._EXPLORATION_N_ITER = 250
     tsne.init = 'random'
 
     X_projected = tsne.fit_transform(X)
@@ -231,5 +204,23 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
 
 if __name__ == '__main__':
-    X, y = load_dataset()
-    print(X.shape, y.shape)
+    X, y = utils.load_dataset(name='MNIST')
+    tsne = TSNE(
+        n_components=2,
+        random_state=0,
+        init='random',
+        n_iter_without_progress=500,
+        n_iter=1000,
+        verbose=1
+    )
+    X_2d = tsne.fit_transform(X)
+    target_ids = range(len(y))
+
+    plt.figure(figsize=(6, 5))
+    colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"]
+    for i, c, label in zip(target_ids, colors, y):
+        plt.scatter(X_2d[y == i, 0], X_2d[y == i, 1], c=c, label=label)
+    plt.legend()
+    plt.show()
+
+    

@@ -1,12 +1,35 @@
-# utils.py
-# ConsumerQueue a Singleton class that holds the intermediate data
-# produced by TSNE in each iteration
-
 import sys
 import queue
 import json
 import numpy as np
 import redis
+from sklearn import datasets
+
+
+def load_dataset(name='MNIST'):
+    """ Some available dataset: MNIST_small, COIL-20
+    """
+    if name == 'COIL20':
+        return load_coil_20()
+    else:
+        return load_mnist()
+
+
+def load_coil_20():
+    import scipy.io
+    mat = scipy.io.loadmat("../data/COIL20.mat")
+    X = mat['X']
+    y = mat['Y'][:, 0]
+    print("COIL-20: X.shape={}, len(y)={}".format(X.shape, len(y)))
+    return X, y
+
+
+def load_mnist():
+    dataset = datasets.load_digits()
+    X = dataset.data #[:400,]
+    y = dataset.target #[:400,]
+    print("MNIST small: X.shape={}, len(y)={}".format(X.shape, len(y)))
+    return X, y
 
 
 # redis database to store the dataset and the intermediate results
@@ -44,7 +67,7 @@ pubsub.subscribe(DATA_CHANNEL)
 
 # status object to store some server infos
 initial_server_status = {
-    'tick_frequence': 0.05,
+    'tick_frequence': 0.1,
     'n_jump': 2,
     'client_iter': 0,
     'max_iter': 1000,

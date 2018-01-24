@@ -41,7 +41,7 @@ def do_load_dataset(ws):
         datasetName = ws.receive()
         if datasetName:
             if datasetName.upper() in ['MNIST']:
-                X, y = tsnex.load_dataset()
+                X, y = utils.load_dataset()
 
                 metadata = {
                     'n_total': X.shape[0],

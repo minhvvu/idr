@@ -4,6 +4,8 @@ import List.Extra exposing (maximumBy, minimumBy)
 import Array
 import Color exposing (..)
 import Visualization.Scale exposing (category20a)
+
+
 -- http://package.elm-lang.org/packages/gampleman/elm-visualization/latest/Visualization-Scale
 
 
@@ -48,6 +50,7 @@ type alias PlotConfig =
     { width : Float
     , height : Float
     , padding : Float
+    , clientScale : Float
     , circleRadius : Float
     , strokeWidth : Float
     , defaultStrokeColor : String
@@ -57,9 +60,10 @@ type alias PlotConfig =
 
 plotConfig : PlotConfig
 plotConfig =
-    { width = 900.0
-    , height = 650.0
+    { width = 1000.0
+    , height = 850.0
     , padding = 50.0
+    , clientScale = 50.0 -- client data value is scaled in range [-50.0, +50.0]
     , circleRadius = 7
     , strokeWidth = 2
     , defaultStrokeColor = "#D5D8DC"

@@ -44,13 +44,13 @@ createScatter rawPoints =
     let
         xScale =
             Scale.linear
-                ( -30, 30 )
+                ( -plotConfig.clientScale, plotConfig.clientScale )
                 -- ( Common.minX rawPoints, Common.maxX rawPoints )
                 ( 0, plotConfig.width - 2 * plotConfig.padding )
 
         yScale =
             Scale.linear
-                ( -30, 30 )
+                ( -plotConfig.clientScale, plotConfig.clientScale )
                 -- ( Common.minY rawPoints, Common.maxY rawPoints )
                 ( plotConfig.height - 2 * plotConfig.padding, 0 )
     in
