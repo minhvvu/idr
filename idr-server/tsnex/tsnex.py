@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 shared_interaction = {'queue': None}
 
 def load_dataset(name='MNIST'):
-    """ Util function for loading some predefined dataset in sklearn
+    """ Some available dataset: MNIST_small, COIL-20
     """
     if name == 'COIL20':
         return load_coil_20()
@@ -35,8 +35,8 @@ def load_coil_20():
 
 def load_mnist():
     dataset = datasets.load_digits()
-    X = dataset.data
-    y = dataset.target
+    X = dataset.data[:400,]
+    y = dataset.target[:400,]
     print("MNIST small: X.shape={}, len(y)={}".format(X.shape, len(y)))
     return X, y
 
@@ -153,33 +153,16 @@ def my_gradient_descent(objective, p0, it, n_iter,
     tic = time()
 
     shared_queue = shared_interaction['queue']
-
-    # store gradients to draw heat map
-    grads = []
+    fixed_ids = []
+    fixed_pos = []
 
     print("\nGradien Descent:")
     for i in range(it, n_iter):
-    # while True:
-        i += 1
 
-        # get some fixed server status params
-        status = utils.get_server_status(
-            ['n_jump', 'tick_frequence', 'should_break'])
-
-        # check if we have to terminate this thread
-        if (status['should_break']):
-            return p, error, i
-
-        # after `n_jump` computation iteration, publish the intermediate result
+        status = utils.get_server_status(['n_jump', 'tick_frequence'])
         if (i % status['n_jump'] == 0):
-            # save the current position and show to client
-            position = p.copy()
-            utils.publish_data(position)
+            utils.publish_data(p.copy())
             utils.print_progress(i, n_iter)
-
-            # store the current position in a seperated key in redis
-            # this data can be used with the moved points from user
-            utils.set_ndarray(name='X_embedded', arr=position)
             
             # pause, while the other thread sends the published data to client
             sleep(status['tick_frequence'])
@@ -190,28 +173,23 @@ def my_gradient_descent(objective, p0, it, n_iter,
         while False == utils.get_ready_status():
             sleep(status['tick_frequence'])
 
-        moved_ids = []
+        # get newest moved points from client
         if not shared_queue.empty():
-            # get client interacted points (pulled to top of `new_embedding`)
             shared_item = shared_queue.get()
-            moved_ids = shared_item['moved_ids']
-            new_embedding = shared_item['new_embedding']
+            fixed_ids = shared_item['fixed_ids']
+            fixed_pos = shared_item['fixed_pos']
 
-            # save a list of fixed points from client
-            utils.set_fixed_points(moved_ids)
-
-            # calculate gradient without touching the first `n_moved` points
-            p = new_embedding.ravel() # note to ravel the 2-d input array
-            # kwargs['skip_num_points'] = n_moved
-        else:
-            # reset `kwargs['skip_num_points']` if it is previously touched
-            # kwargs['skip_num_points'] = 0
-            pass
-
+        # set the fixed points
+        if fixed_ids and fixed_pos:
+            p2d = p.reshape(-1, 2)
+            p2d[fixed_ids] = fixed_pos
+            p = p2d.ravel()
+        
         error, grad = objective(p, *args, **kwargs)
-        grads.append(grad)
-        if moved_ids:
-            grad[moved_ids] = 0
+        if fixed_ids:
+            grad2d = grad.reshape(-1, 2)
+            grad2d[fixed_ids] = 0
+            grad = grad2d.ravel()
         grad_norm = linalg.norm(grad)
 
         inc = update * grad < 0.0
@@ -221,8 +199,6 @@ def my_gradient_descent(objective, p0, it, n_iter,
         np.clip(gains, min_gain, np.inf, out=gains)
         grad *= gains
         update = momentum * update - learning_rate * grad
-        if moved_ids:
-            update[moved_ids] = 0
         p += update
 
         if (i + 1) % n_iter_check == 0:
@@ -251,10 +227,6 @@ def my_gradient_descent(objective, p0, it, n_iter,
                           % (i + 1, grad_norm))
                 # break
 
-
-    # draw grads
-    plt.imshow(grads, cmap='jet', interpolation='nearest')
-    plt.savefig('grads_{}'.format(i))
     return p, error, i
 
 

@@ -44,12 +44,14 @@ createScatter rawPoints =
     let
         xScale =
             Scale.linear
-                ( Common.minX rawPoints, Common.maxX rawPoints )
+                ( -30, 30 )
+                -- ( Common.minX rawPoints, Common.maxX rawPoints )
                 ( 0, plotConfig.width - 2 * plotConfig.padding )
 
         yScale =
             Scale.linear
-                ( Common.minY rawPoints, Common.maxY rawPoints )
+                ( -30, 30 )
+                -- ( Common.minY rawPoints, Common.maxY rawPoints )
                 ( plotConfig.height - 2 * plotConfig.padding, 0 )
     in
         { xScale = xScale
@@ -87,8 +89,8 @@ scatterView { points, xScale, yScale } =
         [ width <| px <| plotConfig.width
         , height <| px <| plotConfig.height
         ]
-        [ -- drawAxes ( xScale, yScale )
-            drawScatter points
+        [ drawAxes ( xScale, yScale )
+        , drawScatter points
         ]
 
 

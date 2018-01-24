@@ -53,6 +53,9 @@ def do_load_dataset(ws):
                     'type_y': y.dtype.name
                 }
 
+                # In dev mode: flush all data in redis
+                utils.clean_data()
+            
                 utils.set_dataset_metadata(metadata)
                 utils.set_ndarray(name='X_original', arr=X)
                 utils.set_ndarray(name='y_original', arr=y)
@@ -118,9 +121,13 @@ def run_send_to_client(ws):
     """
     print("[PUBSUB] Thread to read subscribed data is starting ... ")
     while True:
-        X_embedded = utils.get_subscribed_data()
-        fixed_points = utils.get_fixed_points()
+        fixed_data = utils.get_from_db(key='fixed_points')
+        fixed_ids = []
+        if fixed_data:
+            fixed_points = json.loads(fixed_data)
+            fixed_ids = [int(id) for id in fixed_points.keys()]
         
+        X_embedded = utils.get_subscribed_data()
         if X_embedded is not None:
             y = utils.get_y()
             raw_points = [{
@@ -128,18 +135,15 @@ def run_send_to_client(ws):
                 'x': float(X_embedded[i][0]),
                 'y': float(X_embedded[i][1]),
                 'label': str(y[i]),
-                'fixed': i in fixed_points
+                'fixed': i in fixed_ids
             } for i in range(y.shape[0])]
         
             if not ws.closed:
                 utils.pause_server()
                 ws.send(json.dumps(raw_points))
 
-        status = utils.get_server_status(['tick_frequence', 'should_break'])
-        if (status['should_break']):
-            break
-        else:
-            time.sleep(status['tick_frequence'])
+        status = utils.get_server_status(['tick_frequence'])
+        time.sleep(status['tick_frequence'])
 
 
 @sockets.route('/tsnex/continue_server')
@@ -158,22 +162,27 @@ def continue_server(ws):
 @sockets.route('/tsnex/moved_points')
 def client_moved_points(ws):
     """ Socket endpoint to receive the moved points from client interaction.
+        If there exsits the old moved points from the previous interaction,
+        we should merge them together.
     """
     while not ws.closed:
         message = ws.receive()
         if message:
-            moved_points = json.loads(message)
-            moved_ids = [int(p['id']) for p in moved_points]
-            moved_coordinates = [
-                [float(p['x']), float(p['y'])] for p in moved_points
-            ]
+            new_moved_points = json.loads(message)
+            fixed_data = utils.get_from_db(key='fixed_points')
+            fixed_points = json.loads(fixed_data) if fixed_data else {}
 
-            new_X_embedded = utils.get_X_embedded()
-            new_X_embedded[moved_ids] = moved_coordinates
+            for p in new_moved_points:
+                pid = p['id'] # for fixed_points dict, key is string
+                pos = [float(p['x']), float(p['y'])]
+                fixed_points[pid] = pos
+
             shared_states['interaction_data'].put({
-                'moved_ids': moved_ids,
-                'new_embedding': new_X_embedded
+                'fixed_ids': [int(k) for k in fixed_points.keys()],
+                'fixed_pos': list(fixed_points.values())
             })
+
+            utils.set_to_db('fixed_points', json.dumps(fixed_points))
             utils.continue_server()
 
 

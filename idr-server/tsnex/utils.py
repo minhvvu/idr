@@ -48,8 +48,7 @@ initial_server_status = {
     'n_jump': 2,
     'client_iter': 0,
     'max_iter': 1000,
-    'ready': True,
-    'should_break': False
+    'ready': True
 }
 
 
@@ -94,13 +93,6 @@ def get_ready_status():
     """
     statusObj = get_server_status(fields=['ready'])
     return statusObj['ready']
-
-
-def time_to_break():
-    """ Util function to check if it's time to break the thread
-    """
-    status = get_server_status(fields=['should_break'])
-    return status['should_break']
 
 
 def pause_server():
@@ -178,13 +170,6 @@ def get_subscribed_data():
     return decode_X_embedded(data_str=msg['data'])
 
 
-def get_X_embedded():
-    """ Util function to get X_embedded from redies
-    """
-    data_str = get_from_db(key='X_embedded')
-    return decode_X_embedded(data_str)
-
-
 ### Utils function to get/set numpy ndarray
 
 def set_ndarray(name, arr):
@@ -219,14 +204,6 @@ def get_y():
     return get_ndarray(name='y_original',
         arr_shape=metadata['shape_y'],
         arr_type=metadata['type_y'])
-
-### Utils function to get/set fixed points from client
-def set_fixed_points(points):
-    set_to_db(key='fixed_points', str_value=json.dumps(points))
-
-def get_fixed_points():
-    str_value = get_from_db(key='fixed_points')
-    return json.loads(str_value) if str_value is not None else []
 
 
 def print_progress(i, n):

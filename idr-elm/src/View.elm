@@ -16,9 +16,9 @@ view model =
             , button [ onClick PauseServer ] [ text "Pause Server" ]
             , button [ onClick ContinueServer ] [ text "Continue Server" ]
             , button [ onClick ResetData ] [ text "Reset Data" ]
+            , button [ onClick Msgs.SendMovedPoints ] [ text "Send Moved Points" ]
             ]
         , div [] [ text model.debugMsg ]
         , scatterView model.scatter
-        , div [] [ button [ onClick Msgs.SendMovedPoints ] [ text "Send Moved Points" ] ]
         , movedPointsView model.scatter
         ]
