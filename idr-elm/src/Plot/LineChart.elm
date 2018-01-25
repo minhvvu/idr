@@ -27,7 +27,7 @@ timeSeries =
 
 w : Float
 w =
-    900
+    450
 
 
 h : Float

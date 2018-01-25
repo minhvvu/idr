@@ -46,11 +46,8 @@ circleToPoint c =
 moveCircle : Draggable.Delta -> Circle -> Circle
 moveCircle delta circle =
     let
-        tempPos =
-            circle.position |> Vector2.add (Vector2.fromTuple delta)
-
         newPos =
-            correctPosition tempPos
+            circle.position |> Vector2.add (Vector2.fromTuple delta)
     in
         { circle
             | position = newPos
@@ -107,39 +104,3 @@ circleView { id, position, label, selected, fixed } =
 circleKeyedView : Circle -> ( CircleId, Svg Msg )
 circleKeyedView circle =
     ( circle.id, lazy circleView circle )
-
-
-{-| Public API for print the info of a circle
--}
-circleTextView : Circle -> Html Msg
-circleTextView { id, position, label } =
-    div []
-        [ Html.text
-            ("[label:"
-                ++ label
-                ++ "]{id:"
-                ++ (toString id)
-                ++ ", (x = "
-                ++ (toString <| round <| getX <| position)
-                ++ "; y = "
-                ++ (toString <| round <| getY <| position)
-                ++ ")}"
-            )
-        ]
-
-
-{-| Public API for correcting the position of a circle
--}
-correctPosition : Vec2 -> Vec2
-correctPosition pos =
-    pos
-
-
-
---let
---    correctedX =
---        Basics.min plotConfig.width <| Basics.max 0 <| getX pos
---    correctedY =
---        Basics.min plotConfig.height <| Basics.max 0 <| getY pos
---in
---    Vector2.vec2 correctedX correctedY

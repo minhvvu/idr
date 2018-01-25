@@ -9,6 +9,9 @@ module Plot.Scatter
         )
 
 import Html exposing (Html)
+import Html.Attributes as HtmlAttrs exposing (class)
+import Bootstrap.ListGroup as ListGroup exposing (..)
+import Bootstrap.Badge as Badge
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Visualization.Scale as Scale exposing (ContinuousScale)
@@ -18,6 +21,7 @@ import Common exposing (PlotConfig, plotConfig, Point, minX, minY, maxX, maxY)
 import Plot.Circle exposing (..)
 import Plot.CircleGroup exposing (..)
 import Plot.Axes exposing (..)
+import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
 
 
 {-| Scatter Model contains data used for rendering a scatter plot
@@ -115,7 +119,25 @@ px i =
 -}
 movedPointsView : Scatter -> Html Msg
 movedPointsView { points } =
-    Plot.CircleGroup.movedPointsView points
+    ListGroup.ul
+        (points.movedCircles
+            |> List.map
+                (\p ->
+                    ListGroup.li
+                        [ ListGroup.attrs [ HtmlAttrs.class "justify-content-between" ] ]
+                        [ Badge.pill [] [ Html.text p.id ]
+                        , Html.text
+                            ("[label:"
+                                ++ p.label
+                                ++ "], (x = "
+                                ++ (toString <| round <| getX <| p.position)
+                                ++ "; y = "
+                                ++ (toString <| round <| getY <| p.position)
+                                ++ ")"
+                            )
+                        ]
+                )
+        )
 
 
 {-| Public API for getting a list of moved circles and map them to the domain value

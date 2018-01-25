@@ -168,18 +168,6 @@ circleGroupView group =
         |> Svg.Keyed.node "g" []
 
 
-{-| Public API for drawing a list of moved circles
--}
-movedPointsView : CircleGroup -> Html Msg
-movedPointsView group =
-    div []
-        (group
-            |> correctCircleGroup
-            |> .movedCircles
-            |> List.map Plot.Circle.circleTextView
-        )
-
-
 {-| Public API to get a list of moved circles and convert them to List Point
 -}
 getMovedPoints : CircleGroup -> List Point
