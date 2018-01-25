@@ -5,6 +5,7 @@ import Html.Events exposing (onClick)
 import Models exposing (Model)
 import Msgs exposing (Msg(..))
 import Plot.Scatter exposing (scatterView, movedPointsView)
+import Plot.LineChart exposing (viewLineChart)
 
 
 view : Model -> Html Msg
@@ -21,4 +22,5 @@ view model =
             ]
         , div [] [ text model.debugMsg ]
         , movedPointsView model.scatter
+        , viewLineChart
         ]
