@@ -71,6 +71,16 @@ update msg ({ scatter, ready } as model) =
         DragMsg dragMsg ->
             Draggable.update myDragConfig dragMsg model
 
+        UpdateZoomFactor amount ->
+            let
+                newZoomFactor =
+                    Result.withDefault 10.0 <| String.toFloat amount
+
+                updatedScatter =
+                    Plot.Scatter.createScatter model.rawData newZoomFactor
+            in
+                { model | zoomFactor = newZoomFactor, scatter = updatedScatter } ! []
+
 
 {-| Util function to update new received data into model
 -}
@@ -91,7 +101,7 @@ updateNewData ({ ready, current_it } as model) dataStr =
                 ( { model
                     | current_it = current_it + 1
                     , rawData = rawPoints
-                    , scatter = Plot.Scatter.createScatter rawPoints
+                    , scatter = Plot.Scatter.createScatter rawPoints model.zoomFactor
                   }
                 , nextCommand
                 )

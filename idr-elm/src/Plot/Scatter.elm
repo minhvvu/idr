@@ -43,18 +43,18 @@ emptyScatter =
 
 {-| Util function to create scatter model from list of raw points
 -}
-createScatter : List Point -> Scatter
-createScatter rawPoints =
+createScatter : List Point -> Float -> Scatter
+createScatter rawPoints zoomFactor =
     let
         xScale =
             Scale.linear
-                ( -plotConfig.clientScale, plotConfig.clientScale )
+                ( -zoomFactor, zoomFactor )
                 -- ( Common.minX rawPoints, Common.maxX rawPoints )
                 ( 0, plotConfig.width - 2 * plotConfig.padding )
 
         yScale =
             Scale.linear
-                ( -plotConfig.clientScale, plotConfig.clientScale )
+                ( -zoomFactor, zoomFactor )
                 -- ( Common.minY rawPoints, Common.maxY rawPoints )
                 ( plotConfig.height - 2 * plotConfig.padding, 0 )
     in
@@ -96,6 +96,10 @@ scatterView { points, xScale, yScale } =
         [ drawAxes ( xScale, yScale )
         , drawScatter points
         ]
+
+
+handleZoom evt =
+    Debug.log evt
 
 
 {-| Private function take plot the circles by calling the util function from `CircleGroup`

@@ -12,6 +12,7 @@ type alias Model =
     , ready : Bool
     , current_it : Int
     , debugMsg : String
+    , zoomFactor : Float
     }
 
 
@@ -23,6 +24,7 @@ initialModel =
     , ready = True
     , current_it = 0
     , debugMsg = "Client ready"
+    , zoomFactor = 1.0
     }
 
 
@@ -38,4 +40,5 @@ errorModel =
     , ready = False
     , current_it = -1
     , debugMsg = "Error occurs"
+    , zoomFactor = 0.0
     }

@@ -18,6 +18,7 @@ type Msg
     | StartDragging CircleId
     | OnDragBy Draggable.Delta
     | StopDragging
+    | UpdateZoomFactor String -- zoom in/ zoom out the svg
 
 
 myDragConfig : Draggable.Config CircleId Msg
