@@ -127,8 +127,9 @@ def run_send_to_client(ws):
             fixed_points = json.loads(fixed_data)
             fixed_ids = [int(id) for id in fixed_points.keys()]
         
-        X_embedded = utils.get_subscribed_data()
-        if X_embedded is not None:
+        subscribedData = utils.get_subscribed_data()
+        if subscribedData is not None:
+            X_embedded = subscribedData['X_embedded']
             y = utils.get_y()
             raw_points = [{
                 'id': str(i),
@@ -140,7 +141,10 @@ def run_send_to_client(ws):
         
             if not ws.closed:
                 utils.pause_server()
-                ws.send(json.dumps(raw_points))
+                ws.send(json.dumps({
+                    'embedding': raw_points,
+                    'errors': errors
+                }))
 
         status = utils.get_server_status(['tick_frequence'])
         time.sleep(status['tick_frequence'])

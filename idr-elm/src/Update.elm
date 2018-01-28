@@ -86,17 +86,20 @@ update msg ({ scatter, ready } as model) =
 -}
 updateNewData : Model -> String -> ( Model, Cmd Msg )
 updateNewData ({ ready, current_it } as model) dataStr =
-    case decodeListPoints dataStr of
+    case decodeEmbeddingResult dataStr of
         Err msg ->
             Debug.log "[Error Decode data]" ( Models.errorModel, Cmd.none )
 
-        Ok rawPoints ->
+        Ok embeddingResult ->
             let
                 nextCommand =
                     if ready then
                         sendContinue (current_it + 1)
                     else
                         Cmd.none
+
+                rawPoints =
+                    embeddingResult.embedding
             in
                 ( { model
                     | current_it = current_it + 1

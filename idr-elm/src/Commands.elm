@@ -151,3 +151,27 @@ encodeListPoints points =
         points
             |> listPointEncoder
             |> Encode.encode pretyPrint
+
+
+{-| Util function to describe the returned data from server containing:
+
+  - `embedding`: the current configuration of the embedded points
+  - `errors`: a list of error after each iteration
+
+-}
+type alias EmbeddingResult =
+    { embedding : List Point
+    , errors : List Float
+    }
+
+
+embeddingResultDecoder : Decode.Decoder EmbeddingResult
+embeddingResultDecoder =
+    decode EmbeddingResult
+        |> required "embedding" listPointsDecoder
+        |> required "errors" (Decode.list Decode.float)
+
+
+decodeEmbeddingResult : String -> Result String EmbeddingResult
+decodeEmbeddingResult str =
+    Decode.decodeString embeddingResultDecoder str

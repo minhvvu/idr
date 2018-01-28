@@ -164,12 +164,15 @@ def get_dataset_metadata(fields=[]):
     return get_dict_from_db(key='metadata', fields=fields)
 
 
-def publish_data(X):
+def publish_data(X_embedded, errors):
     """ Push intermediate result into a redis channel
     """
-    data_str = X.ravel().tostring()
-    # note that float data type is written as float32
-    redis_db.publish(DATA_CHANNEL, data_str)
+    print("PUBLISH: ", len(np.array2string(X_embedded.ravel())))
+    data = {
+        'X_embedded': np.array2string(X_embedded.ravel()),
+        'errors': errors
+    }
+    redis_db.publish(DATA_CHANNEL, json.dumps(data))
 
 
 def decode_X_embedded(data_str):
@@ -179,7 +182,9 @@ def decode_X_embedded(data_str):
     n_total = metadata['n_total']
     reduced_dim = metadata['reduced_dim']
 
-    data_obj = np.fromstring(data_str, dtype=np.float32)
+    data_obj = np.fromstring(data_str, dtype=np.float32, sep=' ')
+    print("INPUT: ", data_str, len(data_str))
+    print("OUTPUT: ", data_obj)
     data_arr = data_obj.reshape([n_total, reduced_dim])
     return data_arr
 
@@ -190,7 +195,15 @@ def get_subscribed_data():
     msg = pubsub.get_message()
     if not msg or msg['type'] != 'message':
         return None
-    return decode_X_embedded(data_str=msg['data'])
+    
+    data_obj = json.loads(msg['data'])
+    X_embedded_str = data_obj['X_embedded'][1:-1]
+    print("embedded: ", X_embedded_str, len(X_embedded_str))
+    errors_str = data_obj['errors']
+    return {
+        'X_embedded': decode_X_embedded(X_embedded_str),
+        'errors': [float(error) for error in json.dumps(erors_str)]
+    } 
 
 
 ### Utils function to get/set numpy ndarray

@@ -90,16 +90,12 @@ mapRawDataToScatterPlot rawPoints ( xScale, yScale ) =
 scatterView : Scatter -> Svg Msg
 scatterView { points, xScale, yScale } =
     svg
-        [ width <| px <| plotConfig.width
-        , height <| px <| plotConfig.height
+        [ width <| toString <| plotConfig.width
+        , height <| toString <| plotConfig.height
         ]
         [ drawAxes ( xScale, yScale )
         , drawScatter points
         ]
-
-
-handleZoom evt =
-    Debug.log evt
 
 
 {-| Private function take plot the circles by calling the util function from `CircleGroup`
@@ -114,34 +110,32 @@ drawScatter points =
             [ circleGroupView points ]
 
 
-px : Float -> String
-px i =
-    (toString i) ++ "px"
-
-
 {-| Public API for calling drawing a list of moved circle in CircleGroup
 -}
 movedPointsView : Scatter -> Html Msg
 movedPointsView { points } =
-    ListGroup.ul
-        (points.movedCircles
-            |> List.map
-                (\p ->
-                    ListGroup.li
-                        [ ListGroup.attrs [ HtmlAttrs.class "justify-content-between" ] ]
-                        [ Badge.pill [] [ Html.text p.id ]
-                        , Html.text
-                            ("[label:"
-                                ++ p.label
-                                ++ "], (x = "
-                                ++ (toString <| round <| getX <| p.position)
-                                ++ "; y = "
-                                ++ (toString <| round <| getY <| p.position)
-                                ++ ")"
-                            )
-                        ]
-                )
-        )
+    let
+        pointToListItem =
+            (\p ->
+                ListGroup.li
+                    [ ListGroup.attrs [ HtmlAttrs.class "justify-content-between" ] ]
+                    [ Badge.pill [] [ Html.text p.id ]
+                    , Html.text
+                        ("[label:"
+                            ++ p.label
+                            ++ "], (x = "
+                            ++ (toString <| round <| getX <| p.position)
+                            ++ "; y = "
+                            ++ (toString <| round <| getY <| p.position)
+                            ++ ")"
+                        )
+                    ]
+            )
+    in
+        ListGroup.ul
+            (points.movedCircles
+                |> List.map pointToListItem
+            )
 
 
 {-| Public API for getting a list of moved circles and map them to the domain value

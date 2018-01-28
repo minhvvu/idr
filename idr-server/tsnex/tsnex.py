@@ -128,17 +128,12 @@ def my_gradient_descent(objective, p0, it, n_iter,
     shared_queue = shared_interaction['queue']
     fixed_ids = []
     fixed_pos = []
+    errors = []
 
     print("\nGradien Descent:")
     for i in range(it, n_iter):
 
         status = utils.get_server_status(['n_jump', 'tick_frequence'])
-        if (i % status['n_jump'] == 0):
-            utils.publish_data(p.copy())
-            utils.print_progress(i, n_iter)
-            
-            # pause, while the other thread sends the published data to client
-            sleep(status['tick_frequence'])
 
         # wait for the `ready` flag to become `True` in order to continue
         # note that, this flag can be changed at any time
@@ -159,10 +154,13 @@ def my_gradient_descent(objective, p0, it, n_iter,
             p = p2d.ravel()
         
         error, grad = objective(p, *args, **kwargs)
+        errors.append(error)
+
         if fixed_ids:
             grad2d = grad.reshape(-1, 2)
             grad2d[fixed_ids] = 0
             grad = grad2d.ravel()
+
         grad_norm = linalg.norm(grad)
 
         inc = update * grad < 0.0
@@ -173,6 +171,13 @@ def my_gradient_descent(objective, p0, it, n_iter,
         grad *= gains
         update = momentum * update - learning_rate * grad
         p += update
+
+        if (i % status['n_jump'] == 0):
+            utils.publish_data(p.copy(), errors)
+            utils.print_progress(i, n_iter)
+            
+            # pause, while the other thread sends the published data to client
+            sleep(status['tick_frequence'])
 
         if (i + 1) % n_iter_check == 0:
             toc = time()

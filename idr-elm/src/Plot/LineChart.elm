@@ -13,26 +13,36 @@ import Visualization.Scale as Scale exposing (ContinuousScale, ContinuousTimeSca
 import Visualization.Shape as Shape
 
 
-timeSeries : List ( Date, Float )
+type alias Point =
+    { it : Float
+    , cost : Float
+    }
+
+
+type alias Model =
+    List Point
+
+
+timeSeries : Model
 timeSeries =
-    [ ( Date.fromTime 1448928000000, 2.5 )
-    , ( Date.fromTime 1451606400000, 2 )
-    , ( Date.fromTime 1452211200000, 3.5 )
-    , ( Date.fromTime 1452816000000, 2 )
-    , ( Date.fromTime 1453420800000, 3 )
-    , ( Date.fromTime 1454284800000, 1 )
-    , ( Date.fromTime 1456790400000, 1.2 )
+    [ Point 1 2.5
+    , Point 2 2
+    , Point 3 3.5
+    , Point 4 2
+    , Point 5 3
+    , Point 6 1
+    , Point 7 1.2
     ]
 
 
 w : Float
 w =
-    450
+    650
 
 
 h : Float
 h =
-    450
+    400
 
 
 padding : Float
@@ -40,9 +50,9 @@ padding =
     30
 
 
-xScale : ContinuousTimeScale
+xScale : ContinuousScale
 xScale =
-    Scale.time ( Date.fromTime 1448928000000, Date.fromTime 1456790400000 ) ( 0, w - 2 * padding )
+    Scale.linear ( 0, 10 ) ( 0, w - 2 * padding )
 
 
 yScale : ContinuousScale
@@ -50,7 +60,7 @@ yScale =
     Scale.linear ( 0, 5 ) ( h - 2 * padding, 0 )
 
 
-xAxis : List ( Date, Float ) -> Svg msg
+xAxis : Model -> Svg msg
 xAxis model =
     Axis.axis { defaultOptions | orientation = Axis.Bottom, tickCount = List.length model } xScale
 
@@ -60,34 +70,34 @@ yAxis =
     Axis.axis { defaultOptions | orientation = Axis.Left, tickCount = 5 } yScale
 
 
-transformToLineData : ( Date, Float ) -> Maybe ( Float, Float )
-transformToLineData ( x, y ) =
-    Just ( Scale.convert xScale x, Scale.convert yScale y )
+transformToLineData : Point -> Maybe ( Float, Float )
+transformToLineData { it, cost } =
+    Just ( Scale.convert xScale it, Scale.convert yScale cost )
 
 
-tranfromToAreaData : ( Date, Float ) -> Maybe ( ( Float, Float ), ( Float, Float ) )
-tranfromToAreaData ( x, y ) =
+tranfromToAreaData : Point -> Maybe ( ( Float, Float ), ( Float, Float ) )
+tranfromToAreaData { it, cost } =
     Just
-        ( ( Scale.convert xScale x, Tuple.first (Scale.rangeExtent yScale) )
-        , ( Scale.convert xScale x, Scale.convert yScale y )
+        ( ( Scale.convert xScale it, Tuple.first (Scale.rangeExtent yScale) )
+        , ( Scale.convert xScale it, Scale.convert yScale cost )
         )
 
 
-line : List ( Date, Float ) -> Attribute msg
+line : Model -> Attribute msg
 line model =
     List.map transformToLineData model
         |> Shape.line Shape.monotoneInXCurve
         |> d
 
 
-area : List ( Date, Float ) -> Attribute msg
+area : Model -> Attribute msg
 area model =
     List.map tranfromToAreaData model
         |> Shape.area Shape.monotoneInXCurve
         |> d
 
 
-view : List ( Date, Float ) -> Svg msg
+view : Model -> Svg msg
 view model =
     svg [ width (toString w ++ "px"), height (toString h ++ "px") ]
         [ g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString (h - padding) ++ ")") ]
@@ -101,11 +111,6 @@ view model =
         ]
 
 
-
--- From here onwards this is simply example boilerplate.
--- In a real app you would load the data from a server and parse it, perhaps in
--- a separate module.
-
-
+viewLineChart : Svg msg
 viewLineChart =
     view timeSeries

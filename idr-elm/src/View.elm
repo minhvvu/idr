@@ -19,7 +19,7 @@ import Plot.LineChart exposing (viewLineChart)
 
 view : Model -> Html Msg
 view model =
-    Grid.container []
+    Grid.containerFluid []
         [ CDN.stylesheet
         , Grid.row [ Row.betweenSm ]
             [ Grid.col []
@@ -62,14 +62,11 @@ view model =
                 ]
             ]
         , Grid.row [ Row.betweenSm ]
-            [ Grid.col [] [ scatterView model.scatter ]
+            [ Grid.col []
+                [ scatterView model.scatter ]
             , Grid.col []
-                [ Grid.row []
-                    [ Grid.col []
-                        [ movedPointsView model.scatter
-                        , viewLineChart
-                        ]
-                    ]
+                [ viewLineChart
+                , movedPointsView model.scatter
                 ]
             ]
         ]
