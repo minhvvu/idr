@@ -53,12 +53,8 @@ yScaler maxY =
 
 
 xAxis : LineSeries -> Svg msg
-xAxis { series, xScale } =
-    let
-        tickCount =
-            Basics.min 20 (List.length series)
-    in
-        Axis.axis { defaultOptions | orientation = Axis.Bottom, tickCount = tickCount } xScale
+xAxis { xScale } =
+    Axis.axis { defaultOptions | orientation = Axis.Bottom, tickCount = 15 } xScale
 
 
 yAxis : LineSeries -> Svg msg

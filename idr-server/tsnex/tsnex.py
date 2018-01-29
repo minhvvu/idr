@@ -131,7 +131,11 @@ def my_gradient_descent(objective, p0, it, n_iter,
     errors = []
 
     print("\nGradien Descent:")
-    for i in range(it, n_iter):
+    #for i in range(it, n_iter):
+    while True:
+        i += 1
+        if n_iter < 500 and i > n_iter: # early_exaggeration 
+            break
 
         status = utils.get_server_status(['n_jump', 'tick_frequence', 'stop'])
         if True == status['stop']:
