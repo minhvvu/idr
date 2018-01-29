@@ -133,7 +133,9 @@ def my_gradient_descent(objective, p0, it, n_iter,
     print("\nGradien Descent:")
     for i in range(it, n_iter):
 
-        status = utils.get_server_status(['n_jump', 'tick_frequence'])
+        status = utils.get_server_status(['n_jump', 'tick_frequence', 'stop'])
+        if True == status['stop']:
+            return p, error, i
 
         # wait for the `ready` flag to become `True` in order to continue
         # note that, this flag can be changed at any time

@@ -148,8 +148,11 @@ def run_send_to_client(ws):
                     'errors': errors
                 }))
 
-        status = utils.get_server_status(['tick_frequence'])
-        time.sleep(status['tick_frequence'])
+        status = utils.get_server_status(['tick_frequence', 'stop'])
+        if True == status['stop']:
+            break
+        else:
+            time.sleep(status['tick_frequence'])
 
 
 @sockets.route('/tsnex/continue_server')
@@ -199,32 +202,31 @@ def reset_data(ws):
     while not ws.closed:
         message = ws.receive()
         if message and message == "ConfirmReset":
-            print("[Reset]Receive Reset command from client. Do reset!")
+            do_reset()
 
-            # set a flag to denote it's time to break all running thread
-            utils.update_server_status({'should_break': True})
 
-            # let the tsnex thread to jump out of waiting status
-            utils.continue_server()
-            
-            # stop all threads
-            print("[Reset]Stopping the running threads ... ")
-            if (shared_states['thread_tsnex']):
-                shared_states['thread_tsnex'].join(timeout=1)
-            if (shared_states['thread_pubsub']):
-                shared_states['thread_pubsub'].join(timeout=1)
-            time.sleep(2.5)
-            print("[Reset]Threads stopped")
-            
-            # clean interaction data in queue
-            print("[Reset]Cleaning data ... ")
-            while not shared_states['interaction_data'].empty():
-                shared_states['interaction_data'].get()
+def do_reset():
+    print("[Reset]Receive Reset command from client. Do reset!")
 
-            # flush all data in redis
-            utils.clean_data()
+    # set a flag to denote it's time to break all running thread
+    utils.update_server_status({'stop': True})
 
-            print("[Reset]Done!")
+    # let the tsnex thread to jump out of waiting status
+    utils.continue_server()
+    
+    # stop all threads
+    print("[Reset]Stopping the running threads ... ")
+    if (shared_states['thread_tsnex']):
+        shared_states['thread_tsnex'].join(timeout=1)
+    if (shared_states['thread_pubsub']):
+        shared_states['thread_pubsub'].join(timeout=1)
+    time.sleep(2.5)
+    print("[Reset]Threads stopped")
+
+    # flush all data in redis
+    utils.clean_data()
+
+    print("[Reset]Done!")
 
 
 @app.route('/')

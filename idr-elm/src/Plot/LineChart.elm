@@ -109,5 +109,5 @@ viewLineChart model =
         , g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString padding ++ ")") ]
             [ yAxis model ]
         , g [ transform ("translate(" ++ toString padding ++ ", " ++ toString padding ++ ")"), class "series" ]
-            [ Svg.path [ line model, stroke "red", strokeWidth "3px", fill "none" ] [] ]
+            [ Svg.path [ line model, stroke "red", strokeWidth "2px", fill "none" ] [ text "ABC" ] ]
         ]

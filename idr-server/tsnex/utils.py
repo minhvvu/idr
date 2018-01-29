@@ -71,7 +71,8 @@ initial_server_status = {
     'n_jump': 2,
     'client_iter': 0,
     'max_iter': 1000,
-    'ready': True
+    'ready': True,
+    'stop': False
 }
 
 
@@ -87,9 +88,10 @@ def update_server_status(userStatusObj):
         http://treyhunner.com/2016/02/how-to-merge-dictionaries-in-python/
     """
     oldStatusStr = get_from_db(key='status')
-    oldStatusObj = json.loads(oldStatusStr)
-    mergeObj = {**oldStatusObj, **userStatusObj}
-    set_to_db(key='status', str_value=json.dumps(mergeObj))
+    if oldStatusStr:
+        oldStatusObj = json.loads(oldStatusStr)
+        mergeObj = {**oldStatusObj, **userStatusObj}
+        set_to_db(key='status', str_value=json.dumps(mergeObj))
 
 
 def get_dict_from_db(key, fields=[]):
