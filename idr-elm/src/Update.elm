@@ -100,11 +100,15 @@ updateNewData ({ ready, current_it } as model) dataStr =
 
                 rawPoints =
                     embeddingResult.embedding
+
+                errors =
+                    embeddingResult.errors
             in
                 ( { model
                     | current_it = current_it + 1
                     , rawData = rawPoints
                     , scatter = Plot.Scatter.createScatter rawPoints model.zoomFactor
+                    , errorSeries = errors
                   }
                 , nextCommand
                 )

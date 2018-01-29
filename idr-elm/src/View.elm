@@ -65,7 +65,7 @@ view model =
             [ Grid.col []
                 [ scatterView model.scatter ]
             , Grid.col []
-                [ viewLineChart
+                [ viewLineChart model.errorSeries
                 , movedPointsView model.scatter
                 ]
             ]
