@@ -3,13 +3,13 @@ module Models exposing (..)
 import Draggable
 import Common exposing (..)
 import Plot.Scatter exposing (Scatter, emptyScatter)
-import Plot.LineChart exposing (Series)
+import Plot.LineChart exposing (LineSeries, emptySeries)
 
 
 type alias Model =
     { rawData : List Point
     , scatter : Scatter
-    , errorSeries : Series
+    , errorSeries : LineSeries
     , drag : Draggable.State CircleId
     , ready : Bool
     , current_it : Int
@@ -22,7 +22,7 @@ initialModel : Model
 initialModel =
     { rawData = []
     , scatter = emptyScatter
-    , errorSeries = [ 0.0 ]
+    , errorSeries = emptySeries
     , drag = Draggable.init
     , ready = True
     , current_it = 0
@@ -39,7 +39,7 @@ errorModel : Model
 errorModel =
     { rawData = []
     , scatter = emptyScatter
-    , errorSeries = []
+    , errorSeries = emptySeries
     , drag = Draggable.init
     , ready = False
     , current_it = -1

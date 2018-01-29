@@ -4,8 +4,9 @@ import Draggable
 import Msgs exposing (Msg(..), myDragConfig)
 import Commands exposing (..)
 import Models exposing (..)
-import Plot.Scatter exposing (createScatter, getMovedPoints)
 import Plot.CircleGroup exposing (..)
+import Plot.Scatter exposing (createScatter, getMovedPoints)
+import Plot.LineChart exposing (createSeries)
 
 
 {-| Big update function to handle all system messages
@@ -101,14 +102,14 @@ updateNewData ({ ready, current_it } as model) dataStr =
                 rawPoints =
                     embeddingResult.embedding
 
-                errors =
+                errorValues =
                     embeddingResult.errors
             in
                 ( { model
                     | current_it = current_it + 1
                     , rawData = rawPoints
                     , scatter = Plot.Scatter.createScatter rawPoints model.zoomFactor
-                    , errorSeries = errors
+                    , errorSeries = Plot.LineChart.createSeries errorValues
                   }
                 , nextCommand
                 )

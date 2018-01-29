@@ -71,6 +71,13 @@ plotConfig =
     }
 
 
+seriesConfig =
+    { width = 650
+    , height = 400
+    , padding = 30
+    }
+
+
 type alias Point =
     { id : String
     , x : Float

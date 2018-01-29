@@ -1,10 +1,9 @@
-module Plot.LineChart exposing (Series, viewLineChart)
+module Plot.LineChart exposing (LineSeries, emptySeries, createSeries, viewLineChart)
 
 {-| This module shows how to build a simple line and area chart using some of
 the primitives provided in this library.
 -}
 
-import Date exposing (Date)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Visualization.Axis as Axis exposing (defaultOptions)
@@ -13,8 +12,19 @@ import Visualization.Scale as Scale exposing (ContinuousScale)
 import Visualization.Shape as Shape
 
 
-type alias Series =
-    List Float
+type alias LineSeries =
+    { series : List Float
+    , xScale : ContinuousScale
+    , yScale : ContinuousScale
+    }
+
+
+emptySeries : LineSeries
+emptySeries =
+    { series = [ 0.0 ]
+    , xScale = Scale.linear ( 0, 0 ) ( 0, 0 )
+    , yScale = Scale.linear ( 0, 0 ) ( 0, 0 )
+    }
 
 
 w : Float
@@ -32,62 +42,72 @@ padding =
     30
 
 
-xScale : ContinuousScale
-xScale =
-    Scale.linear ( 0, 500 ) ( 0, w - 2 * padding )
+xScaler : Float -> ContinuousScale
+xScaler maxX =
+    Scale.linear ( 0, maxX ) ( 0, w - 2 * padding )
 
 
-yScale : ContinuousScale
-yScale =
-    Scale.linear ( 0, 100 ) ( h - 2 * padding, 0 )
+yScaler : Float -> ContinuousScale
+yScaler maxY =
+    Scale.linear ( 0, maxY ) ( h - 2 * padding, 0 )
 
 
-xAxis : Series -> Svg msg
-xAxis model =
-    Axis.axis { defaultOptions | orientation = Axis.Bottom, tickCount = List.length model } xScale
+xAxis : LineSeries -> Svg msg
+xAxis { series, xScale } =
+    let
+        tickCount =
+            Basics.min 20 (List.length series)
+    in
+        Axis.axis { defaultOptions | orientation = Axis.Bottom, tickCount = tickCount } xScale
 
 
-yAxis : Svg msg
-yAxis =
-    Axis.axis { defaultOptions | orientation = Axis.Left, tickCount = 5 } yScale
+yAxis : LineSeries -> Svg msg
+yAxis { yScale } =
+    Axis.axis { defaultOptions | orientation = Axis.Left, tickCount = 12 } yScale
 
 
-transformToLineData : Int -> Float -> Maybe ( Float, Float )
-transformToLineData it cost =
-    Just ( Scale.convert xScale (toFloat it), Scale.convert yScale cost )
+createSeries : List Float -> LineSeries
+createSeries data =
+    let
+        maxX =
+            (toFloat (List.length data)) * 1.2
+
+        xScale =
+            xScaler maxX
+
+        maxY =
+            Maybe.withDefault 10.0 <| List.maximum data
+
+        yScale =
+            yScaler maxY
+    in
+        { series = data
+        , xScale = xScale
+        , yScale = yScale
+        }
 
 
-tranfromToAreaData : Int -> Float -> Maybe ( ( Float, Float ), ( Float, Float ) )
-tranfromToAreaData it cost =
-    Just
-        ( ( Scale.convert xScale (toFloat it), Tuple.first (Scale.rangeExtent yScale) )
-        , ( Scale.convert xScale (toFloat it), Scale.convert yScale cost )
-        )
+line : LineSeries -> Attribute msg
+line { series, xScale, yScale } =
+    let
+        transformToLineData it cost =
+            Just
+                ( Scale.convert xScale (toFloat it)
+                , Scale.convert yScale cost
+                )
+    in
+        List.indexedMap transformToLineData series
+            |> Shape.line Shape.monotoneInXCurve
+            |> d
 
 
-line : Series -> Attribute msg
-line model =
-    List.indexedMap transformToLineData model
-        |> Shape.line Shape.monotoneInXCurve
-        |> d
-
-
-area : Series -> Attribute msg
-area model =
-    List.indexedMap tranfromToAreaData model
-        |> Shape.area Shape.monotoneInXCurve
-        |> d
-
-
-viewLineChart : Series -> Svg msg
+viewLineChart : LineSeries -> Svg msg
 viewLineChart model =
     svg [ width (toString w ++ "px"), height (toString h ++ "px") ]
         [ g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString (h - padding) ++ ")") ]
             [ xAxis model ]
         , g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString padding ++ ")") ]
-            [ yAxis ]
+            [ yAxis model ]
         , g [ transform ("translate(" ++ toString padding ++ ", " ++ toString padding ++ ")"), class "series" ]
-            [ --Svg.path [ area model, stroke "none", strokeWidth "3px", fill "rgba(255, 0, 0, 0.54)" ] []
-              Svg.path [ line model, stroke "red", strokeWidth "3px", fill "none" ] []
-            ]
+            [ Svg.path [ line model, stroke "red", strokeWidth "3px", fill "none" ] [] ]
         ]
