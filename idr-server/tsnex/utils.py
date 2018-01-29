@@ -167,9 +167,12 @@ def get_dataset_metadata(fields=[]):
 def publish_data(X_embedded, errors):
     """ Push intermediate result into a redis channel
     """
-    print("PUBLISH: ", len(np.array2string(X_embedded.ravel())))
     data = {
-        'X_embedded': np.array2string(X_embedded.ravel()),
+        # np.tostring() convert a ndarray to a binary string (bytes)
+        # to transfer the data via redis queue,
+        # it should convert the bytes to string by decoding them
+        # the correct coding schema is latin-1, not utf-8
+        'X_embedded': X_embedded.ravel().tostring().decode('latin-1'),
         'errors': errors
     }
     redis_db.publish(DATA_CHANNEL, json.dumps(data))
@@ -182,9 +185,7 @@ def decode_X_embedded(data_str):
     n_total = metadata['n_total']
     reduced_dim = metadata['reduced_dim']
 
-    data_obj = np.fromstring(data_str, dtype=np.float32, sep=' ')
-    print("INPUT: ", data_str, len(data_str))
-    print("OUTPUT: ", data_obj)
+    data_obj = np.fromstring(data_str, dtype=np.float32)
     data_arr = data_obj.reshape([n_total, reduced_dim])
     return data_arr
 
@@ -197,12 +198,12 @@ def get_subscribed_data():
         return None
     
     data_obj = json.loads(msg['data'])
-    X_embedded_str = data_obj['X_embedded'][1:-1]
-    print("embedded: ", X_embedded_str, len(X_embedded_str))
-    errors_str = data_obj['errors']
+    X_embedded_str = data_obj['X_embedded'].encode('latin-1')
+    errors = data_obj['errors']
+    
     return {
         'X_embedded': decode_X_embedded(X_embedded_str),
-        'errors': [float(error) for error in json.dumps(erors_str)]
+        'errors': errors
     } 
 
 

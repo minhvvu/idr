@@ -130,6 +130,8 @@ def run_send_to_client(ws):
         subscribedData = utils.get_subscribed_data()
         if subscribedData is not None:
             X_embedded = subscribedData['X_embedded']
+            errors = subscribedData['errors']
+            
             y = utils.get_y()
             raw_points = [{
                 'id': str(i),
