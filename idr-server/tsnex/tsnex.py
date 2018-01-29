@@ -132,6 +132,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
     errors = []
     grad_norms = []
     trustworthinesses = []
+    stabilities = []
+    convergences = []
 
     X_original = utils.get_X()
     dist_X_original = pairwise_distances(X_original, squared=True)
@@ -180,6 +182,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
         np.clip(gains, min_gain, np.inf, out=gains)
         grad *= gains
         update = momentum * update - learning_rate * grad
+        old_p = p.copy()
         p += update
 
         if (i % status['n_jump'] == 0):
@@ -190,8 +193,12 @@ def my_gradient_descent(objective, p0, it, n_iter,
             trustworthinesses.append(measure)
             errors.append(error)
             grad_norms.append(float(grad_norm))
-            publish(p.copy(), errors, trustworthinesses)
-            
+
+            stability, convergence = PIVE_measure(old_p, p, dist_X_original)
+            stabilities.append(stability)
+            convergences.append(convergence)
+
+            publish(p.copy(), errors, trustworthinesses, stabilities, convergences)
             utils.print_progress(i, n_iter)
             
             # pause, while the other thread sends the published data to client
@@ -226,7 +233,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
     return p, error, i
 
 
-def publish(X_embedded, errors, trustworthinesses):
+def publish(X_embedded, errors, trustworthinesses, stabilities, convergences):
     data = {
         # np.tostring() convert a ndarray to a binary string (bytes)
         # to transfer the data via redis queue,
@@ -234,9 +241,57 @@ def publish(X_embedded, errors, trustworthinesses):
         # the correct coding schema is latin-1, not utf-8
         'embedding': X_embedded.ravel().tostring().decode('latin-1'),
         'errors': errors,
-        'trustworthinesses': trustworthinesses
+        'trustworthinesses': trustworthinesses,
+        'stabilities': stabilities,
+        'convergences': convergences
     }
     utils.publish_data(data)
+
+
+
+def PIVE_measure(old_p, new_p, dist_X, k=10):
+    """ Calculate the measurement in PIVE framework [1]
+
+    stability_{t} = 1/(nk) * \sum^{n}_{i} { | 
+        N_k(y_i^{t}) - N_k(y_i^{t-1})
+    | }
+
+    convergence_{t} = 1/(nk) * \sum^{n}_{i} { | 
+        N_k(y_i^{t}) \intersection N_k(X_i)
+    | }
+
+    in which N_k(.) is a set of k nearest neighbors
+    and | setA | is the number of elements in setA
+
+    [1] PIVE: Per-Iteration Visualization Environment for Real-Time Interactions
+        with Dimension Reduction and Clustering.
+    """
+    n = dist_X.shape[0]
+
+    dist_old = pairwise_distances(old_p.reshape(-1, 2), squared=True)
+    dist_new = pairwise_distances(new_p.reshape(-1, 2), squared=True)
+    
+    k_ind_old = np.argsort(dist_old, axis=1)[:, 1:k+1]
+    k_ind_new = np.argsort(dist_new, axis=1)[:, 1:k+1]
+    k_ind_X = np.argsort(dist_X, axis=1)[:, 1:k+1]
+
+    stability = 0
+    for i in range(n):
+        set_old = set(k_ind_old[i])
+        set_new = set(k_ind_new[i])
+        n_new_but_not_old = set_new - set_old
+        stability += len(n_new_but_not_old)
+    stability /= (n * k)
+
+    convergence = 0
+    for i in range(n):
+        set_embedded = set(k_ind_new[i])
+        set_X = set(k_ind_X[i])
+        intersection = set_embedded & set_X
+        convergence += len(intersection)
+    convergence /= (n * k)
+
+    return stability, convergence
 
 
 if __name__ == '__main__':

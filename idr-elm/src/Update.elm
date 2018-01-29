@@ -108,6 +108,12 @@ updateNewData ({ ready, current_it } as model) dataStr =
 
                 trustworthinesses =
                     embeddingResult.trustworthinesses
+
+                statbilities =
+                    embeddingResult.stabilities
+
+                convergences =
+                    embeddingResult.convergences
             in
                 ( { model
                     | current_it = current_it + 1
@@ -115,6 +121,8 @@ updateNewData ({ ready, current_it } as model) dataStr =
                     , scatter = Plot.Scatter.createScatter rawPoints model.zoomFactor
                     , errorSeries = Plot.LineChart.createSeries errorValues
                     , measureSeries = Plot.LineChart.createSeries trustworthinesses
+                    , stabilitySeries = Plot.LineChart.createSeries statbilities
+                    , convergenceSeries = Plot.LineChart.createSeries convergences
                   }
                 , nextCommand
                 )

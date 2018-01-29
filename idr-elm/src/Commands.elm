@@ -163,6 +163,8 @@ type alias EmbeddingResult =
     { embedding : List Point
     , errors : List Float
     , trustworthinesses : List Float
+    , stabilities : List Float
+    , convergences : List Float
     }
 
 
@@ -172,6 +174,8 @@ embeddingResultDecoder =
         |> required "embedding" listPointsDecoder
         |> required "errors" (Decode.list Decode.float)
         |> required "trustworthinesses" (Decode.list Decode.float)
+        |> required "stabilities" (Decode.list Decode.float)
+        |> required "convergences" (Decode.list Decode.float)
 
 
 decodeEmbeddingResult : String -> Result String EmbeddingResult

@@ -65,9 +65,13 @@ view model =
             [ Grid.col []
                 [ scatterView model.scatter ]
             , Grid.col []
-                [ viewLineChart "red" model.errorSeries
-                , viewLineChart "blue" model.measureSeries
-                , movedPointsView model.scatter
+                [ movedPointsView model.scatter
                 ]
+            ]
+        , Grid.row [ Row.betweenSm ]
+            [ Grid.col [] [ viewLineChart "red" model.errorSeries ]
+            , Grid.col [] [ viewLineChart "blue" model.measureSeries ]
+            , Grid.col [] [ viewLineChart "orange" model.stabilitySeries ]
+            , Grid.col [] [ viewLineChart "green" model.convergenceSeries ]
             ]
         ]

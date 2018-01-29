@@ -11,6 +11,8 @@ type alias Model =
     , scatter : Scatter
     , errorSeries : LineSeries
     , measureSeries : LineSeries
+    , stabilitySeries : LineSeries
+    , convergenceSeries : LineSeries
     , drag : Draggable.State CircleId
     , ready : Bool
     , current_it : Int
@@ -25,6 +27,8 @@ initialModel =
     , scatter = emptyScatter
     , errorSeries = emptySeries
     , measureSeries = emptySeries
+    , stabilitySeries = emptySeries
+    , convergenceSeries = emptySeries
     , drag = Draggable.init
     , ready = True
     , current_it = 0
