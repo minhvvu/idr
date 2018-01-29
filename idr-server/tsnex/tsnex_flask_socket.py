@@ -143,9 +143,31 @@ def run_send_to_client(ws):
                     'label': str(y[i]),
                     'fixed': i in fixed_ids
                 } for i in range(y.shape[0])]
-                subscribedData['embedding'] = raw_points
+                #subscribedData['embedding'] = raw_points
 
-                ws.send(json.dumps(subscribedData))
+                client_data = {
+                    'embedding': raw_points,
+                    'seriesData': [
+                        {
+                            'name': 'errors',
+                            'series': subscribedData['errors']
+                        },
+                        {
+                            'name': 'trustworthinesses',
+                            'series': subscribedData['trustworthinesses']
+                        },
+                        {
+                            'name': 'stabilities',
+                            'series': subscribedData['stabilities']
+                        },
+                        {
+                            'name': 'convergences',
+                            'series': subscribedData['convergences']
+                        },
+                    ]
+                }
+
+                ws.send(json.dumps(client_data))
 
         status = utils.get_server_status(['tick_frequence', 'stop'])
         if True == status['stop']:

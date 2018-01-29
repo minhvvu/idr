@@ -103,26 +103,31 @@ updateNewData ({ ready, current_it } as model) dataStr =
                 rawPoints =
                     embeddingResult.embedding
 
+                seriesData =
+                    embeddingResult.seriesData
+
+                ahead =
+                    Maybe.withDefault { name = "x", series = [] } (List.head seriesData)
+
                 errorValues =
-                    embeddingResult.errors
+                    ahead.series
 
-                trustworthinesses =
-                    embeddingResult.trustworthinesses
-
-                statbilities =
-                    embeddingResult.stabilities
-
-                convergences =
-                    embeddingResult.convergences
+                --trustworthinesses =
+                --    seriesData[1].trustworthinesses
+                --statbilities =
+                --    seriesData[2].stabilities
+                --convergences =
+                --    seriesData[3].convergences
             in
                 ( { model
                     | current_it = current_it + 1
                     , rawData = rawPoints
                     , scatter = Plot.Scatter.createScatter rawPoints model.zoomFactor
                     , errorSeries = Plot.LineChart.createSeries errorValues
-                    , measureSeries = Plot.LineChart.createSeries trustworthinesses
-                    , stabilitySeries = Plot.LineChart.createSeries statbilities
-                    , convergenceSeries = Plot.LineChart.createSeries convergences
+
+                    --, measureSeries = Plot.LineChart.createSeries trustworthinesses
+                    --, stabilitySeries = Plot.LineChart.createSeries statbilities
+                    --, convergenceSeries = Plot.LineChart.createSeries convergences
                   }
                 , nextCommand
                 )

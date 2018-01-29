@@ -153,29 +153,42 @@ encodeListPoints points =
             |> Encode.encode pretyPrint
 
 
-{-| Util function to describe the returned data from server containing:
+type alias SeriesData =
+    { name : String
+    , series : List Float
+    }
 
-  - `embedding`: the current configuration of the embedded points
-  - `errors`: a list of error after each iteration
 
--}
 type alias EmbeddingResult =
     { embedding : List Point
-    , errors : List Float
-    , trustworthinesses : List Float
-    , stabilities : List Float
-    , convergences : List Float
+    , seriesData : List SeriesData
+
+    --, errors : List Float
+    --, trustworthinesses : List Float
+    --, stabilities : List Float
+    --, convergences : List Float
     }
+
+
+seriesDataDecoder : Decode.Decoder SeriesData
+seriesDataDecoder =
+    decode SeriesData
+        |> required "name" Decode.string
+        |> required "series" (Decode.list Decode.float)
 
 
 embeddingResultDecoder : Decode.Decoder EmbeddingResult
 embeddingResultDecoder =
     decode EmbeddingResult
         |> required "embedding" listPointsDecoder
-        |> required "errors" (Decode.list Decode.float)
-        |> required "trustworthinesses" (Decode.list Decode.float)
-        |> required "stabilities" (Decode.list Decode.float)
-        |> required "convergences" (Decode.list Decode.float)
+        |> required "seriesData" (Decode.list seriesDataDecoder)
+
+
+
+--|> required "errors" (Decode.list Decode.float)
+--|> required "trustworthinesses" (Decode.list Decode.float)
+--|> required "stabilities" (Decode.list Decode.float)
+--|> required "convergences" (Decode.list Decode.float)
 
 
 decodeEmbeddingResult : String -> Result String EmbeddingResult
