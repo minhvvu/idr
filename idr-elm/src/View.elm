@@ -25,7 +25,7 @@ view model =
             [ Grid.col []
                 [ Button.button
                     [ secondary, Button.attrs [ class "ml-2" ], onClick LoadDataset ]
-                    [ text "Load dataset (MNIST)" ]
+                    [ text "Load dataset" ]
                 , ButtonGroup.buttonGroup
                     [ ButtonGroup.attrs [ class "ml-1" ] ]
                     [ ButtonGroup.button
@@ -65,7 +65,8 @@ view model =
             [ Grid.col []
                 [ scatterView model.scatter ]
             , Grid.col []
-                [ viewLineChart model.errorSeries
+                [ viewLineChart "red" model.errorSeries
+                , viewLineChart "blue" model.measureSeries
                 , movedPointsView model.scatter
                 ]
             ]

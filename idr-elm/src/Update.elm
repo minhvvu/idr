@@ -89,7 +89,8 @@ updateNewData : Model -> String -> ( Model, Cmd Msg )
 updateNewData ({ ready, current_it } as model) dataStr =
     case decodeEmbeddingResult dataStr of
         Err msg ->
-            Debug.log "[Error Decode data]" ( Models.errorModel, Cmd.none )
+            Debug.log ("[ERROR]decodeEmbeddingResult:\n" ++ msg)
+                ( Models.initialModel, Cmd.none )
 
         Ok embeddingResult ->
             let
@@ -104,12 +105,16 @@ updateNewData ({ ready, current_it } as model) dataStr =
 
                 errorValues =
                     embeddingResult.errors
+
+                trustworthinesses =
+                    embeddingResult.trustworthinesses
             in
                 ( { model
                     | current_it = current_it + 1
                     , rawData = rawPoints
                     , scatter = Plot.Scatter.createScatter rawPoints model.zoomFactor
                     , errorSeries = Plot.LineChart.createSeries errorValues
+                    , measureSeries = Plot.LineChart.createSeries trustworthinesses
                   }
                 , nextCommand
                 )

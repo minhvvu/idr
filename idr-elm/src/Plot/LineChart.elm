@@ -66,13 +66,13 @@ createSeries : List Float -> LineSeries
 createSeries data =
     let
         maxX =
-            (toFloat (List.length data)) * 1.2
+            1.1 * (toFloat <| List.length data)
 
         xScale =
             xScaler maxX
 
         maxY =
-            Maybe.withDefault 10.0 <| List.maximum data
+            1.1 * (Maybe.withDefault 10.0 <| List.maximum data)
 
         yScale =
             yScaler maxY
@@ -97,13 +97,14 @@ line { series, xScale, yScale } =
             |> d
 
 
-viewLineChart : LineSeries -> Svg msg
-viewLineChart model =
+viewLineChart : String -> LineSeries -> Svg msg
+viewLineChart color model =
     svg [ width (toString w ++ "px"), height (toString h ++ "px") ]
         [ g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString (h - padding) ++ ")") ]
             [ xAxis model ]
         , g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString padding ++ ")") ]
             [ yAxis model ]
         , g [ transform ("translate(" ++ toString padding ++ ", " ++ toString padding ++ ")"), class "series" ]
-            [ Svg.path [ line model, stroke "red", strokeWidth "2px", fill "none" ] [ text "ABC" ] ]
+            [ Svg.path [ line model, stroke color, strokeWidth "2px", fill "none" ] [ Svg.textPath [] [ Svg.text "Hello" ] ]
+            ]
         ]

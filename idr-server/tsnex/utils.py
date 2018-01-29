@@ -68,7 +68,7 @@ pubsub.subscribe(DATA_CHANNEL)
 # status object to store some server infos
 initial_server_status = {
     'tick_frequence': 0.1,
-    'n_jump': 2,
+    'n_jump': 10,
     'client_iter': 0,
     'max_iter': 1000,
     'ready': True,
@@ -166,30 +166,10 @@ def get_dataset_metadata(fields=[]):
     return get_dict_from_db(key='metadata', fields=fields)
 
 
-def publish_data(X_embedded, errors):
+def publish_data(data):
     """ Push intermediate result into a redis channel
     """
-    data = {
-        # np.tostring() convert a ndarray to a binary string (bytes)
-        # to transfer the data via redis queue,
-        # it should convert the bytes to string by decoding them
-        # the correct coding schema is latin-1, not utf-8
-        'X_embedded': X_embedded.ravel().tostring().decode('latin-1'),
-        'errors': errors
-    }
     redis_db.publish(DATA_CHANNEL, json.dumps(data))
-
-
-def decode_X_embedded(data_str):
-    """ Util function for getting the ndarray X_embedded from redis
-    """
-    metadata = get_dataset_metadata(['n_total', 'reduced_dim'])
-    n_total = metadata['n_total']
-    reduced_dim = metadata['reduced_dim']
-
-    data_obj = np.fromstring(data_str, dtype=np.float32)
-    data_arr = data_obj.reshape([n_total, reduced_dim])
-    return data_arr
 
 
 def get_subscribed_data():
@@ -200,13 +180,10 @@ def get_subscribed_data():
         return None
     
     data_obj = json.loads(msg['data'])
-    X_embedded_str = data_obj['X_embedded'].encode('latin-1')
-    errors = data_obj['errors']
-    
-    return {
-        'X_embedded': decode_X_embedded(X_embedded_str),
-        'errors': errors
-    } 
+    embedding_str = data_obj['embedding'].encode('latin-1')
+    data_obj['embedding'] = \
+        np.fromstring(embedding_str, dtype=np.float32).reshape(-1, 2)
+    return data_obj
 
 
 ### Utils function to get/set numpy ndarray

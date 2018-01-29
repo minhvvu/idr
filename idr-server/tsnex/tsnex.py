@@ -4,6 +4,8 @@
 
 import sklearn
 from sklearn.manifold import TSNE
+from sklearn.manifold.t_sne import trustworthiness
+from sklearn.metrics.pairwise import pairwise_distances
 import numpy as np
 from numpy import linalg
 from time import time, sleep
@@ -14,7 +16,7 @@ import matplotlib.pyplot as plt
 
 shared_interaction = {'queue': None}
 
-def boostrap_do_embedding(X, max_iter=500, shared_queue=None):
+def boostrap_do_embedding(X, shared_queue=None):
     """
     Boostrap to start doing embedding:
     Initialize the tsne object, setup params
@@ -27,8 +29,7 @@ def boostrap_do_embedding(X, max_iter=500, shared_queue=None):
     tsne = TSNE(
         n_components=2,
         random_state=0,
-        n_iter_without_progress=500,
-        n_iter=max_iter,
+        n_iter_without_progress=400,
         verbose=1
     )
     tsne._EXPLORATION_N_ITER = 250
@@ -129,6 +130,11 @@ def my_gradient_descent(objective, p0, it, n_iter,
     fixed_ids = []
     fixed_pos = []
     errors = []
+    grad_norms = []
+    trustworthinesses = []
+
+    X_original = utils.get_X()
+    dist_X_original = pairwise_distances(X_original, squared=True)
 
     print("\nGradien Descent:")
     #for i in range(it, n_iter):
@@ -160,8 +166,6 @@ def my_gradient_descent(objective, p0, it, n_iter,
             p = p2d.ravel()
         
         error, grad = objective(p, *args, **kwargs)
-        errors.append(error)
-
         if fixed_ids:
             grad2d = grad.reshape(-1, 2)
             grad2d[fixed_ids] = 0
@@ -179,11 +183,19 @@ def my_gradient_descent(objective, p0, it, n_iter,
         p += update
 
         if (i % status['n_jump'] == 0):
-            utils.publish_data(p.copy(), errors)
+            X_embedded = p.copy().reshape(-1, 2)
+            measure = trustworthiness(
+                dist_X_original, X_embedded, n_neighbors=10, precomputed=True)
+            
+            trustworthinesses.append(measure)
+            errors.append(error)
+            grad_norms.append(float(grad_norm))
+            publish(p.copy(), errors, trustworthinesses)
+            
             utils.print_progress(i, n_iter)
             
             # pause, while the other thread sends the published data to client
-            sleep(status['tick_frequence'])
+            #sleep(status['tick_frequence'])
 
         if (i + 1) % n_iter_check == 0:
             toc = time()
@@ -212,6 +224,19 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 # break
 
     return p, error, i
+
+
+def publish(X_embedded, errors, trustworthinesses):
+    data = {
+        # np.tostring() convert a ndarray to a binary string (bytes)
+        # to transfer the data via redis queue,
+        # it should convert the bytes to string by decoding them
+        # the correct coding schema is latin-1, not utf-8
+        'embedding': X_embedded.ravel().tostring().decode('latin-1'),
+        'errors': errors,
+        'trustworthinesses': trustworthinesses
+    }
+    utils.publish_data(data)
 
 
 if __name__ == '__main__':

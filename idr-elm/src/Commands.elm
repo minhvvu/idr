@@ -162,6 +162,7 @@ encodeListPoints points =
 type alias EmbeddingResult =
     { embedding : List Point
     , errors : List Float
+    , trustworthinesses : List Float
     }
 
 
@@ -170,6 +171,7 @@ embeddingResultDecoder =
     decode EmbeddingResult
         |> required "embedding" listPointsDecoder
         |> required "errors" (Decode.list Decode.float)
+        |> required "trustworthinesses" (Decode.list Decode.float)
 
 
 decodeEmbeddingResult : String -> Result String EmbeddingResult

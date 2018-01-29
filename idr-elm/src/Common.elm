@@ -74,7 +74,7 @@ plotConfig =
 seriesConfig =
     { width = 650
     , height = 400
-    , padding = 30
+    , padding = 50
     }
 
 

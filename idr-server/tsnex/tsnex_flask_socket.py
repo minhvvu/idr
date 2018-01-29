@@ -40,8 +40,8 @@ def do_load_dataset(ws):
     while not ws.closed:
         datasetName = ws.receive()
         if datasetName:
-            if datasetName.upper() in ['MNIST']:
-                X, y = utils.load_dataset()
+            if datasetName.upper() in ['MNIST', 'MNIST-SMALL', 'COIL20']:
+                X, y = utils.load_dataset(datasetName)
 
                 metadata = {
                     'n_total': X.shape[0],
@@ -91,17 +91,14 @@ def do_boostrap(ws):
     print("[BOOSTRAP] Setup Thread for TSNEX and PUB/SUB")
 
     utils.set_server_status()
-
     X = utils.get_X()
-    print("Input data: ", X.shape)
-    max_iter = utils.initial_server_status['max_iter']
-
+    
     # start a thread to do embedding
     # note to inject a queue containing the interaction_data
     t1 = threading.Thread(
         name='tsnex_gradient_descent',
         target=tsnex.boostrap_do_embedding,
-        args=(X, max_iter, shared_states['interaction_data'], ))
+        args=(X, shared_states['interaction_data'], ))
     t1.start()
     shared_states['thread_tsnex'] = t1
 
@@ -128,25 +125,27 @@ def run_send_to_client(ws):
             fixed_ids = [int(id) for id in fixed_points.keys()]
         
         subscribedData = utils.get_subscribed_data()
-        if subscribedData is not None:
-            X_embedded = subscribedData['X_embedded']
-            errors = subscribedData['errors']
-            
-            y = utils.get_y()
-            raw_points = [{
-                'id': str(i),
-                'x': float(X_embedded[i][0]),
-                'y': float(X_embedded[i][1]),
-                'label': str(y[i]),
-                'fixed': i in fixed_ids
-            } for i in range(y.shape[0])]
-        
+        if subscribedData is not None:       
             if not ws.closed:
+                # pause server and wait until client receives new data
+                # if user does not pause client, a `continous` command
+                # will be sent automatically to continue server
                 utils.pause_server()
-                ws.send(json.dumps({
-                    'embedding': raw_points,
-                    'errors': errors
-                }))
+
+                # prepare the `embedding` in subscribedData
+                # do not need to touch the other fields
+                X_embedded = subscribedData['embedding']
+                y = utils.get_y()
+                raw_points = [{
+                    'id': str(i),
+                    'x': float(X_embedded[i][0]),
+                    'y': float(X_embedded[i][1]),
+                    'label': str(y[i]),
+                    'fixed': i in fixed_ids
+                } for i in range(y.shape[0])]
+                subscribedData['embedding'] = raw_points
+
+                ws.send(json.dumps(subscribedData))
 
         status = utils.get_server_status(['tick_frequence', 'stop'])
         if True == status['stop']:

@@ -10,6 +10,7 @@ type alias Model =
     { rawData : List Point
     , scatter : Scatter
     , errorSeries : LineSeries
+    , measureSeries : LineSeries
     , drag : Draggable.State CircleId
     , ready : Bool
     , current_it : Int
@@ -23,26 +24,10 @@ initialModel =
     { rawData = []
     , scatter = emptyScatter
     , errorSeries = emptySeries
+    , measureSeries = emptySeries
     , drag = Draggable.init
     , ready = True
     , current_it = 0
     , debugMsg = "Client ready"
     , zoomFactor = 1.0
-    }
-
-
-
-{- TODO how to defind an error-model -}
-
-
-errorModel : Model
-errorModel =
-    { rawData = []
-    , scatter = emptyScatter
-    , errorSeries = emptySeries
-    , drag = Draggable.init
-    , ready = False
-    , current_it = -1
-    , debugMsg = "Error occurs"
-    , zoomFactor = 0.0
     }
