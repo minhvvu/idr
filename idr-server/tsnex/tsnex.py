@@ -243,12 +243,9 @@ def publish(X_embedded, errors, trustworthinesses, stabilities, convergences):
         # the correct coding schema is latin-1, not utf-8
         'embedding': X_embedded.ravel().tostring().decode('latin-1'),
         'seriesData': [
-            {'name': 'errors',
-             'series': [errors]},
-            {'name': 'trustworthinesses',
-             'series': [trustworthinesses]},
-            {'name': 'PIVEMeasures',
-             'series': [stabilities, convergences]}
+            {'name': 'errors', 'series': [errors]},
+            {'name': 'trustworthinesses', 'series': [trustworthinesses]},
+            {'name': 'PIVEMeasures', 'series': [stabilities, convergences]}
         ]
     }
     utils.publish_data(data)

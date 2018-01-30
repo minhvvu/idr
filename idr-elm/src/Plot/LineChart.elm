@@ -57,13 +57,16 @@ viewLineChart color series =
         xAxis =
             Axis.axis { defaultOptions | orientation = Axis.Bottom, tickCount = 15 } xScale
 
-        yAxis =
+        yAxis1 =
+            Axis.axis { defaultOptions | orientation = Axis.Left, tickCount = 11 } yScale
+
+        yAxis2 =
             let
                 newestValues =
                     series
                         |> List.map (List.reverse >> List.head >> Maybe.withDefault 0.0)
             in
-                Axis.axis { defaultOptions | orientation = Axis.Left, ticks = Just (newestValues) } yScale
+                Axis.axis { defaultOptions | orientation = Axis.Right, ticks = Just (newestValues) } yScale
 
         transformToLineData idx value =
             Just
@@ -83,7 +86,9 @@ viewLineChart color series =
             [ g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString (h - padding) ++ ")") ]
                 [ xAxis ]
             , g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString padding ++ ")") ]
-                [ yAxis ]
+                [ yAxis1 ]
+            , g [ transform ("translate(" ++ toString (w - padding - 1) ++ ", " ++ toString padding ++ ")") ]
+                [ yAxis2 ]
             , g [ transform ("translate(" ++ toString padding ++ ", " ++ toString padding ++ ")"), class "series" ]
                 (List.map drawLine series)
             ]
