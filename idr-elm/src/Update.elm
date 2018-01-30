@@ -6,7 +6,6 @@ import Commands exposing (..)
 import Models exposing (..)
 import Plot.CircleGroup exposing (..)
 import Plot.Scatter exposing (createScatter, getMovedPoints)
-import Plot.LineChart exposing (createSeries)
 
 
 {-| Big update function to handle all system messages
@@ -105,29 +104,12 @@ updateNewData ({ ready, current_it } as model) dataStr =
 
                 seriesData =
                     embeddingResult.seriesData
-
-                ahead =
-                    Maybe.withDefault { name = "x", series = [] } (List.head seriesData)
-
-                errorValues =
-                    ahead.series
-
-                --trustworthinesses =
-                --    seriesData[1].trustworthinesses
-                --statbilities =
-                --    seriesData[2].stabilities
-                --convergences =
-                --    seriesData[3].convergences
             in
                 ( { model
                     | current_it = current_it + 1
                     , rawData = rawPoints
                     , scatter = Plot.Scatter.createScatter rawPoints model.zoomFactor
-                    , errorSeries = Plot.LineChart.createSeries errorValues
-
-                    --, measureSeries = Plot.LineChart.createSeries trustworthinesses
-                    --, stabilitySeries = Plot.LineChart.createSeries statbilities
-                    --, convergenceSeries = Plot.LineChart.createSeries convergences
+                    , seriesData = seriesData
                   }
                 , nextCommand
                 )

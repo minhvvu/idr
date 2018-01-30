@@ -87,6 +87,34 @@ type alias Point =
     }
 
 
+{-| Data structure for storing a series data for all iterations, including:
+
+  - `name`: readable name of series data, e.g. "Errors" or "PIVE Measures"
+  - `series`: a list of series data, each series data is an array of float
+
+-}
+type alias SeriesData =
+    { name : String
+    , series : List (List Float)
+    }
+
+
+emptySeriesData =
+    { name = "emptySeries", series = [] }
+
+
+{-| Data structure that the server returns after each iteration, including:
+
+  - `embedding`: a list of new position of embedded points
+  - `seriesData`: a list of `SeriesData` for tracing errors, measurements, ...
+
+-}
+type alias EmbeddingResult =
+    { embedding : List Point
+    , seriesData : List SeriesData
+    }
+
+
 {-| Util function to get minimum/maximum value of x or y field
 in a list of points
 -}

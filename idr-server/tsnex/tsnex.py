@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 
 shared_interaction = {'queue': None}
 
+
 def boostrap_do_embedding(X, shared_queue=None):
     """
     Boostrap to start doing embedding:
@@ -139,10 +140,10 @@ def my_gradient_descent(objective, p0, it, n_iter,
     dist_X_original = pairwise_distances(X_original, squared=True)
 
     print("\nGradien Descent:")
-    #for i in range(it, n_iter):
+    # for i in range(it, n_iter):
     while True:
         i += 1
-        if n_iter < 500 and i > n_iter: # early_exaggeration 
+        if n_iter < 500 and i > n_iter:  # early_exaggeration
             break
 
         status = utils.get_server_status(['n_jump', 'tick_frequence', 'stop'])
@@ -166,7 +167,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             p2d = p.reshape(-1, 2)
             p2d[fixed_ids] = fixed_pos
             p = p2d.ravel()
-        
+
         error, grad = objective(p, *args, **kwargs)
         if fixed_ids:
             grad2d = grad.reshape(-1, 2)
@@ -189,7 +190,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             X_embedded = p.copy().reshape(-1, 2)
             measure = trustworthiness(
                 dist_X_original, X_embedded, n_neighbors=10, precomputed=True)
-            
+
             trustworthinesses.append(measure)
             errors.append(error)
             grad_norms.append(float(grad_norm))
@@ -198,11 +199,12 @@ def my_gradient_descent(objective, p0, it, n_iter,
             stabilities.append(stability)
             convergences.append(convergence)
 
-            publish(p.copy(), errors, trustworthinesses, stabilities, convergences)
+            publish(p.copy(), errors, trustworthinesses,
+                    stabilities, convergences)
             utils.print_progress(i, n_iter)
-            
+
             # pause, while the other thread sends the published data to client
-            #sleep(status['tick_frequence'])
+            # sleep(status['tick_frequence'])
 
         if (i + 1) % n_iter_check == 0:
             toc = time()
@@ -240,13 +242,16 @@ def publish(X_embedded, errors, trustworthinesses, stabilities, convergences):
         # it should convert the bytes to string by decoding them
         # the correct coding schema is latin-1, not utf-8
         'embedding': X_embedded.ravel().tostring().decode('latin-1'),
-        'errors': errors,
-        'trustworthinesses': trustworthinesses,
-        'stabilities': stabilities,
-        'convergences': convergences
+        'seriesData': [
+            {'name': 'errors',
+             'series': [errors]},
+            {'name': 'trustworthinesses',
+             'series': [trustworthinesses]},
+            {'name': 'PIVEMeasures',
+             'series': [stabilities, convergences]}
+        ]
     }
     utils.publish_data(data)
-
 
 
 def PIVE_measure(old_p, new_p, dist_X, k=10):
@@ -270,7 +275,7 @@ def PIVE_measure(old_p, new_p, dist_X, k=10):
 
     dist_old = pairwise_distances(old_p.reshape(-1, 2), squared=True)
     dist_new = pairwise_distances(new_p.reshape(-1, 2), squared=True)
-    
+
     k_ind_old = np.argsort(dist_old, axis=1)[:, 1:k+1]
     k_ind_new = np.argsort(dist_new, axis=1)[:, 1:k+1]
     k_ind_X = np.argsort(dist_X, axis=1)[:, 1:k+1]
@@ -308,10 +313,9 @@ if __name__ == '__main__':
     target_ids = range(len(y))
 
     plt.figure(figsize=(6, 5))
-    colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"]
+    colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+              "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"]
     for i, c, label in zip(target_ids, colors, y):
         plt.scatter(X_2d[y == i, 0], X_2d[y == i, 1], c=c, label=label)
     plt.legend()
     plt.show()
-
-    

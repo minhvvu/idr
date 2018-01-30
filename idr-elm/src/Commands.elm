@@ -4,7 +4,7 @@ import WebSocket
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
-import Common exposing (Point)
+import Common exposing (Point, SeriesData, EmbeddingResult)
 import Msgs exposing (Msg)
 
 
@@ -153,28 +153,11 @@ encodeListPoints points =
             |> Encode.encode pretyPrint
 
 
-type alias SeriesData =
-    { name : String
-    , series : List Float
-    }
-
-
-type alias EmbeddingResult =
-    { embedding : List Point
-    , seriesData : List SeriesData
-
-    --, errors : List Float
-    --, trustworthinesses : List Float
-    --, stabilities : List Float
-    --, convergences : List Float
-    }
-
-
 seriesDataDecoder : Decode.Decoder SeriesData
 seriesDataDecoder =
     decode SeriesData
         |> required "name" Decode.string
-        |> required "series" (Decode.list Decode.float)
+        |> required "series" (Decode.list (Decode.list Decode.float))
 
 
 embeddingResultDecoder : Decode.Decoder EmbeddingResult
@@ -182,13 +165,6 @@ embeddingResultDecoder =
     decode EmbeddingResult
         |> required "embedding" listPointsDecoder
         |> required "seriesData" (Decode.list seriesDataDecoder)
-
-
-
---|> required "errors" (Decode.list Decode.float)
---|> required "trustworthinesses" (Decode.list Decode.float)
---|> required "stabilities" (Decode.list Decode.float)
---|> required "convergences" (Decode.list Decode.float)
 
 
 decodeEmbeddingResult : String -> Result String EmbeddingResult

@@ -3,16 +3,12 @@ module Models exposing (..)
 import Draggable
 import Common exposing (..)
 import Plot.Scatter exposing (Scatter, emptyScatter)
-import Plot.LineChart exposing (LineSeries, emptySeries)
 
 
 type alias Model =
     { rawData : List Point
     , scatter : Scatter
-    , errorSeries : LineSeries
-    , measureSeries : LineSeries
-    , stabilitySeries : LineSeries
-    , convergenceSeries : LineSeries
+    , seriesData : List SeriesData
     , drag : Draggable.State CircleId
     , ready : Bool
     , current_it : Int
@@ -25,10 +21,7 @@ initialModel : Model
 initialModel =
     { rawData = []
     , scatter = emptyScatter
-    , errorSeries = emptySeries
-    , measureSeries = emptySeries
-    , stabilitySeries = emptySeries
-    , convergenceSeries = emptySeries
+    , seriesData = [ emptySeriesData ]
     , drag = Draggable.init
     , ready = True
     , current_it = 0

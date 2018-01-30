@@ -1,4 +1,4 @@
-module Plot.LineChart exposing (LineSeries, emptySeries, createSeries, viewLineChart)
+module Plot.LineChart exposing (viewLineChart)
 
 {-| This module shows how to build a simple line and area chart using some of
 the primitives provided in this library.
@@ -10,21 +10,6 @@ import Visualization.Axis as Axis exposing (defaultOptions)
 import Visualization.List as List
 import Visualization.Scale as Scale exposing (ContinuousScale)
 import Visualization.Shape as Shape
-
-
-type alias LineSeries =
-    { series : List Float
-    , xScale : ContinuousScale
-    , yScale : ContinuousScale
-    }
-
-
-emptySeries : LineSeries
-emptySeries =
-    { series = [ 0.0 ]
-    , xScale = Scale.linear ( 0, 0 ) ( 0, 0 )
-    , yScale = Scale.linear ( 0, 0 ) ( 0, 0 )
-    }
 
 
 w : Float
@@ -42,69 +27,63 @@ padding =
     30
 
 
-xScaler : Float -> ContinuousScale
-xScaler maxX =
-    Scale.linear ( 0, maxX ) ( 0, w - 2 * padding )
-
-
-yScaler : Float -> ContinuousScale
-yScaler maxY =
-    Scale.linear ( 0, maxY ) ( h - 2 * padding, 0 )
-
-
-xAxis : LineSeries -> Svg msg
-xAxis { xScale } =
-    Axis.axis { defaultOptions | orientation = Axis.Bottom, tickCount = 15 } xScale
-
-
-yAxis : LineSeries -> Svg msg
-yAxis { yScale } =
-    Axis.axis { defaultOptions | orientation = Axis.Left, tickCount = 12 } yScale
-
-
-createSeries : List Float -> LineSeries
-createSeries data =
+viewLineChart : String -> List (List Float) -> Svg msg
+viewLineChart color series =
     let
-        maxX =
-            1.1 * (toFloat <| List.length data)
+        yScale =
+            series
+                -- find max of each child list
+                |> List.map (List.maximum >> Maybe.withDefault 0.0)
+                -- max all
+                |> List.maximum
+                -- convert to real value
+                |> Maybe.withDefault 0.0
+                -- extend domain value
+                |> (*) 1.1
+                -- create tuple (0, maxX)
+                |> (,) 0.0
+                -- make f(a1, a2) as f(a2,a1)
+                |> flip Scale.linear ( h - 2 * padding, 0.0 )
 
         xScale =
-            xScaler maxX
+            series
+                |> List.head
+                |> Maybe.withDefault [ 0.0 ]
+                |> List.length
+                |> toFloat
+                |> (,) 0.0
+                |> flip Scale.linear ( 0.0, w - 2 * padding )
 
-        maxY =
-            1.1 * (Maybe.withDefault 10.0 <| List.maximum data)
+        xAxis =
+            Axis.axis { defaultOptions | orientation = Axis.Bottom, tickCount = 15 } xScale
 
-        yScale =
-            yScaler maxY
-    in
-        { series = data
-        , xScale = xScale
-        , yScale = yScale
-        }
+        yAxis =
+            let
+                newestValues =
+                    series
+                        |> List.map (List.reverse >> List.head >> Maybe.withDefault 0.0)
+            in
+                Axis.axis { defaultOptions | orientation = Axis.Left, ticks = Just (newestValues) } yScale
 
-
-line : LineSeries -> Attribute msg
-line { series, xScale, yScale } =
-    let
-        transformToLineData it cost =
+        transformToLineData idx value =
             Just
-                ( Scale.convert xScale (toFloat it)
-                , Scale.convert yScale cost
+                ( Scale.convert xScale (toFloat idx)
+                , Scale.convert yScale value
                 )
+
+        line points =
+            points
+                |> List.indexedMap transformToLineData
+                |> Shape.line Shape.monotoneInXCurve
+
+        drawLine points =
+            Svg.path [ d (line points), stroke color, strokeWidth "2px", fill "none" ] []
     in
-        List.indexedMap transformToLineData series
-            |> Shape.line Shape.monotoneInXCurve
-            |> d
-
-
-viewLineChart : String -> LineSeries -> Svg msg
-viewLineChart color model =
-    svg [ width (toString w ++ "px"), height (toString h ++ "px") ]
-        [ g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString (h - padding) ++ ")") ]
-            [ xAxis model ]
-        , g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString padding ++ ")") ]
-            [ yAxis model ]
-        , g [ transform ("translate(" ++ toString padding ++ ", " ++ toString padding ++ ")"), class "series" ]
-            [ Svg.path [ line model, stroke color, strokeWidth "2px", fill "none" ] [ Svg.textPath [] [ Svg.text "Hello" ] ]
+        svg [ width (toString w ++ "px"), height (toString h ++ "px") ]
+            [ g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString (h - padding) ++ ")") ]
+                [ xAxis ]
+            , g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString padding ++ ")") ]
+                [ yAxis ]
+            , g [ transform ("translate(" ++ toString padding ++ ", " ++ toString padding ++ ")"), class "series" ]
+                (List.map drawLine series)
             ]
-        ]
