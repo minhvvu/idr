@@ -153,6 +153,8 @@ encodeListPoints points =
             |> Encode.encode pretyPrint
 
 
+{-| Util function to decode series data
+-}
 seriesDataDecoder : Decode.Decoder SeriesData
 seriesDataDecoder =
     decode SeriesData

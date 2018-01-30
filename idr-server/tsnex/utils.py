@@ -67,8 +67,8 @@ pubsub.subscribe(DATA_CHANNEL)
 
 # status object to store some server infos
 initial_server_status = {
-    'tick_frequence': 0.1,
-    'n_jump': 10,
+    'tick_frequence': 0.05,
+    'n_jump': 5,
     'client_iter': 0,
     'max_iter': 1000,
     'ready': True,

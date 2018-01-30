@@ -15,7 +15,6 @@ import Models exposing (Model)
 import Msgs exposing (Msg(..))
 import Plot.Scatter exposing (scatterView, movedPointsView)
 import Plot.LineChart exposing (viewLineChart)
-import Plot.CrimeViz exposing (viewCrime)
 
 
 view : Model -> Html Msg
@@ -66,17 +65,14 @@ view model =
             [ Grid.col []
                 [ scatterView model.scatter ]
             , Grid.col []
+                (model.seriesData
+                    |> List.map
+                        (\aseries -> viewLineChart aseries.name aseries.series)
+                )
+            ]
+        , Grid.row [ Row.betweenSm ]
+            [ Grid.col []
                 [ movedPointsView model.scatter
                 ]
             ]
-        , Grid.row [ Row.betweenSm ]
-            (model.seriesData
-                |> List.map
-                    (\aseries ->
-                        Grid.col []
-                            [ Html.text ("Series: " ++ aseries.name)
-                            , viewLineChart "red" aseries.series
-                            ]
-                    )
-            )
         ]

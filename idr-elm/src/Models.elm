@@ -21,7 +21,7 @@ initialModel : Model
 initialModel =
     { rawData = []
     , scatter = emptyScatter
-    , seriesData = [ emptySeriesData ]
+    , seriesData = []
     , drag = Draggable.init
     , ready = True
     , current_it = 0

@@ -3,7 +3,7 @@ module Common exposing (..)
 import List.Extra exposing (maximumBy, minimumBy)
 import Array
 import Color exposing (..)
-import Visualization.Scale exposing (category20a)
+import Visualization.Scale exposing (category20a, category10)
 
 
 -- http://package.elm-lang.org/packages/gampleman/elm-visualization/latest/Visualization-Scale
@@ -11,6 +11,15 @@ import Visualization.Scale exposing (category20a)
 
 type alias CircleId =
     String
+
+
+intToColor10Str : Int -> String
+intToColor10Str idx =
+    category10
+        |> Array.fromList
+        |> Array.get idx
+        |> Maybe.withDefault Color.blue
+        |> colorToString
 
 
 labelToColorStr : String -> String
@@ -100,7 +109,7 @@ type alias SeriesData =
 
 
 emptySeriesData =
-    { name = "emptySeries", series = [] }
+    { name = "", series = [] }
 
 
 {-| Data structure that the server returns after each iteration, including:

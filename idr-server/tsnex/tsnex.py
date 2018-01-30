@@ -133,7 +133,9 @@ def my_gradient_descent(objective, p0, it, n_iter,
     errors = []
     grad_norms = []
     trustworthinesses = []
-    stabilities = []
+    stabilities0 = []
+    stabilities1 = []
+    stabilities2 = []
     convergences = []
 
     X_original = utils.get_X()
@@ -190,17 +192,19 @@ def my_gradient_descent(objective, p0, it, n_iter,
             X_embedded = p.copy().reshape(-1, 2)
             measure = trustworthiness(
                 dist_X_original, X_embedded, n_neighbors=10, precomputed=True)
-
             trustworthinesses.append(measure)
             errors.append(error)
             grad_norms.append(float(grad_norm))
 
-            stability, convergence = PIVE_measure(old_p, p, dist_X_original)
-            stabilities.append(stability)
+            stability1, stability2, convergence = PIVE_measure(
+                old_p, p, dist_X_original)
+            stabilities1.append(stability1)
+            stabilities2.append(stability2)
+            stabilities0.append((stability1+stability2)/2)
             convergences.append(convergence)
 
             publish(p.copy(), errors, trustworthinesses,
-                    stabilities, convergences)
+                    stabilities0, stabilities1, stabilities2, convergences)
             utils.print_progress(i, n_iter)
 
             # pause, while the other thread sends the published data to client
@@ -235,7 +239,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
     return p, error, i
 
 
-def publish(X_embedded, errors, trustworthinesses, stabilities, convergences):
+def publish(X_embedded, errors, trustworthinesses,
+            stabilities0, stabilities1, stabilities2, convergences):
     data = {
         # np.tostring() convert a ndarray to a binary string (bytes)
         # to transfer the data via redis queue,
@@ -244,8 +249,10 @@ def publish(X_embedded, errors, trustworthinesses, stabilities, convergences):
         'embedding': X_embedded.ravel().tostring().decode('latin-1'),
         'seriesData': [
             {'name': 'errors', 'series': [errors]},
-            {'name': 'trustworthinesses', 'series': [trustworthinesses]},
-            {'name': 'PIVEMeasures', 'series': [stabilities, convergences]}
+            {'name': 'trustworthinesses, convergence',
+                'series': [trustworthinesses, convergences]},
+            {'name': 'stability0,stability1,stability2',
+                'series': [stabilities0, stabilities1, stabilities2]}
         ]
     }
     utils.publish_data(data)
@@ -278,12 +285,18 @@ def PIVE_measure(old_p, new_p, dist_X, k=10):
     k_ind_X = np.argsort(dist_X, axis=1)[:, 1:k+1]
 
     stability = 0
+    stability2 = 0
     for i in range(n):
         set_old = set(k_ind_old[i])
         set_new = set(k_ind_new[i])
-        n_new_but_not_old = set_new - set_old
-        stability += len(n_new_but_not_old)
+        
+        new_but_not_old = set_new - set_old
+        old_but_not_new = set_old - set_new
+
+        stability += len(new_but_not_old)
+        stability2 += len(old_but_not_new)
     stability /= (n * k)
+    stability2 /= (n*k)
 
     convergence = 0
     for i in range(n):
@@ -293,7 +306,7 @@ def PIVE_measure(old_p, new_p, dist_X, k=10):
         convergence += len(intersection)
     convergence /= (n * k)
 
-    return stability, convergence
+    return stability, stability2, convergence
 
 
 if __name__ == '__main__':
