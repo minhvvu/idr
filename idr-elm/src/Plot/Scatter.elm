@@ -13,7 +13,7 @@ import Html.Attributes as HtmlAttrs exposing (class)
 import Bootstrap.ListGroup as ListGroup exposing (..)
 import Bootstrap.Badge as Badge
 import Svg exposing (..)
-import Svg.Attributes exposing (..)
+import Svg.Attributes as SvgAttrs exposing (width, height)
 import Visualization.Scale as Scale exposing (ContinuousScale)
 import Draggable
 import Msgs exposing (Msg)
@@ -48,22 +48,40 @@ emptyScatter =
 createScatter : List Point -> Float -> Scatter
 createScatter rawPoints zoomFactor =
     let
+        ( minX, maxX ) =
+            ( Common.minField .x rawPoints, Common.maxField .x rawPoints )
+
+        ( minY, maxY ) =
+            ( Common.minField .y rawPoints, Common.maxField .y rawPoints )
+
+        ( minZ, maxZ ) =
+            ( Common.minField .z rawPoints, Common.maxField .z rawPoints )
+
+        autoZoomFactor =
+            [ zoomFactor, abs minX, abs maxX, abs minY, abs maxY ]
+                |> List.maximum
+                |> Maybe.withDefault zoomFactor
+
+        zoomFactorXY =
+            if plotConfig.autoZoom then
+                autoZoomFactor
+            else
+                zoomFactor
+
         xScale =
             Scale.linear
-                ( -zoomFactor, zoomFactor )
-                -- ( Common.minX rawPoints, Common.maxX rawPoints )
+                ( -zoomFactorXY, zoomFactorXY )
                 ( 0, plotConfig.width - 2 * plotConfig.padding )
 
         yScale =
             Scale.linear
-                ( -zoomFactor, zoomFactor )
-                -- ( Common.minY rawPoints, Common.maxY rawPoints )
+                ( -zoomFactorXY, zoomFactorXY )
                 ( plotConfig.height - 2 * plotConfig.padding, 0 )
 
         zScale =
             Scale.linear
-                ( Common.minField .z rawPoints, Common.maxField .z rawPoints )
-                ( 5.0, 10.0 )
+                ( minZ, maxZ )
+                ( plotConfig.minCircleRadius, plotConfig.maxCircleRadius )
     in
         { xScale = xScale
         , yScale = yScale
@@ -99,8 +117,8 @@ mapRawDataToScatterPlot rawPoints ( xScale, yScale, zScale ) =
 scatterView : Scatter -> Svg Msg
 scatterView { points, xScale, yScale } =
     svg
-        [ width <| toString <| plotConfig.width
-        , height <| toString <| plotConfig.height
+        [ SvgAttrs.width <| toString <| plotConfig.width
+        , SvgAttrs.height <| toString <| plotConfig.height
         ]
         [ drawAxes ( xScale, yScale )
         , drawScatter points
@@ -115,7 +133,7 @@ drawScatter points =
         padding =
             toString plotConfig.padding
     in
-        g [ transform ("translate(" ++ padding ++ ", " ++ padding ++ ")") ]
+        g [ SvgAttrs.transform ("translate(" ++ padding ++ ", " ++ padding ++ ")") ]
             [ circleGroupView points ]
 
 

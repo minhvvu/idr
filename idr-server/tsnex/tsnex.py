@@ -13,7 +13,19 @@ import json
 import utils
 
 
-shared_interaction = {'queue': None, 'gradients': None}
+shared_data = {
+    'queue': None,
+    'gradients_acc': None,
+    'fixed_ids': [],
+    'fixed_pos': [],
+    'errors': [],
+    'grad_norms': [],
+    'trustworthinesses': [],
+    'stabilities0': [],
+    'stabilities1': [],
+    'stabilities2': [],
+    'convergences': []
+}
 
 
 def boostrap_do_embedding(X, shared_queue=None):
@@ -23,18 +35,27 @@ def boostrap_do_embedding(X, shared_queue=None):
     """
     print("[TSNEX] Thread to do embedding is starting ... ")
 
-    shared_interaction['queue'] = shared_queue
-    shared_interaction['gradients'] = np.zeros(X.shape[0])
+    shared_data['queue'] = shared_queue
+    shared_data['gradients_acc'] = np.zeros(X.shape[0])
+    shared_data['fixed_ids'] = []
+    shared_data['fixed_pos'] = []
+    shared_data['errors'] = []
+    shared_data['grad_norms'] = []
+    shared_data['trustworthinesses'] = []
+    shared_data['stabilities0'] = []
+    shared_data['stabilities1'] = []
+    shared_data['stabilities2'] = []
+    shared_data['convergences'] = []
 
     sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
     tsne = TSNE(
         n_components=2,
         random_state=0,
-        n_iter_without_progress=400,
-        verbose=1
+        init='random',
+        n_iter_without_progress=500,
+        verbose=2
     )
-    tsne._EXPLORATION_N_ITER = 250
-    tsne.init = 'random'
+    tsne._EXPLORATION_N_ITER = 300
 
     X_projected = tsne.fit_transform(X)
     return X_projected
@@ -124,31 +145,30 @@ def my_gradient_descent(objective, p0, it, n_iter,
     error = np.finfo(np.float).max
     best_error = np.finfo(np.float).max
     best_iter = i = it
-
     tic = time()
 
-    shared_queue = shared_interaction['queue']
-    gradients_acc = shared_interaction['gradients']
-    
-    print(gradients_acc)
-    
-    fixed_ids = []
-    fixed_pos = []
-    errors = []
-    grad_norms = []
-    trustworthinesses = []
-    stabilities0 = []
-    stabilities1 = []
-    stabilities2 = []
-    convergences = []
+    shared_queue = shared_data['queue']
+    must_share = utils.get_server_status(['accumulate'])
+    must_share = must_share['accumulate']
+
+    gradients_acc = shared_data['gradients_acc']
+    if not must_share:
+        gradients_acc = np.zeros(gradients_acc.shape[0])
+
+    fixed_ids = shared_data['fixed_ids'] if must_share else []
+    fixed_pos = shared_data['fixed_pos'] if must_share else []
+    errors = shared_data['errors'] if must_share else []
+    grad_norms = shared_data['grad_norms'] if must_share else []
+    trustworthinesses = shared_data['trustworthinesses'] if must_share else []
+    stabilities0 = shared_data['stabilities0'] if must_share else []
+    stabilities1 = shared_data['stabilities1'] if must_share else []
+    stabilities2 = shared_data['stabilities2'] if must_share else []
+    convergences = shared_data['convergences'] if must_share else []
 
     X_original = utils.get_X()
     dist_X_original = pairwise_distances(X_original, squared=True)
 
-    # grad_per_point_acc = np.zeros(X_original.shape[0])
-
     print("\nGradien Descent:")
-    # for i in range(it, n_iter):
     while True:
         i += 1
         if n_iter < 500 and i > n_iter:  # early_exaggeration
@@ -177,19 +197,23 @@ def my_gradient_descent(objective, p0, it, n_iter,
             p2d[fixed_ids] = fixed_pos
             p = p2d.ravel()
 
+        # calculate gradient and KL divergence
         error, grad = objective(p, *args, **kwargs)
         if fixed_ids:
             grad2d = grad.reshape(-1, 2)
             grad2d[fixed_ids] = 0
             grad = grad2d.ravel()
 
-        grad_norm = linalg.norm(grad)
-
         # calculate the magnitude of gradient of each point
-        grad_squared = np.square(grad.copy().reshape(-1, 2))
-        grad_per_point = np.sum(grad_squared, axis=1)
+        # grad_squared = np.square(grad.copy().reshape(-1, 2))
+        # grad_per_point = np.sum(grad_squared, axis=1)
+        grad_per_point = linalg.norm(grad.reshape(-1,2), axis=1)
         gradients_acc += grad_per_point
 
+        #grad_norm = linalg.norm(grad)
+        grad_norm = np.sum(grad_per_point)
+
+        # tsne update gradient by momentum
         inc = update * grad < 0.0
         dec = np.invert(inc)
         gains[inc] += 0.2
@@ -203,26 +227,22 @@ def my_gradient_descent(objective, p0, it, n_iter,
         if (i % status['n_jump'] == 0):
             if True == status['measure']:
                 X_embedded = p.copy().reshape(-1, 2)
-                measure = trustworthiness(
-                    dist_X_original, X_embedded, n_neighbors=10, precomputed=True)
+                measure = trustworthiness(dist_X_original, X_embedded,
+                                          n_neighbors=10, precomputed=True)
+                stability1, stability2, convergence = \
+                    PIVE_measure(old_p, p, dist_X_original)
+
                 trustworthinesses.append(measure)
                 errors.append(error)
                 grad_norms.append(float(grad_norm))
-
-                stability1, stability2, convergence = PIVE_measure(
-                    old_p, p, dist_X_original)
                 stabilities1.append(stability1)
                 stabilities2.append(stability2)
                 stabilities0.append((stability1+stability2)/2)
                 convergences.append(convergence)
 
             publish(p.copy(), gradients_acc.tolist(),
-                    errors, trustworthinesses,
+                    errors, grad_norms, trustworthinesses,
                     stabilities0, stabilities1, stabilities2, convergences)
-            utils.print_progress(i, n_iter)
-
-            # pause, while the other thread sends the published data to client
-            # sleep(status['tick_frequence'])
 
         if (i + 1) % n_iter_check == 0:
             toc = time()
@@ -243,7 +263,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
                     print("[t-SNE] Iteration %d: did not make any progress "
                           "during the last %d episodes. Finished."
                           % (i + 1, n_iter_without_progress))
-                break
+                # break
             if grad_norm <= min_grad_norm:
                 if verbose >= 2:
                     print("[t-SNE] Iteration %d: gradient norm %f. Finished."
@@ -254,7 +274,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
 
 def publish(X_embedded, gradients,
-            errors, trustworthinesses,
+            errors, grad_norms, trustworthinesses,
             stabilities0, stabilities1, stabilities2, convergences):
     data = {
         # np.tostring() convert a ndarray to a binary string (bytes)
@@ -265,6 +285,7 @@ def publish(X_embedded, gradients,
         'gradients': gradients,
         'seriesData': [
             {'name': 'errors', 'series': [errors]},
+            {'name': 'gradients norms', 'series': [grad_norms]},
             {'name': 'trustworthinesses, convergence',
                 'series': [trustworthinesses, convergences]},
             {'name': 'stability0,stability1,stability2',
@@ -305,7 +326,7 @@ def PIVE_measure(old_p, new_p, dist_X, k=10):
     for i in range(n):
         set_old = set(k_ind_old[i])
         set_new = set(k_ind_new[i])
-        
+
         new_but_not_old = set_new - set_old
         old_but_not_new = set_old - set_new
 
@@ -326,6 +347,8 @@ def PIVE_measure(old_p, new_p, dist_X, k=10):
 
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
     X, y = utils.load_dataset(name='MNIST')
     tsne = TSNE(
         n_components=2,
@@ -333,7 +356,7 @@ if __name__ == '__main__':
         init='random',
         n_iter_without_progress=500,
         n_iter=1000,
-        verbose=1
+        verbose=2
     )
     X_2d = tsne.fit_transform(X)
     target_ids = range(len(y))

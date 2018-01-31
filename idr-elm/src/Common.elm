@@ -15,7 +15,10 @@ type alias PlotConfig =
     , height : Float
     , padding : Float
     , circleRadius : Float
+    , minCircleRadius : Float
+    , maxCircleRadius : Float
     , fixedRadius : Bool
+    , autoZoom : Bool
     , strokeWidth : Float
     , defaultStrokeColor : String
     , selectedStrokeColor : String
@@ -28,7 +31,10 @@ plotConfig =
     , height = 800.0
     , padding = 30.0
     , circleRadius = 6
+    , minCircleRadius = 4
+    , maxCircleRadius = 12
     , fixedRadius = False
+    , autoZoom = True
     , strokeWidth = 0.5
     , defaultStrokeColor = "#D5D8DC"
     , selectedStrokeColor = "#E67E22"

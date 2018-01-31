@@ -136,15 +136,16 @@ def run_send_to_client(ws):
                 # do not need to touch the other fields
                 X_embedded = subscribedData['embedding']
                 gradients = subscribedData['gradients']
+                idx = np.argsort(gradients)[::-1]
                 y = utils.get_y()
                 raw_points = [{
                     'id': str(i),
                     'x': float(X_embedded[i][0]),
                     'y': float(X_embedded[i][1]),
-                    'z': float(gradients[i]*10e3),
+                    'z': float(gradients[i]*10e5),
                     'label': str(y[i]),
                     'fixed': i in fixed_ids
-                } for i in range(y.shape[0])]
+                } for i in idx]
                 subscribedData['embedding'] = raw_points
                 ws.send(json.dumps(subscribedData))
 

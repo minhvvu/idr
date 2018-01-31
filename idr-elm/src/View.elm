@@ -54,7 +54,7 @@ view model =
                     [ HtmlAttrs.type_ "range"
                     , HtmlAttrs.value (toString model.zoomFactor)
                     , HtmlAttrs.min "1"
-                    , HtmlAttrs.max "100"
+                    , HtmlAttrs.max "150"
                     , HtmlEvents.onInput UpdateZoomFactor
                     ]
                     []
@@ -71,8 +71,6 @@ view model =
                 )
             ]
         , Grid.row [ Row.betweenSm ]
-            [ Grid.col []
-                [ movedPointsView model.scatter
-                ]
+            [ Grid.col [] [ movedPointsView model.scatter ]
             ]
         ]
