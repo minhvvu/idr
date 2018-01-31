@@ -6,18 +6,17 @@ import Color exposing (..)
 import Visualization.Scale exposing (category20a, category10)
 
 
--- http://package.elm-lang.org/packages/gampleman/elm-visualization/latest/Visualization-Scale
-
-
 type alias CircleId =
     String
 
 
+{-| <http://package.elm-lang.org/packages/gampleman/elm-visualization/latest/Visualization-Scale>
+-}
 intToColor10Str : Int -> String
 intToColor10Str idx =
     category10
         |> Array.fromList
-        |> Array.get idx
+        |> Array.get (idx % 10)
         |> Maybe.withDefault Color.blue
         |> colorToString
 
@@ -59,7 +58,6 @@ type alias PlotConfig =
     { width : Float
     , height : Float
     , padding : Float
-    , clientScale : Float
     , circleRadius : Float
     , strokeWidth : Float
     , defaultStrokeColor : String
@@ -69,21 +67,13 @@ type alias PlotConfig =
 
 plotConfig : PlotConfig
 plotConfig =
-    { width = 1000.0
-    , height = 850.0
-    , padding = 50.0
-    , clientScale = 50.0 -- client data value is scaled in range [-50.0, +50.0]
-    , circleRadius = 7
+    { width = 900.0
+    , height = 800.0
+    , padding = 30.0
+    , circleRadius = 6
     , strokeWidth = 2
     , defaultStrokeColor = "#D5D8DC"
     , selectedStrokeColor = "#E67E22"
-    }
-
-
-seriesConfig =
-    { width = 650
-    , height = 400
-    , padding = 50
     }
 
 

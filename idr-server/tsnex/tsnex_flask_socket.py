@@ -135,6 +135,7 @@ def run_send_to_client(ws):
                 # prepare the `embedding` in subscribedData
                 # do not need to touch the other fields
                 X_embedded = subscribedData['embedding']
+                # gradients = 
                 y = utils.get_y()
                 raw_points = [{
                     'id': str(i),

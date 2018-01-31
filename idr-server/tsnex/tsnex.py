@@ -141,6 +141,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
     X_original = utils.get_X()
     dist_X_original = pairwise_distances(X_original, squared=True)
 
+    grad_per_point_acc = np.zeros(X_original.shape[0])
+
     print("\nGradien Descent:")
     # for i in range(it, n_iter):
     while True:
@@ -178,6 +180,11 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
         grad_norm = linalg.norm(grad)
 
+        # calculate the magnitude of gradient of each point
+        grad_squared = np.square(grad.copy().reshape(-1, 2))
+        grad_per_point = np.sum(grad_squared, axis=1)
+        grad_per_point_acc += grad_per_point
+
         inc = update * grad < 0.0
         dec = np.invert(inc)
         gains[inc] += 0.2
@@ -203,7 +210,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
             stabilities0.append((stability1+stability2)/2)
             convergences.append(convergence)
 
-            publish(p.copy(), errors, trustworthinesses,
+            publish(p.copy(), grad_per_point_acc.tolist(),
+                    errors, trustworthinesses,
                     stabilities0, stabilities1, stabilities2, convergences)
             utils.print_progress(i, n_iter)
 
@@ -239,7 +247,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
     return p, error, i
 
 
-def publish(X_embedded, errors, trustworthinesses,
+def publish(X_embedded, gradients,
+            errors, trustworthinesses,
             stabilities0, stabilities1, stabilities2, convergences):
     data = {
         # np.tostring() convert a ndarray to a binary string (bytes)
@@ -247,6 +256,7 @@ def publish(X_embedded, errors, trustworthinesses,
         # it should convert the bytes to string by decoding them
         # the correct coding schema is latin-1, not utf-8
         'embedding': X_embedded.ravel().tostring().decode('latin-1'),
+        'gradients': gradients,
         'seriesData': [
             {'name': 'errors', 'series': [errors]},
             {'name': 'trustworthinesses, convergence',

@@ -9,23 +9,27 @@ import Svg.Attributes exposing (..)
 import Visualization.Axis as Axis exposing (defaultOptions)
 import Visualization.List as List
 import Visualization.Scale as Scale exposing (ContinuousScale)
+
+
+--import Visualization.Scale.Linear as Linear exposing (Visualization.Scale.tickFormat)
+
 import Visualization.Shape as Shape
 import Common exposing (intToColor10Str)
 
 
 w : Float
 w =
-    600
+    460.0
 
 
 h : Float
 h =
-    400
+    320.0
 
 
 padding : Float
 padding =
-    50
+    30.0
 
 
 viewLineChart : String -> List (List Float) -> Svg msg
@@ -60,11 +64,11 @@ viewLineChart name series =
                 |> flip Scale.linear ( 0.0, w - 2 * padding )
 
         xAxis =
-            Axis.axis { defaultOptions | orientation = Axis.Bottom, tickCount = 12 } xScale
+            Axis.axis { defaultOptions | orientation = Axis.Bottom, tickCount = 6 } xScale
 
         yAxis1 =
             -- static vertical axis
-            Axis.axis { defaultOptions | orientation = Axis.Left, tickCount = 11 } yScale
+            Axis.axis { defaultOptions | orientation = Axis.Left, tickCount = 6 } yScale
 
         yAxis2 =
             -- dynamic vertical axis, just show lastest values of each series
@@ -99,9 +103,9 @@ viewLineChart name series =
             g
                 [ transform
                     ("translate("
-                        ++ toString (Basics.round padding + idx * 200)
+                        ++ toString (Basics.round padding + idx * 140)
                         ++ ", "
-                        ++ toString (padding)
+                        ++ toString (padding - 10)
                         ++ ")"
                     )
                 ]
