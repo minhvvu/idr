@@ -12,9 +12,8 @@ from time import time, sleep
 import json
 import utils
 
-import matplotlib.pyplot as plt
 
-shared_interaction = {'queue': None}
+shared_interaction = {'queue': None, 'gradients': None}
 
 
 def boostrap_do_embedding(X, shared_queue=None):
@@ -25,6 +24,7 @@ def boostrap_do_embedding(X, shared_queue=None):
     print("[TSNEX] Thread to do embedding is starting ... ")
 
     shared_interaction['queue'] = shared_queue
+    shared_interaction['gradients'] = np.zeros(X.shape[0])
 
     sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
     tsne = TSNE(
@@ -128,6 +128,10 @@ def my_gradient_descent(objective, p0, it, n_iter,
     tic = time()
 
     shared_queue = shared_interaction['queue']
+    gradients_acc = shared_interaction['gradients']
+    
+    print(gradients_acc)
+    
     fixed_ids = []
     fixed_pos = []
     errors = []
@@ -141,7 +145,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
     X_original = utils.get_X()
     dist_X_original = pairwise_distances(X_original, squared=True)
 
-    grad_per_point_acc = np.zeros(X_original.shape[0])
+    # grad_per_point_acc = np.zeros(X_original.shape[0])
 
     print("\nGradien Descent:")
     # for i in range(it, n_iter):
@@ -184,7 +188,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
         # calculate the magnitude of gradient of each point
         grad_squared = np.square(grad.copy().reshape(-1, 2))
         grad_per_point = np.sum(grad_squared, axis=1)
-        grad_per_point_acc += grad_per_point
+        gradients_acc += grad_per_point
 
         inc = update * grad < 0.0
         dec = np.invert(inc)
@@ -212,7 +216,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 stabilities0.append((stability1+stability2)/2)
                 convergences.append(convergence)
 
-            publish(p.copy(), grad_per_point_acc.tolist(),
+            publish(p.copy(), gradients_acc.tolist(),
                     errors, trustworthinesses,
                     stabilities0, stabilities1, stabilities2, convergences)
             utils.print_progress(i, n_iter)
