@@ -71,6 +71,7 @@ initial_server_status = {
     'n_jump': 5,
     'client_iter': 0,
     'max_iter': 1000,
+    'measure': False,
     'ready': True,
     'stop': False
 }

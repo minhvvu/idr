@@ -16,6 +16,7 @@ import Common exposing (..)
 type alias Circle =
     { id : CircleId
     , position : Vec2
+    , radius : Float
     , label : String
     , selected : Bool
     , fixed : Bool
@@ -29,6 +30,7 @@ createCircle point =
     Circle
         point.id
         (Vector2.vec2 point.x point.y)
+        point.z
         point.label
         {- the point is not selected by default -} False
         point.fixed
@@ -38,7 +40,7 @@ createCircle point =
 -}
 circleToPoint : Circle -> Point
 circleToPoint c =
-    Point c.id (getX c.position) (getY c.position) c.label c.fixed
+    Point c.id (getX c.position) (getY c.position) c.radius c.label c.fixed
 
 
 {-| Move a circle to a new position
@@ -64,7 +66,7 @@ setSelected circle =
 {-| Util function to draw a circle
 -}
 circleView : Circle -> Svg Msg
-circleView { id, position, label, selected, fixed } =
+circleView { id, position, radius, label, selected, fixed } =
     let
         {- http://htmlcolorcodes.com/ -}
         color =
@@ -77,11 +79,17 @@ circleView { id, position, label, selected, fixed } =
                 "red"
             else
                 plotConfig.defaultStrokeColor
+
+        circleRadius =
+            if plotConfig.fixedRadius then
+                plotConfig.circleRadius
+            else
+                radius
     in
         Svg.circle
             ([ cx (position |> getX |> round |> toString)
              , cy (position |> getY |> round |> toString)
-             , r (toString plotConfig.circleRadius)
+             , r (toString circleRadius)
              , fill color
              , stroke strokeColor
              , strokeWidth (toString plotConfig.strokeWidth)

@@ -17,7 +17,7 @@ import Svg.Attributes exposing (..)
 import Visualization.Scale as Scale exposing (ContinuousScale)
 import Draggable
 import Msgs exposing (Msg)
-import Common exposing (PlotConfig, plotConfig, Point, minX, minY, maxX, maxY)
+import Common exposing (PlotConfig, plotConfig, Point, minField, maxField)
 import Plot.Circle exposing (..)
 import Plot.CircleGroup exposing (..)
 import Plot.Axes exposing (..)
@@ -30,6 +30,7 @@ type alias Scatter =
     { points : CircleGroup
     , xScale : ContinuousScale
     , yScale : ContinuousScale
+    , zScale : ContinuousScale
     }
 
 
@@ -38,6 +39,7 @@ emptyScatter =
     { points = emptyGroup
     , xScale = Scale.linear ( 0, 0 ) ( 0, 0 )
     , yScale = Scale.linear ( 0, 0 ) ( 0, 0 )
+    , zScale = Scale.linear ( 0, 0 ) ( 0, 0 )
     }
 
 
@@ -57,32 +59,39 @@ createScatter rawPoints zoomFactor =
                 ( -zoomFactor, zoomFactor )
                 -- ( Common.minY rawPoints, Common.maxY rawPoints )
                 ( plotConfig.height - 2 * plotConfig.padding, 0 )
+
+        zScale =
+            Scale.linear
+                ( Common.minField .z rawPoints, Common.maxField .z rawPoints )
+                ( 5.0, 10.0 )
     in
         { xScale = xScale
         , yScale = yScale
-        , points = mapRawDataToScatterPlot rawPoints ( xScale, yScale )
+        , zScale = zScale
+        , points = mapRawDataToScatterPlot rawPoints ( xScale, yScale, zScale )
         }
 
 
 {-| Private function to create a list of plotted points from the raw data
 -}
-mapRawDataToScatterPlot : List Point -> ( ContinuousScale, ContinuousScale ) -> CircleGroup
-mapRawDataToScatterPlot rawPoints ( xScale, yScale ) =
-    let
-        mappedPoints =
-            rawPoints
-                |> List.map
-                    (\p ->
-                        (Point
-                            p.id
-                            (Scale.convert xScale p.x)
-                            (Scale.convert yScale p.y)
-                            p.label
-                            p.fixed
-                        )
-                    )
-    in
-        createCircleGroup mappedPoints
+mapRawDataToScatterPlot :
+    List Point
+    -> ( ContinuousScale, ContinuousScale, ContinuousScale )
+    -> CircleGroup
+mapRawDataToScatterPlot rawPoints ( xScale, yScale, zScale ) =
+    rawPoints
+        |> List.map
+            (\p ->
+                (Point
+                    p.id
+                    (Scale.convert xScale p.x)
+                    (Scale.convert yScale p.y)
+                    (Scale.convert zScale p.z)
+                    p.label
+                    p.fixed
+                )
+            )
+        |> createCircleGroup
 
 
 {-| Public API for plot the scatter
@@ -152,6 +161,7 @@ getMovedPoints { points, xScale, yScale } =
                     p.id
                     (Scale.invert xScale p.x)
                     (Scale.invert yScale p.y)
+                    p.z
                     p.label
                     p.fixed
                 )

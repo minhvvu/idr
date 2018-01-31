@@ -150,7 +150,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
         if n_iter < 500 and i > n_iter:  # early_exaggeration
             break
 
-        status = utils.get_server_status(['n_jump', 'tick_frequence', 'stop'])
+        status = utils.get_server_status(
+            ['n_jump', 'tick_frequence', 'measure', 'stop'])
         if True == status['stop']:
             return p, error, i
 
@@ -196,19 +197,20 @@ def my_gradient_descent(objective, p0, it, n_iter,
         p += update
 
         if (i % status['n_jump'] == 0):
-            X_embedded = p.copy().reshape(-1, 2)
-            measure = trustworthiness(
-                dist_X_original, X_embedded, n_neighbors=10, precomputed=True)
-            trustworthinesses.append(measure)
-            errors.append(error)
-            grad_norms.append(float(grad_norm))
+            if True == status['measure']:
+                X_embedded = p.copy().reshape(-1, 2)
+                measure = trustworthiness(
+                    dist_X_original, X_embedded, n_neighbors=10, precomputed=True)
+                trustworthinesses.append(measure)
+                errors.append(error)
+                grad_norms.append(float(grad_norm))
 
-            stability1, stability2, convergence = PIVE_measure(
-                old_p, p, dist_X_original)
-            stabilities1.append(stability1)
-            stabilities2.append(stability2)
-            stabilities0.append((stability1+stability2)/2)
-            convergences.append(convergence)
+                stability1, stability2, convergence = PIVE_measure(
+                    old_p, p, dist_X_original)
+                stabilities1.append(stability1)
+                stabilities2.append(stability2)
+                stabilities0.append((stability1+stability2)/2)
+                convergences.append(convergence)
 
             publish(p.copy(), grad_per_point_acc.tolist(),
                     errors, trustworthinesses,

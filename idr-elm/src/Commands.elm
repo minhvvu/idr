@@ -103,6 +103,7 @@ pointDecoder =
         |> required "id" Decode.string
         |> required "x" Decode.float
         |> required "y" Decode.float
+        |> required "z" Decode.float
         |> required "label" Decode.string
         |> required "fixed" Decode.bool
 
