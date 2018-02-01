@@ -9,7 +9,6 @@ from sklearn.metrics.pairwise import pairwise_distances
 import numpy as np
 from numpy import linalg
 from time import time, sleep
-import json
 import utils
 
 
@@ -52,6 +51,7 @@ def boostrap_do_embedding(X, shared_queue=None):
         n_components=2,
         random_state=0,
         init='random',
+        perplexity=50,
         n_iter_without_progress=500,
         verbose=2
     )
@@ -176,13 +176,13 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
         status = utils.get_server_status(
             ['n_jump', 'tick_frequence', 'measure', 'stop'])
-        if True == status['stop']:
+        if status['stop'] is True:
             return p, error, i
 
         # wait for the `ready` flag to become `True` in order to continue
         # note that, this flag can be changed at any time
         # so for consitently checking this flag, get it directly from redis.
-        while False == utils.get_ready_status():
+        while utils.get_ready_status() is False:
             sleep(status['tick_frequence'])
 
         # get newest moved points from client
@@ -207,10 +207,10 @@ def my_gradient_descent(objective, p0, it, n_iter,
         # calculate the magnitude of gradient of each point
         # grad_squared = np.square(grad.copy().reshape(-1, 2))
         # grad_per_point = np.sum(grad_squared, axis=1)
-        grad_per_point = linalg.norm(grad.reshape(-1,2), axis=1)
+        grad_per_point = linalg.norm(grad.reshape(-1, 2), axis=1)
         gradients_acc += grad_per_point
 
-        #grad_norm = linalg.norm(grad)
+        # grad_norm = linalg.norm(grad)
         grad_norm = np.sum(grad_per_point)
 
         # tsne update gradient by momentum
@@ -225,7 +225,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
         p += update
 
         if (i % status['n_jump'] == 0):
-            if True == status['measure']:
+            if status['measure'] is True:
                 X_embedded = p.copy().reshape(-1, 2)
                 measure = trustworthiness(dist_X_original, X_embedded,
                                           n_neighbors=10, precomputed=True)
@@ -237,7 +237,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 grad_norms.append(float(grad_norm))
                 stabilities1.append(stability1)
                 stabilities2.append(stability2)
-                stabilities0.append((stability1+stability2)/2)
+                stabilities0.append((stability1 + stability2) / 2)
                 convergences.append(convergence)
 
             publish(p.copy(), gradients_acc.tolist(),
@@ -298,18 +298,18 @@ def publish(X_embedded, gradients,
 def PIVE_measure(old_p, new_p, dist_X, k=10):
     """ Calculate the measurement in PIVE framework [1]
 
-    stability_{t} = 1/(nk) * \sum^{n}_{i} { | 
+    stability_{t} = 1/(nk) * \sum^{n}_{i} { |
         N_k(y_i^{t}) - N_k(y_i^{t-1})
     | }
 
-    convergence_{t} = 1/(nk) * \sum^{n}_{i} { | 
+    convergence_{t} = 1/(nk) * \sum^{n}_{i} { |
         N_k(y_i^{t}) \intersection N_k(X_i)
     | }
 
     in which N_k(.) is a set of k nearest neighbors
     and | setA | is the number of elements in setA
 
-    [1] PIVE: Per-Iteration Visualization Environment for Real-Time Interactions
+    [1]PIVE: Per-Iteration Visualization Environment for Real-Time Interactions
         with Dimension Reduction and Clustering.
     """
     n = dist_X.shape[0]
@@ -317,9 +317,9 @@ def PIVE_measure(old_p, new_p, dist_X, k=10):
     dist_old = pairwise_distances(old_p.reshape(-1, 2), squared=True)
     dist_new = pairwise_distances(new_p.reshape(-1, 2), squared=True)
 
-    k_ind_old = np.argsort(dist_old, axis=1)[:, 1:k+1]
-    k_ind_new = np.argsort(dist_new, axis=1)[:, 1:k+1]
-    k_ind_X = np.argsort(dist_X, axis=1)[:, 1:k+1]
+    k_ind_old = np.argsort(dist_old, axis=1)[:, 1:k + 1]
+    k_ind_new = np.argsort(dist_new, axis=1)[:, 1:k + 1]
+    k_ind_X = np.argsort(dist_X, axis=1)[:, 1:k + 1]
 
     stability = 0
     stability2 = 0
@@ -333,7 +333,7 @@ def PIVE_measure(old_p, new_p, dist_X, k=10):
         stability += len(new_but_not_old)
         stability2 += len(old_but_not_new)
     stability /= (n * k)
-    stability2 /= (n*k)
+    stability2 /= (n * k)
 
     convergence = 0
     for i in range(n):
@@ -349,22 +349,47 @@ def PIVE_measure(old_p, new_p, dist_X, k=10):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    X, y = utils.load_dataset(name='MNIST')
-    tsne = TSNE(
-        n_components=2,
-        random_state=0,
-        init='random',
-        n_iter_without_progress=500,
-        n_iter=1000,
-        verbose=2
-    )
-    X_2d = tsne.fit_transform(X)
-    target_ids = range(len(y))
-
     plt.figure(figsize=(6, 5))
     colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
               "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"]
-    for i, c, label in zip(target_ids, colors, y):
-        plt.scatter(X_2d[y == i, 0], X_2d[y == i, 1], c=c, label=label)
-    plt.legend()
-    plt.show()
+
+    def plot(X_2d, y, name='../results/tsne_plot.png'):
+        target_ids = range(len(y))
+        for i, c, label in zip(target_ids, colors, y):
+            plt.scatter(X_2d[y == i, 0], X_2d[y == i, 1], c=c, label=label)
+        plt.legend()
+        plt.savefig(name)
+        plt.gcf().clear()
+
+    X, y = utils.load_dataset(name='MNIST')
+
+    perplexity_to_try = range(5, 51, 5)
+    max_iter_to_try = range(1000, 5001, 1000)
+
+    all_runs = len(perplexity_to_try) * len(max_iter_to_try)
+    n_run = 0
+
+    for perplexity in perplexity_to_try:
+        for max_iter in max_iter_to_try:
+            n_run += 1
+            print("\n\n[START]Run {}: per={}, it={} \n".format(
+                n_run, perplexity, max_iter))
+
+            tic = time()
+            tsne = TSNE(
+                n_components=2,
+                random_state=0,
+                init='random',
+                n_iter_without_progress=300,
+                n_iter=max_iter,
+                perplexity=perplexity,
+                verbose=2
+            )
+            X_2d = tsne.fit_transform(X)
+            toc = time()
+            duration = toc - tic
+            print("[DONE]Duration={}\n".format(duration))
+
+            output_name = '../results/tsne_perp{}_it{}.png'.format(
+                perplexity, max_iter)
+            plot(X_2d, y, output_name)

@@ -32,7 +32,6 @@ shared_states = {
 }
 
 
-
 @sockets.route('/tsnex/load_dataset')
 def do_load_dataset(ws):
     """ Socket endpoint to receive command to load a dataset
@@ -55,7 +54,7 @@ def do_load_dataset(ws):
 
                 # In dev mode: flush all data in redis
                 utils.clean_data()
-            
+
                 utils.set_dataset_metadata(metadata)
                 utils.set_ndarray(name='X_original', arr=X)
                 utils.set_ndarray(name='y_original', arr=y)
@@ -74,11 +73,11 @@ def do_embedding(ws):
         if message:
             client_iteration = int(message)
             if client_iteration == 0:
-                do_boostrap(ws) # TODO add more client params: max_iter, ...
+                do_boostrap(ws)  # TODO add more client params: max_iter, ...
             else:
                 pass
         else:
-            pass # subscription message in client websocket connection
+            pass  # subscription message in client websocket connection
 
 
 def do_boostrap(ws):
@@ -92,7 +91,7 @@ def do_boostrap(ws):
 
     utils.set_server_status()
     X = utils.get_X()
-    
+
     # start a thread to do embedding
     # note to inject a queue containing the interaction_data
     t1 = threading.Thread(
@@ -106,7 +105,7 @@ def do_boostrap(ws):
     t2 = threading.Thread(
         name='pubsub_from_redis',
         target=run_send_to_client,
-        args=(ws,)) # specific that `args` is a tuple
+        args=(ws,))  # specific that `args` is a tuple
     t2.start()
     shared_states['thread_pubsub'] = t2
 
@@ -123,9 +122,9 @@ def run_send_to_client(ws):
         if fixed_data:
             fixed_points = json.loads(fixed_data)
             fixed_ids = [int(id) for id in fixed_points.keys()]
-        
+
         subscribedData = utils.get_subscribed_data()
-        if subscribedData is not None:       
+        if subscribedData is not None:
             if not ws.closed:
                 # pause server and wait until client receives new data
                 # if user does not pause client, a `continous` command
@@ -142,7 +141,7 @@ def run_send_to_client(ws):
                     'id': str(i),
                     'x': float(X_embedded[i][0]),
                     'y': float(X_embedded[i][1]),
-                    'z': float(gradients[i]*10e5),
+                    'z': float(gradients[i] * 10e5),
                     'label': str(y[i]),
                     'fixed': i in fixed_ids
                 } for i in idx]
@@ -150,7 +149,7 @@ def run_send_to_client(ws):
                 ws.send(json.dumps(subscribedData))
 
         status = utils.get_server_status(['tick_frequence', 'stop'])
-        if True == status['stop']:
+        if status['stop'] is True:
             break
         else:
             time.sleep(status['tick_frequence'])
@@ -167,7 +166,7 @@ def continue_server(ws):
             # print("Synchronizing current_it: client = {}, server = {}" \
             #     .format(message, status['client_iter']))
             utils.continue_server()
-            
+
 
 @sockets.route('/tsnex/moved_points')
 def client_moved_points(ws):
@@ -183,7 +182,7 @@ def client_moved_points(ws):
             fixed_points = json.loads(fixed_data) if fixed_data else {}
 
             for p in new_moved_points:
-                pid = p['id'] # for fixed_points dict, key is string
+                pid = p['id']  # for fixed_points dict, key is string
                 pos = [float(p['x']), float(p['y'])]
                 fixed_points[pid] = pos
 
@@ -214,7 +213,7 @@ def do_reset():
 
     # let the tsnex thread to jump out of waiting status
     utils.continue_server()
-    
+
     # stop all threads
     print("[Reset]Stopping the running threads ... ")
     if (shared_states['thread_tsnex']):
