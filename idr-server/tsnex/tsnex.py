@@ -175,7 +175,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             break
 
         status = utils.get_server_status(
-            ['n_jump', 'tick_frequence', 'measure', 'stop'])
+            ['n_jump', 'tick_frequence', 'measure', 'hard_move', 'stop'])
         if status['stop'] is True:
             return p, error, i
 
@@ -184,6 +184,11 @@ def my_gradient_descent(objective, p0, it, n_iter,
         # so for consitently checking this flag, get it directly from redis.
         while utils.get_ready_status() is False:
             sleep(status['tick_frequence'])
+
+        # use the fixed points from previous iteration or not
+        if status['hard_move'] is False:
+            fixed_ids = []
+            fixed_pos = []
 
         # get newest moved points from client
         if not shared_queue.empty():
@@ -205,8 +210,6 @@ def my_gradient_descent(objective, p0, it, n_iter,
             grad = grad2d.ravel()
 
         # calculate the magnitude of gradient of each point
-        # grad_squared = np.square(grad.copy().reshape(-1, 2))
-        # grad_per_point = np.sum(grad_squared, axis=1)
         grad_per_point = linalg.norm(grad.reshape(-1, 2), axis=1)
         gradients_acc += grad_per_point
 

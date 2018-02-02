@@ -26,8 +26,8 @@ def load_coil_20():
 
 def load_mnist():
     dataset = datasets.load_digits()
-    X = dataset.data #[:400,]
-    y = dataset.target #[:400,]
+    X = dataset.data  # [:400,]
+    y = dataset.target  # [:400,]
     print("MNIST small: X.shape={}, len(y)={}".format(X.shape, len(y)))
     return X, y
 
@@ -71,10 +71,11 @@ initial_server_status = {
     'n_jump': 5,
     'client_iter': 0,
     'max_iter': 1000,
-    'measure': False, # calculate the measurement after each iteration
-    'accumulate': False, # accumulate the info of early_exaggeration state
-    'ready': True, # client does not stop server
-    'stop': False # need to stop all running threads to clean data
+    'measure': False,  # calculate the measurement after each iteration
+    'accumulate': False,  # accumulate the info of early_exaggeration state
+    'hard_move': True,  # hard-fix position of client selected points
+    'ready': True,  # client does not stop server
+    'stop': False  # need to stop all running threads to clean data
 }
 
 
@@ -180,7 +181,7 @@ def get_subscribed_data():
     msg = pubsub.get_message()
     if not msg or msg['type'] != 'message':
         return None
-    
+
     data_obj = json.loads(msg['data'])
     embedding_str = data_obj['embedding'].encode('latin-1')
     data_obj['embedding'] = \
@@ -188,7 +189,7 @@ def get_subscribed_data():
     return data_obj
 
 
-### Utils function to get/set numpy ndarray
+# Utils function to get/set numpy ndarray
 
 def set_ndarray(name, arr):
     """ Set numpy ndarray to key name in redis
@@ -204,15 +205,15 @@ def get_ndarray(name, arr_shape, arr_type):
         .reshape(arr_shape)
 
 
-### Utils function for get dataset
+# Utils function for get dataset
 
 def get_X():
     """ Util function to get original X
     """
     metadata = get_dataset_metadata(['shape_X', 'type_X'])
     return get_ndarray(name='X_original',
-        arr_shape=metadata['shape_X'],
-        arr_type=metadata['type_X'])
+                       arr_shape=metadata['shape_X'],
+                       arr_type=metadata['type_X'])
 
 
 def get_y():
@@ -220,8 +221,8 @@ def get_y():
     """
     metadata = get_dataset_metadata(['shape_y', 'type_y'])
     return get_ndarray(name='y_original',
-        arr_shape=metadata['shape_y'],
-        arr_type=metadata['type_y'])
+                       arr_shape=metadata['shape_y'],
+                       arr_type=metadata['type_y'])
 
 
 def print_progress(i, n):
@@ -232,5 +233,5 @@ def print_progress(i, n):
     # n_gap = int(percent / 2)
     sys.stdout.write('\r')
     #sys.stdout.write("[%s] %d%%" % ('=' * n_gap, percent))
-    sys.stdout.write("[%s] (%d)"%('='*int(i/50), i))
+    sys.stdout.write("[%s] (%d)" % ('=' * int(i / 50), i))
     sys.stdout.flush()
