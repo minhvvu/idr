@@ -167,6 +167,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
     X_original = utils.get_X()
     dist_X_original = pairwise_distances(X_original, squared=True)
+    MACHINE_EPSILON = np.finfo(np.double).eps
+    noise = np.random.normal(0.0, MACHINE_EPSILON, [X_original.shape[0], 2])
 
     print("\nGradien Descent:")
     while True:
@@ -207,6 +209,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
         if fixed_ids:
             grad2d = grad.reshape(-1, 2)
             grad2d[fixed_ids] = 0
+            noise[fixed_ids] = 0
             grad = grad2d.ravel()
 
         # calculate the magnitude of gradient of each point
@@ -225,7 +228,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
         grad *= gains
         update = momentum * update - learning_rate * grad
         old_p = p.copy()
-        p += update
+        p += update + noise.ravel()
 
         if (i % status['n_jump'] == 0):
             if status['measure'] is True:

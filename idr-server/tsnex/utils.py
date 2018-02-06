@@ -6,6 +6,20 @@ import redis
 from sklearn import datasets
 
 
+# status object to store some server infos
+initial_server_status = {
+    'tick_frequence': 0.05,
+    'n_jump': 10,
+    'client_iter': 0,
+    'max_iter': 1000,
+    'measure': True,  # calculate the measurement after each iteration
+    'accumulate': False,  # accumulate the info of early_exaggeration state
+    'hard_move': True,  # hard-fix position of client selected points
+    'ready': True,  # client does not stop server
+    'stop': False  # need to stop all running threads to clean data
+}
+
+
 def load_dataset(name='MNIST'):
     """ Some available dataset: MNIST_small, COIL-20
     """
@@ -63,20 +77,6 @@ DATA_CHANNEL = 'tsnex_X_embedding'
 # publish/subscribe object in redis
 pubsub = redis_db.pubsub()
 pubsub.subscribe(DATA_CHANNEL)
-
-
-# status object to store some server infos
-initial_server_status = {
-    'tick_frequence': 0.05,
-    'n_jump': 5,
-    'client_iter': 0,
-    'max_iter': 1000,
-    'measure': False,  # calculate the measurement after each iteration
-    'accumulate': False,  # accumulate the info of early_exaggeration state
-    'hard_move': True,  # hard-fix position of client selected points
-    'ready': True,  # client does not stop server
-    'stop': False  # need to stop all running threads to clean data
-}
 
 
 def set_server_status():
@@ -226,12 +226,12 @@ def get_y():
 
 
 def print_progress(i, n):
-    """ Print processbar like: 
+    """ Print processbar like:
         [=================================================] 99%
     """
     # percent = int(100.0 * i / n)
     # n_gap = int(percent / 2)
     sys.stdout.write('\r')
-    #sys.stdout.write("[%s] %d%%" % ('=' * n_gap, percent))
+    # sys.stdout.write("[%s] %d%%" % ('=' * n_gap, percent))
     sys.stdout.write("[%s] (%d)" % ('=' * int(i / 50), i))
     sys.stdout.flush()
