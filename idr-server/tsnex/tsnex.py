@@ -214,7 +214,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
         # calculate the magnitude of gradient of each point
         grad_per_point = linalg.norm(grad.reshape(-1, 2), axis=1)
-        gradients_acc += grad_per_point
+        # gradients_acc += grad_per_point
 
         # grad_norm = linalg.norm(grad)
         grad_norm = np.sum(grad_per_point)
@@ -228,7 +228,21 @@ def my_gradient_descent(objective, p0, it, n_iter,
         grad *= gains
         update = momentum * update - learning_rate * grad
         old_p = p.copy()
-        p += update + noise.ravel()
+        p += update
+
+        # count the number of neighbor in knn graph of the embedding
+        embedding = p.reshape(-1, 2)
+        dist_y = pairwise_distances(embedding, squared=True)
+        min_d, max_d = np.min(dist_y), np.max(dist_y)
+        threshold = (max_d - min_d) * 0.001
+        mask = dist_y < threshold
+        knn = np.sum(mask, axis=1)
+        gradients_acc = knn
+
+        # An apprach in off-convex-path: add noise to espace saddle points
+        # if grad_norm <= 10e-5:
+        #     print("[Noise] Adding noise when grad_norm={}".format(grad_norm))
+        #     p += noise.ravel()
 
         if (i % status['n_jump'] == 0):
             if status['measure'] is True:
@@ -369,8 +383,8 @@ if __name__ == '__main__':
 
     X, y = utils.load_dataset(name='MNIST')
 
-    perplexity_to_try = range(5, 51, 5)
-    max_iter_to_try = range(1000, 5001, 1000)
+    perplexity_to_try = [50]  # range(5, 51, 5)
+    max_iter_to_try = [4000]  # range(1000, 5001, 1000)
 
     all_runs = len(perplexity_to_try) * len(max_iter_to_try)
     n_run = 0
@@ -396,6 +410,6 @@ if __name__ == '__main__':
             duration = toc - tic
             print("[DONE]Duration={}\n".format(duration))
 
-            output_name = '../results/tsne_perp{}_it{}.png'.format(
+            output_name = '../results/tsne_full_perp{}_it{}.png'.format(
                 perplexity, max_iter)
             plot(X_2d, y, output_name)

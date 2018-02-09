@@ -12,7 +12,7 @@ initial_server_status = {
     'n_jump': 10,
     'client_iter': 0,
     'max_iter': 1000,
-    'measure': True,  # calculate the measurement after each iteration
+    'measure': False,  # calculate the measurement after each iteration
     'accumulate': False,  # accumulate the info of early_exaggeration state
     'hard_move': True,  # hard-fix position of client selected points
     'ready': True,  # client does not stop server
@@ -20,13 +20,14 @@ initial_server_status = {
 }
 
 
-def load_dataset(name='MNIST'):
+def load_dataset(name='MNIST-SMALL'):
     """ Some available dataset: MNIST_small, COIL-20
     """
     if name == 'COIL20':
         return load_coil_20()
-    else:
-        return load_mnist()
+    elif name.startswith('MNIST'):
+        isFull = not name.endswith('SMALL')
+        return load_mnist(isFull)
 
 
 def load_coil_20():
@@ -38,11 +39,17 @@ def load_coil_20():
     return X, y
 
 
-def load_mnist():
-    dataset = datasets.load_digits()
+def load_mnist(full=False):
+    if full:
+        from sklearn.datasets import fetch_mldata
+        dataset = fetch_mldata('MNIST original', data_home='../data/')
+    else:
+        dataset = datasets.load_digits()
+
     X = dataset.data  # [:400,]
     y = dataset.target  # [:400,]
-    print("MNIST small: X.shape={}, len(y)={}".format(X.shape, len(y)))
+    print("MNIST {}: X.shape={}, len(y)={}".format(
+        'original' if full else 'small', X.shape, len(y)))
     return X, y
 
 

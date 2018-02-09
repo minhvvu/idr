@@ -141,7 +141,7 @@ def run_send_to_client(ws):
                     'id': str(i),
                     'x': float(X_embedded[i][0]),
                     'y': float(X_embedded[i][1]),
-                    'z': float(gradients[i] * 10e5),
+                    'z': float(gradients[i]),
                     'label': str(y[i]),
                     'fixed': i in fixed_ids
                 } for i in idx]

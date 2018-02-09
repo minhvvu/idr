@@ -26,7 +26,7 @@ loadDatasetURI =
 -}
 loadDataset : Cmd Msg
 loadDataset =
-    WebSocket.send loadDatasetURI "MNIST"
+    WebSocket.send loadDatasetURI "MNIST-SMALL"
 
 
 {-| Socket endpoint for calling function to do embedding
