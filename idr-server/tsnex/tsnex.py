@@ -11,6 +11,8 @@ from numpy import linalg
 from time import time, sleep
 import utils
 
+import networkx as nx
+
 
 shared_data = {
     'queue': None,
@@ -25,6 +27,44 @@ shared_data = {
     'stabilities2': [],
     'convergences': []
 }
+
+
+def centrality_scores(X, alpha=0.85, max_iter=100, tol=1e-5):
+    """Power iteration computation of the principal eigenvector
+
+    This method is also known as Google PageRank and the implementation
+    is based on the one from the NetworkX project (BSD licensed too)
+    with copyrights by:
+
+      Aric Hagberg <hagberg@lanl.gov>
+      Dan Schult <dschult@colgate.edu>
+      Pieter Swart <swart@lanl.gov>
+    """
+    n = X.shape[0]
+    X = X.copy()
+    incoming_counts = np.asarray(X.sum(axis=1)).ravel()
+
+    print("Normalizing the graph")
+    for i in incoming_counts.nonzero()[0]:
+        X.data[X.indptr[i]:X.indptr[i + 1]] *= 1.0 / incoming_counts[i]
+    dangle = np.asarray(np.where(X.sum(axis=1) == 0, 1.0 / n, 0)).ravel()
+
+    scores = np.ones(n, dtype=np.float32) / n  # initial guess
+    for i in range(max_iter):
+        print("power iteration #%d" % i)
+        prev_scores = scores
+        scores = (alpha * (scores * X + np.dot(dangle, prev_scores))
+                  + (1 - alpha) * prev_scores.sum() / n)
+        # check convergence: normalized l_inf norm
+        scores_max = np.abs(scores).max()
+        if scores_max == 0.0:
+            scores_max = 1.0
+        err = np.abs(scores - prev_scores).max() / scores_max
+        print("error: %0.6f" % err)
+        if err < n * tol:
+            return scores
+
+    return scores
 
 
 def boostrap_do_embedding(X, shared_queue=None):
@@ -219,6 +259,12 @@ def my_gradient_descent(objective, p0, it, n_iter,
         # grad_norm = linalg.norm(grad)
         grad_norm = np.sum(grad_per_point)
 
+###############################################################################
+# A very good measure : do classification with the embedded data
+# Try to see if the interaction can help
+###############################################################################
+
+
         # tsne update gradient by momentum
         inc = update * grad < 0.0
         dec = np.invert(inc)
@@ -230,21 +276,26 @@ def my_gradient_descent(objective, p0, it, n_iter,
         old_p = p.copy()
         p += update
 
-        # count the number of neighbor in knn graph of the embedding
-        embedding = p.reshape(-1, 2)
-        dist_y = pairwise_distances(embedding, squared=True)
-        min_d, max_d = np.min(dist_y), np.max(dist_y)
-        threshold = (max_d - min_d) * 0.001
-        mask = dist_y < threshold
-        knn = np.sum(mask, axis=1)
-        gradients_acc = knn
-
         # An apprach in off-convex-path: add noise to espace saddle points
         # if grad_norm <= 10e-5:
         #     print("[Noise] Adding noise when grad_norm={}".format(grad_norm))
         #     p += noise.ravel()
 
         if (i % status['n_jump'] == 0):
+            # count the number of neighbor in knn graph of the embedding
+            embedding = p.reshape(-1, 2)
+            dist_y = pairwise_distances(embedding, squared=True)
+            min_d, max_d = np.min(dist_y), np.max(dist_y)
+            threshold = (max_d - min_d) * 0.001
+            mask = dist_y < threshold
+            # knn = np.sum(mask, axis=1)
+            # gradients_acc = knn
+
+            mask = 1.0 * mask
+            g = nx.from_numpy_matrix(mask)
+            deg = nx.pagerank_numpy(g)
+            gradients_acc = np.array(list(deg.values()))
+
             if status['measure'] is True:
                 X_embedded = p.copy().reshape(-1, 2)
                 measure = trustworthiness(dist_X_original, X_embedded,
