@@ -21,6 +21,7 @@ shared_data = {
     'fixed_pos': [],
     'errors': [],
     'grad_norms': [],
+    'classification_scores': [],
     'trustworthinesses': [],
     'stabilities': [],
     'convergences': []
@@ -40,6 +41,7 @@ def boostrap_do_embedding(X, shared_queue=None):
     shared_data['fixed_pos'] = []
     shared_data['errors'] = []
     shared_data['grad_norms'] = []
+    shared_data['classification_scores'] = [],
     shared_data['trustworthinesses'] = []
     shared_data['stabilities'] = []
     shared_data['convergences'] = []
@@ -157,6 +159,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
     fixed_pos = shared_data['fixed_pos'] if must_share else []
     errors = shared_data['errors'] if must_share else []
     grad_norms = shared_data['grad_norms'] if must_share else []
+    classification_scores = shared_data['classification_scores'] if must_share else []
     trustworthinesses = shared_data['trustworthinesses'] if must_share else []
     stabilities = shared_data['stabilities'] if must_share else []
     convergences = shared_data['convergences'] if must_share else []
@@ -173,7 +176,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             break
 
         status = utils.get_server_status(
-            ['n_jump', 'tick_frequence', 'measure', 'hard_move', 'stop'])
+            ['n_jump', 'tick_frequence', 'measure', 'use_pagerank', 'hard_move', 'stop'])
         if status['stop'] is True:
             return p, error, i
 
@@ -210,12 +213,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
         # calculate the magnitude of gradient of each point
         grad_per_point = linalg.norm(grad.reshape(-1, 2), axis=1)
-        # gradients_acc += grad_per_point
-
         # grad_norm = linalg.norm(grad)
         grad_norm = np.sum(grad_per_point)
-
-        print(i, error)
 
         # tsne update gradient by momentum
         inc = update * grad < 0.0
@@ -234,39 +233,43 @@ def my_gradient_descent(objective, p0, it, n_iter,
         #     p += noise.ravel()
 
         if (i % status['n_jump'] == 0):
-            # count the number of neighbor in knn graph of the embedding
-            embedding = p.reshape(-1, 2)
-            dist_y = pairwise_distances(embedding, squared=True)
-            min_d, max_d = np.min(dist_y), np.max(dist_y)
-            threshold = (max_d - min_d) * 0.001
-            mask = dist_y < threshold
-            # knn = np.sum(mask, axis=1)
-            # gradients_acc = knn
-
-            mask = 1.0 * mask
-            g = nx.from_numpy_matrix(mask)
-            deg = nx.pagerank_numpy(g)
-            gradients_acc = np.array(list(deg.values()))
+            if status['use_pagerank']:
+                print("Iteration: {}: calculate pagerank...".format(i), end='')
+                embedding = p.reshape(-1, 2)
+                dist_y = pairwise_distances(embedding, squared=True)
+                min_d, max_d = np.min(dist_y), np.max(dist_y)
+                threshold = (max_d - min_d) * 0.001
+                mask = dist_y < threshold
+                g = nx.from_numpy_matrix(1.0*mask)
+                ranks = nx.pagerank_numpy(g)
+                gradients_acc = np.array(list(ranks.values()))
+                print("Done!")
+            else:
+                # gradients_acc += grad_per_point
+                pass
 
             if status['measure'] is True:
                 X_embedded = p.copy().reshape(-1, 2)
+                print("Calculate trustworthinesses")
                 trustwth = trustworthiness(dist_X_original, X_embedded,
                                            n_neighbors=10, precomputed=True)
                 trustworthinesses.append(trustwth)
 
+                print("Calculate PIVE measurement")
                 stability, convergence = PIVE_measure(
                     old_p, p, dist_X_original)
                 stabilities.append(stability)
                 convergences.append(convergence)
 
-                # test score on classification task
+                print("Calculate test score on classification task")
                 score = run_classify(X_embedded)
-                errors.append(float(score))
+                classification_scores.append(score)
 
+                errors.append(error)
                 grad_norms.append(float(grad_norm))
 
             publish(p.copy(), gradients_acc.tolist(),
-                    errors, grad_norms,
+                    errors, grad_norms, classification_scores,
                     trustworthinesses, stabilities, convergences)
 
         if (i + 1) % n_iter_check == 0:
@@ -299,7 +302,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
 
 def publish(X_embedded, gradients,
-            errors, grad_norms,
+            errors, grad_norms, classification_scores,
             trustworthinesses, stabilities, convergences):
     data = {
         # np.tostring() convert a ndarray to a binary string (bytes)
@@ -310,9 +313,10 @@ def publish(X_embedded, gradients,
         'gradients': gradients,
         'seriesData': [
             {'name': 'errors', 'series': [errors]},
-            {'name': 'gradients norms', 'series': [grad_norms]},
+            {'name': 'classification score', 'series': [classification_scores]},
             {'name': 'trustworthinesses,statbility,convergence',
-                'series': [trustworthinesses, stabilities, convergences]}
+                'series': [trustworthinesses, stabilities, convergences]},
+            {'name': 'gradients norms', 'series': [grad_norms]}
         ]
     }
     utils.publish_data(data)
