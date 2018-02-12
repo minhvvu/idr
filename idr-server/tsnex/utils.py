@@ -8,11 +8,11 @@ from sklearn import datasets
 
 # status object to store some server infos
 initial_server_status = {
-    'tick_frequence': 0.05,
-    'n_jump': 10,
+    'tick_frequence': 0.005,
+    'n_jump': 20,
     'client_iter': 0,
     'max_iter': 1000,
-    'measure': False,  # calculate the measurement after each iteration
+    'measure': True,  # calculate the measurement after each iteration
     'accumulate': False,  # accumulate the info of early_exaggeration state
     'hard_move': True,  # hard-fix position of client selected points
     'ready': True,  # client does not stop server

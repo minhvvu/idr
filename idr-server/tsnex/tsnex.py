@@ -8,10 +8,10 @@ from sklearn.manifold.t_sne import trustworthiness
 from sklearn.metrics.pairwise import pairwise_distances
 import numpy as np
 from numpy import linalg
+import networkx as nx
 from time import time, sleep
 import utils
-
-import networkx as nx
+from classifier import run_classify
 
 
 shared_data = {
@@ -22,49 +22,9 @@ shared_data = {
     'errors': [],
     'grad_norms': [],
     'trustworthinesses': [],
-    'stabilities0': [],
-    'stabilities1': [],
-    'stabilities2': [],
+    'stabilities': [],
     'convergences': []
 }
-
-
-def centrality_scores(X, alpha=0.85, max_iter=100, tol=1e-5):
-    """Power iteration computation of the principal eigenvector
-
-    This method is also known as Google PageRank and the implementation
-    is based on the one from the NetworkX project (BSD licensed too)
-    with copyrights by:
-
-      Aric Hagberg <hagberg@lanl.gov>
-      Dan Schult <dschult@colgate.edu>
-      Pieter Swart <swart@lanl.gov>
-    """
-    n = X.shape[0]
-    X = X.copy()
-    incoming_counts = np.asarray(X.sum(axis=1)).ravel()
-
-    print("Normalizing the graph")
-    for i in incoming_counts.nonzero()[0]:
-        X.data[X.indptr[i]:X.indptr[i + 1]] *= 1.0 / incoming_counts[i]
-    dangle = np.asarray(np.where(X.sum(axis=1) == 0, 1.0 / n, 0)).ravel()
-
-    scores = np.ones(n, dtype=np.float32) / n  # initial guess
-    for i in range(max_iter):
-        print("power iteration #%d" % i)
-        prev_scores = scores
-        scores = (alpha * (scores * X + np.dot(dangle, prev_scores))
-                  + (1 - alpha) * prev_scores.sum() / n)
-        # check convergence: normalized l_inf norm
-        scores_max = np.abs(scores).max()
-        if scores_max == 0.0:
-            scores_max = 1.0
-        err = np.abs(scores - prev_scores).max() / scores_max
-        print("error: %0.6f" % err)
-        if err < n * tol:
-            return scores
-
-    return scores
 
 
 def boostrap_do_embedding(X, shared_queue=None):
@@ -81,9 +41,7 @@ def boostrap_do_embedding(X, shared_queue=None):
     shared_data['errors'] = []
     shared_data['grad_norms'] = []
     shared_data['trustworthinesses'] = []
-    shared_data['stabilities0'] = []
-    shared_data['stabilities1'] = []
-    shared_data['stabilities2'] = []
+    shared_data['stabilities'] = []
     shared_data['convergences'] = []
 
     sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
@@ -200,9 +158,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
     errors = shared_data['errors'] if must_share else []
     grad_norms = shared_data['grad_norms'] if must_share else []
     trustworthinesses = shared_data['trustworthinesses'] if must_share else []
-    stabilities0 = shared_data['stabilities0'] if must_share else []
-    stabilities1 = shared_data['stabilities1'] if must_share else []
-    stabilities2 = shared_data['stabilities2'] if must_share else []
+    stabilities = shared_data['stabilities'] if must_share else []
     convergences = shared_data['convergences'] if must_share else []
 
     X_original = utils.get_X()
@@ -259,11 +215,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
         # grad_norm = linalg.norm(grad)
         grad_norm = np.sum(grad_per_point)
 
-###############################################################################
-# A very good measure : do classification with the embedded data
-# Try to see if the interaction can help
-###############################################################################
-
+        print(i, error)
 
         # tsne update gradient by momentum
         inc = update * grad < 0.0
@@ -298,22 +250,24 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
             if status['measure'] is True:
                 X_embedded = p.copy().reshape(-1, 2)
-                measure = trustworthiness(dist_X_original, X_embedded,
-                                          n_neighbors=10, precomputed=True)
-                stability1, stability2, convergence = \
-                    PIVE_measure(old_p, p, dist_X_original)
+                trustwth = trustworthiness(dist_X_original, X_embedded,
+                                           n_neighbors=10, precomputed=True)
+                trustworthinesses.append(trustwth)
 
-                trustworthinesses.append(measure)
-                errors.append(error)
-                grad_norms.append(float(grad_norm))
-                stabilities1.append(stability1)
-                stabilities2.append(stability2)
-                stabilities0.append((stability1 + stability2) / 2)
+                stability, convergence = PIVE_measure(
+                    old_p, p, dist_X_original)
+                stabilities.append(stability)
                 convergences.append(convergence)
 
+                # test score on classification task
+                score = run_classify(X_embedded)
+                errors.append(float(score))
+
+                grad_norms.append(float(grad_norm))
+
             publish(p.copy(), gradients_acc.tolist(),
-                    errors, grad_norms, trustworthinesses,
-                    stabilities0, stabilities1, stabilities2, convergences)
+                    errors, grad_norms,
+                    trustworthinesses, stabilities, convergences)
 
         if (i + 1) % n_iter_check == 0:
             toc = time()
@@ -345,8 +299,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
 
 def publish(X_embedded, gradients,
-            errors, grad_norms, trustworthinesses,
-            stabilities0, stabilities1, stabilities2, convergences):
+            errors, grad_norms,
+            trustworthinesses, stabilities, convergences):
     data = {
         # np.tostring() convert a ndarray to a binary string (bytes)
         # to transfer the data via redis queue,
@@ -357,10 +311,8 @@ def publish(X_embedded, gradients,
         'seriesData': [
             {'name': 'errors', 'series': [errors]},
             {'name': 'gradients norms', 'series': [grad_norms]},
-            {'name': 'trustworthinesses, convergence',
-                'series': [trustworthinesses, convergences]},
-            {'name': 'stability0,stability1,stability2',
-                'series': [stabilities0, stabilities1, stabilities2]}
+            {'name': 'trustworthinesses,statbility,convergence',
+                'series': [trustworthinesses, stabilities, convergences]}
         ]
     }
     utils.publish_data(data)
@@ -393,18 +345,12 @@ def PIVE_measure(old_p, new_p, dist_X, k=10):
     k_ind_X = np.argsort(dist_X, axis=1)[:, 1:k + 1]
 
     stability = 0
-    stability2 = 0
     for i in range(n):
         set_old = set(k_ind_old[i])
         set_new = set(k_ind_new[i])
-
         new_but_not_old = set_new - set_old
-        old_but_not_new = set_old - set_new
-
         stability += len(new_but_not_old)
-        stability2 += len(old_but_not_new)
     stability /= (n * k)
-    stability2 /= (n * k)
 
     convergence = 0
     for i in range(n):
@@ -414,7 +360,7 @@ def PIVE_measure(old_p, new_p, dist_X, k=10):
         convergence += len(intersection)
     convergence /= (n * k)
 
-    return stability, stability2, convergence
+    return stability, convergence
 
 
 if __name__ == '__main__':
