@@ -9,13 +9,13 @@ from sklearn import datasets
 # status object to store some server infos
 initial_server_status = {
     'tick_frequence': 0.005,
-    'n_jump': 15,
+    'n_jump': 10,
     'client_iter': 0,
     'max_iter': 1000,
-    'measure': True,  # calculate the measurement after each iteration
     'accumulate': False,  # accumulate the info of early_exaggeration state
+    'measure': True,  # calculate the measurement after each iteration
     'hard_move': True,  # hard-fix position of client selected points
-    'use_pagerank': True, # use pagerank to find the most influential points
+    'use_pagerank': False, # use pagerank to find the most influential points
     'ready': True,  # client does not stop server
     'stop': False  # need to stop all running threads to clean data
 }

@@ -27,8 +27,8 @@ type alias PlotConfig =
 
 plotConfig : PlotConfig
 plotConfig =
-    { width = 900.0
-    , height = 800.0
+    { width = 860.0
+    , height = 700.0
     , padding = 30.0
     , circleRadius = 6
     , minCircleRadius = 4

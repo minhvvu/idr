@@ -19,12 +19,12 @@ import Common exposing (intToColor10Str)
 
 w : Float
 w =
-    460.0
+    420.0
 
 
 h : Float
 h =
-    320.0
+    300.0
 
 
 padding : Float
