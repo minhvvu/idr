@@ -48,9 +48,13 @@ addCircle point group =
 
 {-| Util function to create a group of circle
 -}
-createCircleGroup : List Point -> CircleGroup
-createCircleGroup points =
-    points |> List.foldl addCircle emptyGroup
+createCircleGroup : List Point -> Array (List Int) -> CircleGroup
+createCircleGroup points knnData =
+    let
+        initGroup =
+            { emptyGroup | knn = knnData }
+    in
+        points |> List.foldl addCircle initGroup
 
 
 {-| Workaround to fix the strange bug (BUG 1):

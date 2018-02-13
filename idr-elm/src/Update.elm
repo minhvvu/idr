@@ -6,6 +6,7 @@ import Commands exposing (..)
 import Models exposing (..)
 import Plot.CircleGroup exposing (..)
 import Plot.Scatter exposing (createScatter, getMovedPoints)
+import Array exposing (..)
 
 
 {-| Big update function to handle all system messages
@@ -77,7 +78,10 @@ update msg ({ scatter, ready } as model) =
                     Result.withDefault 10.0 <| String.toFloat amount
 
                 updatedScatter =
-                    Plot.Scatter.createScatter model.rawData newZoomFactor
+                    Plot.Scatter.createScatter
+                        model.rawData
+                        model.scatter.points.knn
+                        newZoomFactor
             in
                 { model | zoomFactor = newZoomFactor, scatter = updatedScatter } ! []
 
@@ -106,7 +110,7 @@ updateNewData ({ ready, current_it } as model) dataStr =
                     embeddingResult.seriesData
 
                 knnData =
-                    embeddingResult.knn
+                    Array.fromList embeddingResult.knn
             in
                 ( { model
                     | current_it = current_it + 1

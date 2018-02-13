@@ -22,7 +22,7 @@ import Plot.Circle exposing (..)
 import Plot.CircleGroup exposing (..)
 import Plot.Axes exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
-import Array exposing (fromList)
+import Array exposing (..)
 
 
 {-| Scatter Model contains data used for rendering a scatter plot
@@ -46,7 +46,7 @@ emptyScatter =
 
 {-| Util function to create scatter model from list of raw points
 -}
-createScatter : List Point -> List (List Int) -> Float -> Scatter
+createScatter : List Point -> Array (List Int) -> Float -> Scatter
 createScatter rawPoints knnData zoomFactor =
     let
         ( minX, maxX ) =
@@ -83,35 +83,26 @@ createScatter rawPoints knnData zoomFactor =
             Scale.linear
                 ( minZ, maxZ )
                 ( plotConfig.minCircleRadius, plotConfig.maxCircleRadius )
+
+        mappedPoints =
+            rawPoints
+                |> List.map
+                    (\p ->
+                        (Point
+                            p.id
+                            (Scale.convert xScale p.x)
+                            (Scale.convert yScale p.y)
+                            (Scale.convert zScale p.z)
+                            p.label
+                            p.fixed
+                        )
+                    )
     in
-        { knn = Array.fromList knnData
-        , xScale = xScale
+        { xScale = xScale
         , yScale = yScale
         , zScale = zScale
-        , points = mapRawDataToScatterPlot rawPoints ( xScale, yScale, zScale )
+        , points = createCircleGroup mappedPoints knnData
         }
-
-
-{-| Private function to create a list of plotted points from the raw data
--}
-mapRawDataToScatterPlot :
-    List Point
-    -> ( ContinuousScale, ContinuousScale, ContinuousScale )
-    -> CircleGroup
-mapRawDataToScatterPlot rawPoints ( xScale, yScale, zScale ) =
-    rawPoints
-        |> List.map
-            (\p ->
-                (Point
-                    p.id
-                    (Scale.convert xScale p.x)
-                    (Scale.convert yScale p.y)
-                    (Scale.convert zScale p.z)
-                    p.label
-                    p.fixed
-                )
-            )
-        |> createCircleGroup
 
 
 {-| Public API for plot the scatter
