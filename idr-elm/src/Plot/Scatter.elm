@@ -22,6 +22,7 @@ import Plot.Circle exposing (..)
 import Plot.CircleGroup exposing (..)
 import Plot.Axes exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
+import Array exposing (fromList)
 
 
 {-| Scatter Model contains data used for rendering a scatter plot
@@ -45,8 +46,8 @@ emptyScatter =
 
 {-| Util function to create scatter model from list of raw points
 -}
-createScatter : List Point -> Float -> Scatter
-createScatter rawPoints zoomFactor =
+createScatter : List Point -> List (List Int) -> Float -> Scatter
+createScatter rawPoints knnData zoomFactor =
     let
         ( minX, maxX ) =
             ( Common.minField .x rawPoints, Common.maxField .x rawPoints )
@@ -83,7 +84,8 @@ createScatter rawPoints zoomFactor =
                 ( minZ, maxZ )
                 ( plotConfig.minCircleRadius, plotConfig.maxCircleRadius )
     in
-        { xScale = xScale
+        { knn = Array.fromList knnData
+        , xScale = xScale
         , yScale = yScale
         , zScale = zScale
         , points = mapRawDataToScatterPlot rawPoints ( xScale, yScale, zScale )

@@ -7,10 +7,12 @@ import Svg exposing (..)
 import Svg.Keyed
 import Plot.Circle exposing (..)
 import Common exposing (..)
+import Array exposing (..)
 
 
 type alias CircleGroup =
-    { movingCircles : List Circle
+    { knn : Array (List Int)
+    , movingCircles : List Circle
     , idleCircles : List Circle
     , movedCircles : List Circle
     }
@@ -20,7 +22,7 @@ type alias CircleGroup =
 -}
 emptyGroup : CircleGroup
 emptyGroup =
-    CircleGroup [] [] []
+    CircleGroup Array.empty [] [] []
 
 
 {-| Util function to get all circle in a group
@@ -124,9 +126,10 @@ stopDragging group =
         movingCircles =
             []
     in
-        { idleCircles = allCircles
-        , movedCircles = movedCircles
-        , movingCircles = movingCircles
+        { group
+            | idleCircles = allCircles
+            , movedCircles = movedCircles
+            , movingCircles = movingCircles
         }
 
 

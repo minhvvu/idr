@@ -167,6 +167,7 @@ embeddingResultDecoder : Decode.Decoder EmbeddingResult
 embeddingResultDecoder =
     decode EmbeddingResult
         |> required "embedding" listPointsDecoder
+        |> required "knn" (Decode.list (Decode.list Decode.int))
         |> required "seriesData" (Decode.list seriesDataDecoder)
 
 

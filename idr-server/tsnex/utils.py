@@ -12,6 +12,7 @@ initial_server_status = {
     'n_jump': 10,
     'client_iter': 0,
     'max_iter': 1000,
+    'n_neighbors': 10, # number of nearest neighbors for each selected point
     'accumulate': False,  # accumulate the info of early_exaggeration state
     'measure': True,  # calculate the measurement after each iteration
     'hard_move': True,  # hard-fix position of client selected points

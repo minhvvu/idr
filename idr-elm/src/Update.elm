@@ -104,11 +104,14 @@ updateNewData ({ ready, current_it } as model) dataStr =
 
                 seriesData =
                     embeddingResult.seriesData
+
+                knnData =
+                    embeddingResult.knn
             in
                 ( { model
                     | current_it = current_it + 1
                     , rawData = rawPoints
-                    , scatter = Plot.Scatter.createScatter rawPoints model.zoomFactor
+                    , scatter = Plot.Scatter.createScatter rawPoints knnData model.zoomFactor
                     , seriesData = seriesData
                   }
                 , nextCommand
