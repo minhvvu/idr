@@ -69,6 +69,13 @@ update msg ({ scatter, ready } as model) =
             in
                 { model | scatter = newScatter } ! []
 
+        Select selectedId ->
+            let
+                newScatter =
+                    { scatter | selectedId = selectedId }
+            in
+                { model | scatter = newScatter } ! []
+
         DragMsg dragMsg ->
             Draggable.update myDragConfig dragMsg model
 
@@ -111,11 +118,17 @@ updateNewData ({ ready, current_it } as model) dataStr =
 
                 knnData =
                     Array.fromList embeddingResult.knn
+
+                oldSelectedId =
+                    model.scatter.selectedId
+
+                newScatter =
+                    Plot.Scatter.createScatter rawPoints knnData model.zoomFactor
             in
                 ( { model
                     | current_it = current_it + 1
                     , rawData = rawPoints
-                    , scatter = Plot.Scatter.createScatter rawPoints knnData model.zoomFactor
+                    , scatter = { newScatter | selectedId = oldSelectedId }
                     , seriesData = seriesData
                   }
                 , nextCommand

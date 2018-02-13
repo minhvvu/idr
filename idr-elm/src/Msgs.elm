@@ -1,7 +1,7 @@
 module Msgs exposing (..)
 
 import Draggable
-import Draggable.Events exposing (onDragBy, onDragStart)
+import Draggable.Events exposing (onDragBy, onDragStart, onClick)
 import Common exposing (CircleId)
 
 
@@ -18,6 +18,7 @@ type Msg
     | StartDragging CircleId
     | OnDragBy Draggable.Delta
     | StopDragging
+    | Select String
     | UpdateZoomFactor String -- zoom in/ zoom out the svg
 
 
@@ -26,4 +27,5 @@ myDragConfig =
     Draggable.customConfig
         [ onDragBy OnDragBy
         , onDragStart StartDragging
+        , onClick Select
         ]

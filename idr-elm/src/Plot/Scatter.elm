@@ -5,6 +5,7 @@ module Plot.Scatter
         , emptyScatter
         , createScatter
         , movedPointsView
+        , selectedPointsView
         , getMovedPoints
         )
 
@@ -32,6 +33,7 @@ type alias Scatter =
     , xScale : ContinuousScale
     , yScale : ContinuousScale
     , zScale : ContinuousScale
+    , selectedId : String
     }
 
 
@@ -41,6 +43,7 @@ emptyScatter =
     , xScale = Scale.linear ( 0, 0 ) ( 0, 0 )
     , yScale = Scale.linear ( 0, 0 ) ( 0, 0 )
     , zScale = Scale.linear ( 0, 0 ) ( 0, 0 )
+    , selectedId = "0"
     }
 
 
@@ -102,6 +105,7 @@ createScatter rawPoints knnData zoomFactor =
         , yScale = yScale
         , zScale = zScale
         , points = createCircleGroup mappedPoints knnData
+        , selectedId = "0"
         }
 
 
@@ -179,3 +183,12 @@ getMovedPoints { points, xScale, yScale } =
             )
     in
         List.map invertDomain movedPoint
+
+
+selectedPointsView : Scatter -> Html Msg
+selectedPointsView { points, selectedId } =
+    let
+        neighbors =
+            getNeighbors selectedId points
+    in
+        Html.text ("Selected points: " ++ selectedId ++ (toString neighbors))

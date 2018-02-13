@@ -13,7 +13,7 @@ import Bootstrap.Badge as Badge
 import Bootstrap.Form as BForm
 import Models exposing (Model)
 import Msgs exposing (Msg(..))
-import Plot.Scatter exposing (scatterView, movedPointsView)
+import Plot.Scatter exposing (scatterView, movedPointsView, selectedPointsView)
 import Plot.LineChart exposing (viewLineChart)
 
 
@@ -62,15 +62,13 @@ view model =
                 ]
             ]
         , Grid.row [ Row.betweenSm ]
-            [ Grid.col []
-                [ scatterView model.scatter ]
+            [ Grid.col [] [ scatterView model.scatter ]
+            , Grid.col [] [ selectedPointsView model.scatter ]
+            , Grid.col [] [ movedPointsView model.scatter ]
             , Grid.col []
                 (model.seriesData
                     |> List.map
                         (\aseries -> viewLineChart aseries.name aseries.series)
                 )
-            ]
-        , Grid.row [ Row.betweenSm ]
-            [ Grid.col [] [ movedPointsView model.scatter ]
             ]
         ]

@@ -183,3 +183,11 @@ getMovedPoints group =
         |> correctCircleGroup
         |> .movedCircles
         |> List.map Plot.Circle.circleToPoint
+
+
+getNeighbors : CircleId -> CircleGroup -> List Int
+getNeighbors circleId group =
+    String.toInt circleId
+        |> Result.withDefault 0
+        |> flip Array.get group.knn
+        |> Maybe.withDefault []
