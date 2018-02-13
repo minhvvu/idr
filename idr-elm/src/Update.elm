@@ -58,7 +58,10 @@ update msg ({ scatter, ready } as model) =
         StartDragging circleId ->
             let
                 newScatter =
-                    { scatter | points = startDragging circleId scatter.points }
+                    { scatter
+                        | selectedId = circleId
+                        , points = startDragging circleId scatter.points
+                    }
             in
                 { model | scatter = newScatter } ! []
 

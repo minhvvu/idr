@@ -96,23 +96,18 @@ startDragging circleId oldGroup =
         group =
             correctCircleGroup oldGroup
 
+        neighbors =
+            getNeighbors circleId oldGroup
+
         searchCond =
-            \c -> c.id == circleId
+            \c -> List.member c.id (circleId :: neighbors)
 
         ( targetAsList, other ) =
             List.partition searchCond group.idleCircles
-
-        target =
-            case List.head targetAsList of
-                Maybe.Nothing ->
-                    []
-
-                Maybe.Just circle ->
-                    List.singleton <| Plot.Circle.setSelected circle
     in
         { group
             | idleCircles = other
-            , movingCircles = target
+            , movingCircles = targetAsList
         }
 
 
@@ -185,9 +180,10 @@ getMovedPoints group =
         |> List.map Plot.Circle.circleToPoint
 
 
-getNeighbors : CircleId -> CircleGroup -> List Int
+getNeighbors : CircleId -> CircleGroup -> List String
 getNeighbors circleId group =
     String.toInt circleId
         |> Result.withDefault 0
         |> flip Array.get group.knn
         |> Maybe.withDefault []
+        |> List.map toString

@@ -32,7 +32,7 @@ createCircle point =
         (Vector2.vec2 point.x point.y)
         point.z
         point.label
-        {- the point is not selected by default -} False
+        False
         point.fixed
 
 
