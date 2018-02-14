@@ -73,11 +73,7 @@ update msg ({ scatter, ready } as model) =
                 { model | scatter = newScatter } ! []
 
         Select selectedId ->
-            let
-                newScatter =
-                    { scatter | points = updateSelectedCircle selectedId scatter.points }
-            in
-                { model | scatter = newScatter } ! []
+            { model | scatter = Plot.Scatter.updateSelectedCircle selectedId scatter } ! []
 
         DragMsg dragMsg ->
             Draggable.update myDragConfig dragMsg model
@@ -122,16 +118,18 @@ updateNewData ({ ready, current_it } as model) dataStr =
                 knnData =
                     Array.fromList embeddingResult.knn
 
-                oldSelectedId =
+                previousSelectedId =
                     model.scatter.selectedId
 
                 newScatter =
                     Plot.Scatter.createScatter rawPoints knnData model.zoomFactor
+                        -- show aura around the selected point if we have in previous iteration
+                        |> Plot.Scatter.updateSelectedCircle previousSelectedId
             in
                 ( { model
                     | current_it = current_it + 1
                     , rawData = rawPoints
-                    , scatter = { newScatter | selectedId = oldSelectedId }
+                    , scatter = newScatter
                     , seriesData = seriesData
                   }
                 , nextCommand

@@ -1,13 +1,4 @@
-module Plot.Scatter
-    exposing
-        ( Scatter
-        , scatterView
-        , emptyScatter
-        , createScatter
-        , movedPointsView
-        , selectedPointsView
-        , getMovedPoints
-        )
+module Plot.Scatter exposing (..)
 
 import Html exposing (Html)
 import Html.Attributes as HtmlAttrs exposing (class)
@@ -18,7 +9,7 @@ import Svg.Attributes as SvgAttrs exposing (width, height)
 import Visualization.Scale as Scale exposing (ContinuousScale)
 import Draggable
 import Msgs exposing (Msg)
-import Common exposing (PlotConfig, plotConfig, Point, minField, maxField)
+import Common exposing (..)
 import Plot.Circle exposing (..)
 import Plot.CircleGroup exposing (..)
 import Plot.Axes exposing (..)
@@ -183,6 +174,14 @@ getMovedPoints { points, xScale, yScale } =
             )
     in
         List.map invertDomain movedPoint
+
+
+updateSelectedCircle : CircleId -> Scatter -> Scatter
+updateSelectedCircle circleId scatter =
+    { scatter
+        | selectedId = circleId
+        , points = Plot.CircleGroup.updateSelectedCircle circleId scatter.points
+    }
 
 
 selectedPointsView : Scatter -> Html Msg

@@ -1,6 +1,6 @@
 module Plot.Circle exposing (..)
 
-import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
+import Math.Vector2 as Vector2 exposing (Vec2, getX, getY, distanceSquared)
 import Draggable
 import Html exposing (Html, div, text)
 import Svg exposing (..)
@@ -131,7 +131,7 @@ circleView { id, position, radius, label, status, fixed } =
                     [ cx centerX
                     , cy centerY
                     , r (toString (circleRadius * 5))
-                    , fill (Common.labelToColorStr label 0.2)
+                    , fill (Common.labelToColorStr label 0.15)
                     , stroke strokeColor
                     , strokeWidth (toString (2 * plotConfig.strokeWidth))
                     ]
@@ -148,3 +148,8 @@ circleView { id, position, radius, label, status, fixed } =
 circleKeyedView : Circle -> ( CircleId, Svg Msg )
 circleKeyedView circle =
     ( circle.id, lazy circleView circle )
+
+
+distance : Circle -> Circle -> Float
+distance c1 c2 =
+    distanceSquared c1.position c2.position

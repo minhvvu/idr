@@ -15,7 +15,6 @@ type alias CircleGroup =
     , movingCircles : List Circle
     , idleCircles : List Circle
     , movedCircles : List Circle
-    , selectedCircleId : CircleId
     }
 
 
@@ -23,7 +22,7 @@ type alias CircleGroup =
 -}
 emptyGroup : CircleGroup
 emptyGroup =
-    CircleGroup Array.empty [] [] [] ""
+    CircleGroup Array.empty [] [] []
 
 
 {-| Util function to get all circle in a group
@@ -118,21 +117,11 @@ startDragging circleId oldGroup =
 -}
 stopDragging : CircleGroup -> CircleGroup
 stopDragging group =
-    let
-        allCircles =
-            getAll group
-
-        movedCircles =
-            addMovedCircleFrom group.movingCircles group.movedCircles
-
-        movingCircles =
-            []
-    in
-        { group
-            | idleCircles = allCircles
-            , movedCircles = movedCircles
-            , movingCircles = movingCircles
-        }
+    { group
+        | idleCircles = group.idleCircles ++ group.movingCircles
+        , movedCircles = addMovedCircleFrom group.movingCircles group.movedCircles
+        , movingCircles = []
+    }
 
 
 {-| Drag the moving circles by applying `moveCircle` to each circle
@@ -148,10 +137,11 @@ dragActiveBy delta group =
 -}
 updateSelectedCircle : CircleId -> CircleGroup -> CircleGroup
 updateSelectedCircle circleId group =
-    { group
-        | selectedCircleId = circleId
-        , idleCircles = group.idleCircles |> List.map (Plot.Circle.toggleSelected circleId)
-    }
+    let
+        updatedIdleCircles =
+            group.idleCircles |> List.map (Plot.Circle.toggleSelected circleId)
+    in
+        { group | idleCircles = updatedIdleCircles }
 
 
 {-| Util function to update a list of moved circles
@@ -201,3 +191,13 @@ getNeighbors circleId group =
         |> flip Array.get group.knn
         |> Maybe.withDefault []
         |> List.map toString
+
+
+
+--getNeighbors : CircleId -> List Circle -> List CircleId
+--getNeighbors sourceId listCircles =
+--    0
+--let sourceCircle =
+--    listCircles
+--        |> List.filter (\c -> c.id == sourceId)
+--        |> List.head
