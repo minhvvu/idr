@@ -75,7 +75,7 @@ update msg ({ scatter, ready } as model) =
         Select selectedId ->
             let
                 newScatter =
-                    { scatter | selectedId = selectedId }
+                    { scatter | points = updateSelectedCircle selectedId scatter.points }
             in
                 { model | scatter = newScatter } ! []
 

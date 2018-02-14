@@ -11,6 +11,12 @@ import Msgs exposing (Msg(..))
 import Common exposing (..)
 
 
+type CircleStatus
+    = Idle
+    | Selected
+    | Moved
+
+
 {-| Circle in scatter plot
 -}
 type alias Circle =
@@ -18,7 +24,7 @@ type alias Circle =
     , position : Vec2
     , radius : Float
     , label : String
-    , selected : Bool
+    , status : CircleStatus
     , fixed : Bool
     }
 
@@ -32,7 +38,7 @@ createCircle point =
         (Vector2.vec2 point.x point.y)
         point.z
         point.label
-        False
+        Idle
         point.fixed
 
 
@@ -58,22 +64,33 @@ moveCircle delta circle =
 
 {-| Click to select a circle
 -}
-setSelected : Circle -> Circle
-setSelected circle =
-    { circle | selected = True }
+toggleSelected : CircleId -> Circle -> Circle
+toggleSelected circleId circle =
+    { circle
+        | status =
+            if circleId == circle.id then
+                Selected
+            else
+                Idle
+    }
 
 
 {-| Util function to draw a circle
 -}
 circleView : Circle -> Svg Msg
-circleView { id, position, radius, label, selected, fixed } =
+circleView { id, position, radius, label, status, fixed } =
     let
-        {- http://htmlcolorcodes.com/ -}
+        alphaFactor =
+            if status == Selected then
+                1.0
+            else
+                0.6
+
         color =
-            Common.labelToColorStr label
+            Common.labelToColorStr label alphaFactor
 
         strokeColor =
-            if selected then
+            if status == Selected then
                 plotConfig.selectedStrokeColor
             else if fixed then
                 "red"
@@ -85,26 +102,45 @@ circleView { id, position, radius, label, selected, fixed } =
                 plotConfig.circleRadius
             else
                 radius
+
+        centerX =
+            position |> getX |> round |> toString
+
+        centerY =
+            position |> getY |> round |> toString
+
+        fgCircle =
+            Svg.circle
+                ([ cx centerX
+                 , cy centerY
+                 , r (toString circleRadius)
+                 , fill color
+                 , stroke strokeColor
+                 , strokeWidth (toString plotConfig.strokeWidth)
+                 , Svg.Attributes.cursor "move"
+                 , Draggable.mouseTrigger id DragMsg
+                 , Svg.Events.onMouseUp StopDragging
+                 ]
+                    ++ (Draggable.touchTriggers id DragMsg)
+                )
+                []
     in
-        Svg.circle
-            ([ cx (position |> getX |> round |> toString)
-             , cy (position |> getY |> round |> toString)
-             , r (toString circleRadius)
-             , fill color
-             , stroke strokeColor
-             , strokeWidth (toString plotConfig.strokeWidth)
-             , Svg.Attributes.cursor "move"
-             , Draggable.mouseTrigger id DragMsg
-             , Svg.Events.onMouseUp StopDragging
-             ]
-                ++ (Draggable.touchTriggers id DragMsg)
-            )
-            [ Svg.title []
-                -- for tooltip
-                [ Svg.text
-                    ("Label: " ++ label ++ ", id: " ++ id)
+        Svg.g []
+            (if status == Selected then
+                [ Svg.circle
+                    [ cx centerX
+                    , cy centerY
+                    , r (toString (circleRadius * 5))
+                    , fill (Common.labelToColorStr label 0.2)
+                    , stroke strokeColor
+                    , strokeWidth (toString (2 * plotConfig.strokeWidth))
+                    ]
+                    []
+                , fgCircle
                 ]
-            ]
+             else
+                [] ++ [ fgCircle ]
+            )
 
 
 {-| Public API for drawing a indexed-svg circle (index by key)

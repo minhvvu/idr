@@ -30,9 +30,9 @@ plotConfig =
     { width = 860.0
     , height = 700.0
     , padding = 30.0
-    , circleRadius = 6
-    , minCircleRadius = 4
-    , maxCircleRadius = 12
+    , circleRadius = 7
+    , minCircleRadius = 5
+    , maxCircleRadius = 10
     , fixedRadius = False
     , autoZoom = True
     , strokeWidth = 0.5
@@ -81,7 +81,8 @@ type alias EmbeddingResult =
     }
 
 
-{-| <http://package.elm-lang.org/packages/gampleman/elm-visualization/latest/Visualization-Scale>
+{-| <http://htmlcolorcodes.com/>
+<http://package.elm-lang.org/packages/gampleman/elm-visualization/latest/Visualization-Scale>
 -}
 intToColor10Str : Int -> String
 intToColor10Str idx =
@@ -89,11 +90,11 @@ intToColor10Str idx =
         |> Array.fromList
         |> Array.get (idx % 10)
         |> Maybe.withDefault Color.blue
-        |> colorToString
+        |> flip colorToString 1.0
 
 
-labelToColorStr : String -> String
-labelToColorStr label =
+labelToColorStr : String -> Float -> String
+labelToColorStr label alphaFactor =
     let
         labelId =
             label
@@ -105,11 +106,11 @@ labelToColorStr label =
             |> Array.fromList
             |> Array.get labelId
             |> Maybe.withDefault Color.black
-            |> colorToString
+            |> flip colorToString alphaFactor
 
 
-colorToString : Color -> String
-colorToString color =
+colorToString : Color -> Float -> String
+colorToString color alphaFactor =
     let
         { red, green, blue, alpha } =
             toRgb color
@@ -121,7 +122,7 @@ colorToString color =
             ++ ", "
             ++ (blue |> toString)
             ++ ","
-            ++ (alpha |> toString)
+            ++ ((alphaFactor * alpha) |> toString)
             ++ ")"
 
 

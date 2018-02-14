@@ -15,6 +15,7 @@ type alias CircleGroup =
     , movingCircles : List Circle
     , idleCircles : List Circle
     , movedCircles : List Circle
+    , selectedCircleId : CircleId
     }
 
 
@@ -22,7 +23,7 @@ type alias CircleGroup =
 -}
 emptyGroup : CircleGroup
 emptyGroup =
-    CircleGroup Array.empty [] [] []
+    CircleGroup Array.empty [] [] [] ""
 
 
 {-| Util function to get all circle in a group
@@ -94,7 +95,9 @@ startDragging : CircleId -> CircleGroup -> CircleGroup
 startDragging circleId oldGroup =
     let
         group =
-            correctCircleGroup oldGroup
+            oldGroup
+                |> correctCircleGroup
+                |> updateSelectedCircle circleId
 
         neighbors =
             getNeighbors circleId oldGroup
@@ -141,7 +144,18 @@ dragActiveBy delta group =
     }
 
 
+{-| Update selected circle
+-}
+updateSelectedCircle : CircleId -> CircleGroup -> CircleGroup
+updateSelectedCircle circleId group =
+    { group
+        | selectedCircleId = circleId
+        , idleCircles = group.idleCircles |> List.map (Plot.Circle.toggleSelected circleId)
+    }
+
+
 {-| Util function to update a list of moved circles
+TODO FIX: we have a list of moving circles now!
 -}
 addMovedCircleFrom : List Circle -> List Circle -> List Circle
 addMovedCircleFrom movingCircles movedCircles =

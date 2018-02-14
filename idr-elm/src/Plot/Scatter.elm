@@ -131,7 +131,7 @@ drawScatter points =
             toString plotConfig.padding
     in
         g [ SvgAttrs.transform ("translate(" ++ padding ++ ", " ++ padding ++ ")") ]
-            [ circleGroupView points ]
+            [ Plot.CircleGroup.circleGroupView points ]
 
 
 {-| Public API for calling drawing a list of moved circle in CircleGroup
