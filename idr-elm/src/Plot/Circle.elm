@@ -152,4 +152,4 @@ circleKeyedView circle =
 
 distance : Circle -> Circle -> Float
 distance c1 c2 =
-    distanceSquared c1.position c2.position
+    Vector2.distanceSquared c1.position c2.position

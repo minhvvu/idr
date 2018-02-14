@@ -188,6 +188,6 @@ selectedPointsView : Scatter -> Html Msg
 selectedPointsView { points, selectedId } =
     let
         neighbors =
-            getNeighbors selectedId points
+            Plot.CircleGroup.getKNN 5.0 10 selectedId points
     in
         Html.text ("Selected points: " ++ selectedId ++ (toString neighbors))

@@ -88,8 +88,11 @@ update msg ({ scatter, ready } as model) =
                         model.rawData
                         model.scatter.points.knn
                         newZoomFactor
+
+                updatedScatterWithSelectedId =
+                    Plot.Scatter.updateSelectedCircle scatter.selectedId updatedScatter
             in
-                { model | zoomFactor = newZoomFactor, scatter = updatedScatter } ! []
+                { model | zoomFactor = newZoomFactor, scatter = updatedScatterWithSelectedId } ! []
 
 
 {-| Util function to update new received data into model

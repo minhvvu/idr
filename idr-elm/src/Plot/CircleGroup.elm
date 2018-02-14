@@ -99,7 +99,7 @@ startDragging circleId oldGroup =
                 |> updateSelectedCircle circleId
 
         neighbors =
-            getNeighbors circleId oldGroup
+            getKNN 5.0 10 circleId oldGroup
 
         searchCond =
             \c -> List.member c.id (circleId :: neighbors)
@@ -184,20 +184,46 @@ getMovedPoints group =
         |> List.map Plot.Circle.circleToPoint
 
 
-getNeighbors : CircleId -> CircleGroup -> List String
-getNeighbors circleId group =
-    String.toInt circleId
-        |> Result.withDefault 0
-        |> flip Array.get group.knn
-        |> Maybe.withDefault []
-        |> List.map toString
+
+--getNeighbors : CircleId -> CircleGroup -> List String
+--getNeighbors circleId group =
+--    String.toInt circleId
+--        |> Result.withDefault 0
+--        |> flip Array.get group.knn
+--        |> Maybe.withDefault []
+--        |> List.map toString
 
 
+getKNN : Float -> Int -> CircleId -> CircleGroup -> List CircleId
+getKNN threshold k circleId group =
+    let
+        knn =
+            getNeighbors circleId group.idleCircles
+    in
+        knn
+            |> List.filter (\p -> Tuple.first p < threshold)
+            |> List.take k
+            |> List.map Tuple.second
 
---getNeighbors : CircleId -> List Circle -> List CircleId
---getNeighbors sourceId listCircles =
---    0
---let sourceCircle =
---    listCircles
---        |> List.filter (\c -> c.id == sourceId)
---        |> List.head
+
+getNeighbors : CircleId -> List Circle -> List ( Float, CircleId )
+getNeighbors circleId listCircles =
+    let
+        foundCircle =
+            listCircles
+                |> List.filter (\c -> c.id == circleId)
+                |> List.head
+
+        distances =
+            case foundCircle of
+                Maybe.Nothing ->
+                    [ ( 0, circleId ) ]
+
+                Maybe.Just aCircle ->
+                    listCircles
+                        |> List.map
+                            (\c ->
+                                ( Plot.Circle.distance aCircle c, c.id )
+                            )
+    in
+        List.sort distances
