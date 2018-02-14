@@ -81,12 +81,11 @@ update msg ({ scatter, ready } as model) =
         UpdateZoomFactor amount ->
             let
                 newZoomFactor =
-                    Result.withDefault 10.0 <| String.toFloat amount
+                    Result.withDefault 10.0 (String.toFloat amount)
 
                 updatedScatter =
                     Plot.Scatter.createScatter
                         model.rawData
-                        model.scatter.points.knn
                         newZoomFactor
 
                 updatedScatterWithSelectedId =
@@ -118,14 +117,11 @@ updateNewData ({ ready, current_it } as model) dataStr =
                 seriesData =
                     embeddingResult.seriesData
 
-                knnData =
-                    Array.fromList embeddingResult.knn
-
                 previousSelectedId =
                     model.scatter.selectedId
 
                 newScatter =
-                    Plot.Scatter.createScatter rawPoints knnData model.zoomFactor
+                    Plot.Scatter.createScatter rawPoints model.zoomFactor
                         -- show aura around the selected point if we have in previous iteration
                         |> Plot.Scatter.updateSelectedCircle previousSelectedId
             in

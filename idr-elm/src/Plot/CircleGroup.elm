@@ -11,8 +11,7 @@ import Array exposing (..)
 
 
 type alias CircleGroup =
-    { knn : Array (List Int)
-    , movingCircles : List Circle
+    { movingCircles : List Circle
     , idleCircles : List Circle
     , movedCircles : List Circle
     }
@@ -22,7 +21,7 @@ type alias CircleGroup =
 -}
 emptyGroup : CircleGroup
 emptyGroup =
-    CircleGroup Array.empty [] [] []
+    CircleGroup [] [] []
 
 
 {-| Util function to get all circle in a group
@@ -48,13 +47,9 @@ addCircle point group =
 
 {-| Util function to create a group of circle
 -}
-createCircleGroup : List Point -> Array (List Int) -> CircleGroup
-createCircleGroup points knnData =
-    let
-        initGroup =
-            { emptyGroup | knn = knnData }
-    in
-        points |> List.foldl addCircle initGroup
+createCircleGroup : List Point -> CircleGroup
+createCircleGroup points =
+    points |> List.foldl addCircle emptyGroup
 
 
 {-| Workaround to fix the strange bug (BUG 1):
@@ -182,16 +177,6 @@ getMovedPoints group =
         |> correctCircleGroup
         |> .movedCircles
         |> List.map Plot.Circle.circleToPoint
-
-
-
---getNeighbors : CircleId -> CircleGroup -> List String
---getNeighbors circleId group =
---    String.toInt circleId
---        |> Result.withDefault 0
---        |> flip Array.get group.knn
---        |> Maybe.withDefault []
---        |> List.map toString
 
 
 getKNN : Float -> Int -> CircleId -> CircleGroup -> List CircleId

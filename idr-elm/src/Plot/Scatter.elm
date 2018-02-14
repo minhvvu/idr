@@ -40,8 +40,8 @@ emptyScatter =
 
 {-| Util function to create scatter model from list of raw points
 -}
-createScatter : List Point -> Array (List Int) -> Float -> Scatter
-createScatter rawPoints knnData zoomFactor =
+createScatter : List Point -> Float -> Scatter
+createScatter rawPoints zoomFactor =
     let
         ( minX, maxX ) =
             ( Common.minField .x rawPoints, Common.maxField .x rawPoints )
@@ -95,7 +95,7 @@ createScatter rawPoints knnData zoomFactor =
         { xScale = xScale
         , yScale = yScale
         , zScale = zScale
-        , points = createCircleGroup mappedPoints knnData
+        , points = createCircleGroup mappedPoints
         , selectedId = "0"
         }
 

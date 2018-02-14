@@ -70,13 +70,11 @@ emptySeriesData =
 {-| Data structure that the server returns after each iteration, including:
 
   - `embedding`: a list of new position of embedded points
-  - `knn`: index of k-nearest neighbors of each point
   - `seriesData`: a list of `SeriesData` for tracing errors, measurements, ...
 
 -}
 type alias EmbeddingResult =
     { embedding : List Point
-    , knn : List (List Int)
     , seriesData : List SeriesData
     }
 

@@ -233,13 +233,11 @@ def my_gradient_descent(objective, p0, it, n_iter,
         #     print("[Noise] Adding noise when grad_norm={}".format(grad_norm))
         #     p += noise.ravel()
 
-        if (i % status['n_jump'] == 0):
-            embedding = p.reshape(-1, 2)
-            dist_y = pairwise_distances(embedding, squared=True)
-            knn = np.argsort(dist_y, axis=1)[:, 1:status['n_neighbors']+1]
-            
+        if (i % status['n_jump'] == 0):           
             if status['use_pagerank']:
                 print("Iteration: {}: calculate pagerank...".format(i), end='')
+                embedding = p.reshape(-1, 2)
+                dist_y = pairwise_distances(embedding, squared=True)
                 min_d, max_d = np.min(dist_y), np.max(dist_y)
                 threshold = (max_d - min_d) * 0.001
                 mask = dist_y < threshold
@@ -271,7 +269,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 errors.append(error)
                 grad_norms.append(float(grad_norm))
 
-            publish(p.copy(), gradients_acc.tolist(), knn.tolist(),
+            publish(p.copy(), gradients_acc.tolist(),
                     errors, grad_norms, classification_scores,
                     trustworthinesses, stabilities, convergences)
 
@@ -304,7 +302,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
     return p, error, i
 
 
-def publish(X_embedded, gradients, knn,
+def publish(X_embedded, gradients,
             errors, grad_norms, classification_scores,
             trustworthinesses, stabilities, convergences):
     data = {
@@ -314,7 +312,6 @@ def publish(X_embedded, gradients, knn,
         # the correct coding schema is latin-1, not utf-8
         'embedding': X_embedded.ravel().tostring().decode('latin-1'),
         'gradients': gradients,
-        'knn': knn,
         'seriesData': [
             {'name': 'errors', 'series': [errors]},
             {'name': 'classification score', 'series': [classification_scores]},
