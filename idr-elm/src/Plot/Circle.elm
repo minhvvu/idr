@@ -155,3 +155,11 @@ circleKeyedView circle =
 distance : Circle -> Circle -> Float
 distance c1 c2 =
     Vector2.distanceSquared c1.position c2.position
+
+
+
+--{-| Public API to get float value of the position of circle center
+---}
+--getPosition : Circle -> Float Float
+--getPosition { position } =
+--    ( getX position, getY position )

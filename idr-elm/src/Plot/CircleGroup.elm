@@ -179,6 +179,21 @@ getMovedPoints group =
         |> List.map Plot.Circle.circleToPoint
 
 
+{-| Util function to get a list of circles by circleIds
+-}
+getCircleById : List CircleId -> CircleGroup -> List Circle
+getCircleById listCircleIds group =
+    List.filter (\c -> List.member c.id listCircleIds) group.idleCircles
+
+
+
+--{-| Util function to get a list of position of idle circle
+---}
+--getPosOfIdlePoints : CircleGroup -> List (Float Float)
+--getPosOfIdlePoints group =
+--    List.map Plot.Circle.getPosition group.idleCircles
+
+
 getKNN : Float -> Int -> CircleId -> CircleGroup -> List CircleId
 getKNN threshold k circleId group =
     let
