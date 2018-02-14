@@ -150,6 +150,8 @@ circleKeyedView circle =
     ( circle.id, lazy circleView circle )
 
 
+{-| Calculate the squared distance between the centers of 2 circles
+-}
 distance : Circle -> Circle -> Float
 distance c1 c2 =
     Vector2.distanceSquared c1.position c2.position

@@ -6,6 +6,7 @@ import Html.Events as HtmlEvents exposing (onInput)
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
+import Bootstrap.Grid.Col as Col
 import Bootstrap.Button as Button exposing (secondary, onClick, attrs)
 import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.ListGroup as ListGroup exposing (..)
@@ -21,7 +22,7 @@ view : Model -> Html Msg
 view model =
     Grid.containerFluid []
         [ CDN.stylesheet
-        , Grid.row [ Row.betweenSm ]
+        , Grid.row [{- A serie of buttons -}]
             [ Grid.col []
                 [ Button.button
                     [ secondary, Button.attrs [ class "ml-2" ], onClick LoadDataset ]
@@ -46,7 +47,7 @@ view model =
                     [ text "Send Moved Points" ]
                 ]
             ]
-        , Grid.row [ Row.betweenSm ]
+        , Grid.row [{- debug message and slider for param controlling -}]
             [ Grid.col [] [ text model.debugMsg ]
             , Grid.col []
                 [ Html.label [] [ text "Zoom factor:" ]
@@ -61,11 +62,15 @@ view model =
                 , text (toString model.zoomFactor)
                 ]
             ]
-        , Grid.row [ Row.betweenSm ]
+        , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]
             [ Grid.col [] [ scatterView model.scatter ]
-            , Grid.col [] [ selectedPointsView model.scatter ]
-            , Grid.col [] [ movedPointsView model.scatter ]
             , Grid.col []
+                [ Grid.row [] [ Grid.col [] [ selectedPointsView model.scatter ] ]
+                , Grid.row [] [ Grid.col [] [ movedPointsView model.scatter ] ]
+                ]
+            ]
+        , Grid.row [{- line charts for measurement -}]
+            [ Grid.col []
                 (model.seriesData
                     |> List.map
                         (\aseries -> viewLineChart aseries.name aseries.series)

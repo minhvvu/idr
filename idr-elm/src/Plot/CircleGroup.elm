@@ -183,7 +183,7 @@ getKNN : Float -> Int -> CircleId -> CircleGroup -> List CircleId
 getKNN threshold k circleId group =
     let
         knn =
-            getNeighbors circleId group.idleCircles
+            calculateDistances circleId group.idleCircles
     in
         knn
             |> List.filter (\p -> Tuple.first p < threshold)
@@ -191,8 +191,11 @@ getKNN threshold k circleId group =
             |> List.map Tuple.second
 
 
-getNeighbors : CircleId -> List Circle -> List ( Float, CircleId )
-getNeighbors circleId listCircles =
+{-| Util function to calculate distances between
+the selected circle and all other idle circles
+-}
+calculateDistances : CircleId -> List Circle -> List ( Float, CircleId )
+calculateDistances circleId listCircles =
     let
         foundCircle =
             listCircles
