@@ -175,7 +175,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             break
 
         status = utils.get_server_status(
-            ['n_jump', 'tick_frequence', 'n_neighbors', 'share_grad'
+            ['n_jump', 'tick_frequence', 'n_neighbors', 'share_grad',
              'measure', 'use_pagerank', 'hard_move', 'stop'])
         if status['stop'] is True:
             return p, error, i

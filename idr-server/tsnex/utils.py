@@ -36,7 +36,7 @@ initial_server_status = {
     'use_pagerank': False,
 
     # share grandient of moved points to its neighbors
-    'share_grad': True,
+    'share_grad': False,
 
     # client does not stop server
     'ready': True,
