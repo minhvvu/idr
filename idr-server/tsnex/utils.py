@@ -16,7 +16,7 @@ initial_server_status = {
     'accumulate': False,  # accumulate the info of early_exaggeration state
     'measure': True,  # calculate the measurement after each iteration
     'hard_move': True,  # hard-fix position of client selected points
-    'use_pagerank': False, # use pagerank to find the most influential points
+    'use_pagerank': True, # use pagerank to find the most influential points
     'ready': True,  # client does not stop server
     'stop': False  # need to stop all running threads to clean data
 }

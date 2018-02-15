@@ -169,6 +169,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
     MACHINE_EPSILON = np.finfo(np.double).eps
     noise = np.random.normal(0.0, MACHINE_EPSILON, [X_original.shape[0], 2])
 
+    hubs = pageranks = []
+    
     print("\nGradien Descent:")
     while True:
         i += 1
@@ -214,6 +216,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
         # calculate the magnitude of gradient of each point
         grad_per_point = linalg.norm(grad.reshape(-1, 2), axis=1)
+        gradients_acc += grad_per_point
         # grad_norm = linalg.norm(grad)
         grad_norm = np.sum(grad_per_point)
 
@@ -232,9 +235,9 @@ def my_gradient_descent(objective, p0, it, n_iter,
         # if grad_norm <= 10e-5:
         #     print("[Noise] Adding noise when grad_norm={}".format(grad_norm))
         #     p += noise.ravel()
-
+        
         if (i % status['n_jump'] == 0):           
-            if status['use_pagerank']:
+            if status['use_pagerank'] and i % 50 == 0:
                 print("Iteration: {}: calculate pagerank...".format(i), end='')
                 embedding = p.reshape(-1, 2)
                 dist_y = pairwise_distances(embedding, squared=True)
@@ -242,8 +245,9 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 threshold = (max_d - min_d) * 0.001
                 mask = dist_y < threshold
                 g = nx.from_numpy_matrix(1.0*mask)
-                ranks = nx.pagerank_numpy(g)
-                gradients_acc = np.array(list(ranks.values()))
+                pageranks = list(nx.pagerank_numpy(g).values())
+                hubs = list(nx.hits_numpy(g)[0].values())
+                # gradients_acc = np.array(list(ranks.values()))
                 print("Done!")
             else:
                 # gradients_acc += grad_per_point
@@ -251,27 +255,35 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
             if status['measure'] is True:
                 X_embedded = p.copy().reshape(-1, 2)
-                print("Calculate trustworthinesses")
                 trustwth = trustworthiness(dist_X_original, X_embedded,
                                            n_neighbors=10, precomputed=True)
                 trustworthinesses.append(trustwth)
 
-                print("Calculate PIVE measurement")
                 stability, convergence = PIVE_measure(
                     old_p, p, dist_X_original)
                 stabilities.append(stability)
                 convergences.append(convergence)
 
-                print("Calculate test score on classification task")
                 score = run_classify(X_embedded)
                 classification_scores.append(score)
 
                 errors.append(error)
                 grad_norms.append(float(grad_norm))
 
-            publish(p.copy(), gradients_acc.tolist(),
-                    errors, grad_norms, classification_scores,
-                    trustworthinesses, stabilities, convergences)
+                client_data = {
+                    'embedding': X_embedded.ravel().tostring().decode('latin-1'),
+                    'gradients': gradients_acc.tolist(),
+                    'seriesData': [
+                        {'name': 'errors', 'series': [errors]},
+                        {'name': 'classification score', 'series': [classification_scores]},
+                        {'name': 'trustworthinesses,statbility,convergence',
+                            'series': [trustworthinesses, stabilities, convergences]},
+                        {'name': 'gradients norms', 'series': [grad_norms]},
+                        {'name': 'HUBS', 'series': [hubs]},
+                        {'name': 'Pageranks', 'series': [pageranks]}
+                    ]
+                }
+                utils.publish_data(client_data)
 
         if (i + 1) % n_iter_check == 0:
             toc = time()
@@ -300,27 +312,6 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 # break
 
     return p, error, i
-
-
-def publish(X_embedded, gradients,
-            errors, grad_norms, classification_scores,
-            trustworthinesses, stabilities, convergences):
-    data = {
-        # np.tostring() convert a ndarray to a binary string (bytes)
-        # to transfer the data via redis queue,
-        # it should convert the bytes to string by decoding them
-        # the correct coding schema is latin-1, not utf-8
-        'embedding': X_embedded.ravel().tostring().decode('latin-1'),
-        'gradients': gradients,
-        'seriesData': [
-            {'name': 'errors', 'series': [errors]},
-            {'name': 'classification score', 'series': [classification_scores]},
-            {'name': 'trustworthinesses,statbility,convergence',
-                'series': [trustworthinesses, stabilities, convergences]},
-            {'name': 'gradients norms', 'series': [grad_norms]}
-        ]
-    }
-    utils.publish_data(data)
 
 
 def PIVE_measure(old_p, new_p, dist_X, k=10):

@@ -124,7 +124,7 @@ stopDragging group =
 dragActiveBy : Delta -> CircleGroup -> CircleGroup
 dragActiveBy delta group =
     { group
-        | movingCircles = group.movingCircles |> List.map (moveCircle delta)
+        | movingCircles = List.map (moveCircle delta) group.movingCircles
     }
 
 
@@ -132,11 +132,10 @@ dragActiveBy delta group =
 -}
 updateSelectedCircle : CircleId -> CircleGroup -> CircleGroup
 updateSelectedCircle circleId group =
-    let
-        updatedIdleCircles =
-            group.idleCircles |> List.map (Plot.Circle.toggleSelected circleId)
-    in
-        { group | idleCircles = updatedIdleCircles }
+    { group
+        | idleCircles =
+            List.map (Plot.Circle.toggleSelected circleId) group.idleCircles
+    }
 
 
 {-| Util function to update a list of moved circles
@@ -144,19 +143,14 @@ TODO FIX: we have a list of moving circles now!
 -}
 addMovedCircleFrom : List Circle -> List Circle -> List Circle
 addMovedCircleFrom movingCircles movedCircles =
-    case List.head movingCircles of
-        Maybe.Nothing ->
-            movedCircles
+    let
+        movingIds =
+            List.map .id movingCircles
 
-        Maybe.Just circle ->
-            let
-                searchCond =
-                    \c -> c.id == circle.id
-
-                ( duplicatedMovedPoints, otherMovedPoints ) =
-                    List.partition searchCond movedCircles
-            in
-                circle :: otherMovedPoints
+        ( dejaMovedPoints, otherMovedPoints ) =
+            List.partition (\c -> List.member c.id movingIds) movedCircles
+    in
+        movingCircles ++ otherMovedPoints
 
 
 {-| Public API for rendering the circles in group
@@ -191,9 +185,9 @@ getCircleById listCircleIds group =
 getKNN : CircleId -> CircleGroup -> List CircleId
 getKNN circleId group =
     group.idleCircles
-        |> calculateDistances circleId group.idleCircles
+        |> calculateDistances circleId
         |> List.filter (\p -> Tuple.first p < plotConfig.selectionRadius * plotConfig.selectionRadius)
-        |> List.take plotConfig.nNeighbors
+        |> List.take (plotConfig.nNeighbors + 1)
         |> List.tail
         |> Maybe.withDefault [ ( 0, circleId ) ]
         |> List.map Tuple.second
