@@ -8,17 +8,41 @@ from sklearn import datasets
 
 # status object to store some server infos
 initial_server_status = {
+    # time in second to sleep while waiting the data being sent to client
     'tick_frequence': 0.005,
+
+    # number of iterations that we skip sending data to client
     'n_jump': 10,
+
+    # the current iteration in client, server_iter = client_iter * n_jump
     'client_iter': 0,
+
+    # max number of server iterations, not used
     'max_iter': 1000,
-    'n_neighbors': 10, # number of nearest neighbors for each selected point
-    'accumulate': False,  # accumulate the info of early_exaggeration state
-    'measure': True,  # calculate the measurement after each iteration
-    'hard_move': True,  # hard-fix position of client selected points
-    'use_pagerank': True, # use pagerank to find the most influential points
-    'ready': True,  # client does not stop server
-    'stop': False  # need to stop all running threads to clean data
+
+    # number of nearest neighbors for each selected point
+    'n_neighbors': 10,
+
+    # accumulate the info of early_exaggeration state
+    'accumulate': False,
+
+    # calculate the measurement after each iteration
+    'measure': True,
+
+    # hard-fix position of client selected points
+    'hard_move': True,
+
+    # use pagerank to find the most influential points
+    'use_pagerank': False,
+
+    # share grandient of moved points to its neighbors
+    'share_grad': True,
+
+    # client does not stop server
+    'ready': True,
+
+    # need to stop all running threads to clean data
+    'stop': False
 }
 
 

@@ -166,11 +166,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
     X_original = utils.get_X()
     dist_X_original = pairwise_distances(X_original, squared=True)
-    MACHINE_EPSILON = np.finfo(np.double).eps
-    noise = np.random.normal(0.0, MACHINE_EPSILON, [X_original.shape[0], 2])
-
     hubs = pageranks = []
-    
+
     print("\nGradien Descent:")
     while True:
         i += 1
@@ -178,7 +175,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             break
 
         status = utils.get_server_status(
-            ['n_jump', 'tick_frequence', 'n_neighbors',
+            ['n_jump', 'tick_frequence', 'n_neighbors', 'share_grad'
              'measure', 'use_pagerank', 'hard_move', 'stop'])
         if status['stop'] is True:
             return p, error, i
@@ -202,17 +199,19 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
         # set the fixed points
         if fixed_ids and fixed_pos:
-            p2d = p.reshape(-1, 2)
-            p2d[fixed_ids] = fixed_pos
-            p = p2d.ravel()
+            p.reshape(-1, 2)[fixed_ids] = fixed_pos
 
         # calculate gradient and KL divergence
         error, grad = objective(p, *args, **kwargs)
+
+        X_embedded = p.copy().reshape(-1, 2)
+        dist_y = pairwise_distances(X_embedded, squared=True)
+
         if fixed_ids:
-            grad2d = grad.reshape(-1, 2)
-            grad2d[fixed_ids] = 0
-            noise[fixed_ids] = 0
-            grad = grad2d.ravel()
+            if status['share_grad']:
+                share_grad(grad.reshape(-1, 2), dist_y, fixed_ids)
+            else:
+                grad.reshape(-1, 2)[fixed_ids] = 0.0
 
         # calculate the magnitude of gradient of each point
         grad_per_point = linalg.norm(grad.reshape(-1, 2), axis=1)
@@ -231,16 +230,10 @@ def my_gradient_descent(objective, p0, it, n_iter,
         old_p = p.copy()
         p += update
 
-        # An apprach in off-convex-path: add noise to espace saddle points
-        # if grad_norm <= 10e-5:
-        #     print("[Noise] Adding noise when grad_norm={}".format(grad_norm))
-        #     p += noise.ravel()
-        
         if (i % status['n_jump'] == 0):           
             if status['use_pagerank'] and i % 50 == 0:
                 print("Iteration: {}: calculate pagerank...".format(i), end='')
-                embedding = p.reshape(-1, 2)
-                dist_y = pairwise_distances(embedding, squared=True)
+                
                 min_d, max_d = np.min(dist_y), np.max(dist_y)
                 threshold = (max_d - min_d) * 0.001
                 mask = dist_y < threshold
@@ -254,7 +247,6 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 pass
 
             if status['measure'] is True:
-                X_embedded = p.copy().reshape(-1, 2)
                 trustwth = trustworthiness(dist_X_original, X_embedded,
                                            n_neighbors=10, precomputed=True)
                 trustworthinesses.append(trustwth)
@@ -357,6 +349,21 @@ def PIVE_measure(old_p, new_p, dist_X, k=10):
     convergence /= (n * k)
 
     return stability, convergence
+
+
+def share_grad(grad2d, dist_y, fixed_ids, k = 10):
+    nn = np.argsort(dist_y, axis=1)
+    for fixed_id in fixed_ids:
+        grad_for_share = grad2d[fixed_id] / k
+        if grad_for_share[0] and grad_for_share[1]:
+            ki = 0
+            for target_i in nn[fixed_id]:
+                if target_i not in fixed_ids:
+                    grad2d[target_i] += grad_for_share
+                    ki += 1
+                    if ki == k:
+                        break
+            grad2d[fixed_id] = 0.0
 
 
 if __name__ == '__main__':
