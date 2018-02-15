@@ -188,30 +188,18 @@ selectedPointsView : Scatter -> Html Msg
 selectedPointsView { points, selectedId } =
     let
         neighbors =
-            Plot.CircleGroup.getKNN 5.0 10 selectedId points
+            Plot.CircleGroup.getKNN selectedId points
     in
-        Html.text ("Selected points: " ++ selectedId ++ (toString neighbors))
-
-
-
---{-| Util function for calculate the distances between one circle and
---all other idle circles. The coordinates are re-mapped back to embedding space
----}
---calculateDistances CircleId -> CircleGroup -> List (CircleId Float)
---calculateDistances circleId group =
---    let
---        circle = group.points
---            |> Plot.CircleGroup.getCircleById [circleId]
---            |> List.head
---        case circle of
---            Maybe.Nothing -> []
---            Maybe.Just acircle ->
---                let
---                    (srcX, srcY) = Plot.Circle.getPosition acircle
---                    listDes = Plot.CircleGroup.getPosOfIdlePoints group
---                    distTo p = ((Tuple.first p - srcX) * (Tuple.first p - srcX) ) +
---                        ((Tuple.second p - srcY) * (Tuple.second p - srcY) )
---                in
---                    listDes
---                        |> List.map (\p -> (distTo p ))
---    in
+        Html.div []
+            [ Html.text ("Selected Id: " ++ selectedId)
+            , Html.br [] []
+            , Html.text
+                (if List.isEmpty neighbors then
+                    "No neighbors"
+                 else
+                    (toString (List.length neighbors)
+                        ++ " neighbors: "
+                        ++ (toString neighbors)
+                    )
+                )
+            ]

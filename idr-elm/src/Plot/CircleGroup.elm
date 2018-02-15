@@ -94,7 +94,7 @@ startDragging circleId oldGroup =
                 |> updateSelectedCircle circleId
 
         neighbors =
-            getKNN 5.0 10 circleId oldGroup
+            getKNN circleId oldGroup
 
         searchCond =
             \c -> List.member c.id (circleId :: neighbors)
@@ -186,24 +186,17 @@ getCircleById listCircleIds group =
     List.filter (\c -> List.member c.id listCircleIds) group.idleCircles
 
 
-
---{-| Util function to get a list of position of idle circle
----}
---getPosOfIdlePoints : CircleGroup -> List (Float Float)
---getPosOfIdlePoints group =
---    List.map Plot.Circle.getPosition group.idleCircles
-
-
-getKNN : Float -> Int -> CircleId -> CircleGroup -> List CircleId
-getKNN threshold k circleId group =
-    let
-        knn =
-            calculateDistances circleId group.idleCircles
-    in
-        knn
-            |> List.filter (\p -> Tuple.first p < threshold)
-            |> List.take k
-            |> List.map Tuple.second
+{-| Public API to get a list of k nearest neighbors of a circle
+-}
+getKNN : CircleId -> CircleGroup -> List CircleId
+getKNN circleId group =
+    group.idleCircles
+        |> calculateDistances circleId group.idleCircles
+        |> List.filter (\p -> Tuple.first p < plotConfig.selectionRadius * plotConfig.selectionRadius)
+        |> List.take plotConfig.nNeighbors
+        |> List.tail
+        |> Maybe.withDefault [ ( 0, circleId ) ]
+        |> List.map Tuple.second
 
 
 {-| Util function to calculate distances between
@@ -216,17 +209,12 @@ calculateDistances circleId listCircles =
             listCircles
                 |> List.filter (\c -> c.id == circleId)
                 |> List.head
-
-        distances =
-            case foundCircle of
-                Maybe.Nothing ->
-                    [ ( 0, circleId ) ]
-
-                Maybe.Just aCircle ->
-                    listCircles
-                        |> List.map
-                            (\c ->
-                                ( Plot.Circle.distance aCircle c, c.id )
-                            )
     in
-        List.sort distances
+        case foundCircle of
+            Maybe.Nothing ->
+                [ ( 0, circleId ) ]
+
+            Maybe.Just aCircle ->
+                listCircles
+                    |> List.map (\c -> ( Plot.Circle.distance aCircle c, c.id ))
+                    |> List.sort

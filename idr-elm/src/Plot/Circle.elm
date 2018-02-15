@@ -130,7 +130,7 @@ circleView { id, position, radius, label, status, fixed } =
                 [ Svg.circle
                     [ cx centerX
                     , cy centerY
-                    , r (toString (circleRadius * 5))
+                    , r (toString plotConfig.selectionRadius)
                     , fill (Common.labelToColorStr label 0.15)
                     , stroke strokeColor
                     , strokeWidth (toString (2 * plotConfig.strokeWidth))
@@ -155,11 +155,3 @@ circleKeyedView circle =
 distance : Circle -> Circle -> Float
 distance c1 c2 =
     Vector2.distanceSquared c1.position c2.position
-
-
-
---{-| Public API to get float value of the position of circle center
----}
---getPosition : Circle -> Float Float
---getPosition { position } =
---    ( getX position, getY position )

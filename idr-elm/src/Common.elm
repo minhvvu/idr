@@ -15,6 +15,7 @@ type alias PlotConfig =
     , height : Float
     , padding : Float
     , circleRadius : Float
+    , selectionRadius : Float
     , minCircleRadius : Float
     , maxCircleRadius : Float
     , fixedRadius : Bool
@@ -22,6 +23,7 @@ type alias PlotConfig =
     , strokeWidth : Float
     , defaultStrokeColor : String
     , selectedStrokeColor : String
+    , nNeighbors : Int
     }
 
 
@@ -31,6 +33,7 @@ plotConfig =
     , height = 700.0
     , padding = 30.0
     , circleRadius = 5
+    , selectionRadius = 20
     , minCircleRadius = 4
     , maxCircleRadius = 8
     , fixedRadius = False
@@ -38,6 +41,7 @@ plotConfig =
     , strokeWidth = 0.5
     , defaultStrokeColor = "#D5D8DC"
     , selectedStrokeColor = "#E67E22"
+    , nNeighbors = 10
     }
 
 
