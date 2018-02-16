@@ -209,8 +209,6 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
         # calculate the magnitude of gradient of each point
         grad_per_point = linalg.norm(grad.reshape(-1, 2), axis=1)
-        gradients_acc += grad_per_point
-        # grad_norm = linalg.norm(grad)
         grad_norm = np.sum(grad_per_point)
 
         # tsne update gradient by momentum
@@ -235,8 +233,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 hubs, authors = list(hubs.values()), list(authors.values())
                 gradients_acc = np.array(hubs)
             else:
-                # gradients_acc += grad_per_point
-                pass
+                gradients_acc += grad_per_point
 
             if status['measure'] is True:
                 trustwth = trustworthiness(dist_X_original, X_embedded,
@@ -257,7 +254,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
                         {'name': 'errors', 'series': [errors]},
                         {'name': 'classification accuracy',
                             'series': [classification_scores]},
-                        {'name': 'vmeasure, mutualInfo, silhoutte',
+                        {'name': 'vmeasure, silhoutte',
                             'series': [list(t) for t in zip(*clustering_scores)]},
                         {'name': 'trustworthinesses,statbility,convergence',
                             'series': [list(t) for t in zip(*embedding_scores)]},

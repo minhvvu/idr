@@ -33,7 +33,7 @@ initial_server_status = {
     'hard_move': True,
 
     # use pagerank to find the most influential points
-    'use_pagerank': True,
+    'use_pagerank': False,
 
     # share grandient of moved points to its neighbors
     'share_grad': False,
@@ -47,39 +47,39 @@ initial_server_status = {
 
 
 def load_dataset(name='MNIST-SMALL'):
-    """ Some available dataset: MNIST_small, COIL-20
-    """
-    name = 'MNIST'
+    # name = 'COIL20'
     if name == 'COIL20':
-        return load_coil20()
+        X, y = load_coil20()
+        n_samples = len(y)
     elif name.startswith('MNIST'):
-        return load_mnist_mini() if name.endswith('SMALL') else load_mnist_full()
+        if name.endswith('SMALL'):
+            X, y = load_mnist_mini()
+            n_samples = len(y)
+        else:
+            X, y = load_mnist_full()
+            n_samples = 600
+
+    X, y = shuffle(X, y, n_samples=n_samples, random_state=0)
+    print("{}: X.shape={}, len(y)={}".format(name, X.shape, len(y)))
+    print("Label count: ", np.unique(y, return_counts=True))
+    return X, y
 
 
 def load_coil20():
     import scipy.io
     mat = scipy.io.loadmat("../data/COIL20.mat")
-    X = mat['X']
-    y = mat['Y'][:, 0]
-    print("COIL-20: X.shape={}, len(y)={}".format(X.shape, len(y)))
-    return X, y
+    return mat['X'], mat['Y'][:, 0]
 
 
 def load_mnist_mini():
     dataset = datasets.load_digits()
-    X, y = shuffle(dataset.data, dataset.target, random_state=0)
-    print("MNIST mini: X.shape={}, len(y)={}".format(X.shape, len(y)))
-    return X, y
+    return dataset.data, dataset.target
 
 
-def load_mnist_full(n_samples=6000):
+def load_mnist_full():
     from sklearn.datasets import fetch_mldata
     dataset = fetch_mldata('MNIST original', data_home='../data/')
-    X, y = shuffle(dataset.data, dataset.target, n_samples=n_samples, random_state=0)
-    print("MNIST full with n_samples = {}: X.shape={}, len(y)={}"
-          .format(n_samples, X.shape, len(y)))
-    print("Label count: ", np.unique(y, return_counts=True))
-    return X, y
+    return dataset.data, dataset.target
 
 
 # redis database to store the dataset and the intermediate results
