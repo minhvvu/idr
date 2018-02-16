@@ -11,20 +11,16 @@ from numpy import linalg
 import networkx as nx
 from time import time, sleep
 import utils
-from classifier import run_classify
+import score
 
 
 shared_data = {
     'queue': None,
-    'gradients_acc': None,
     'fixed_ids': [],
     'fixed_pos': [],
     'errors': [],
     'grad_norms': [],
-    'classification_scores': [],
-    'trustworthinesses': [],
-    'stabilities': [],
-    'convergences': []
+    'gradients_acc': None
 }
 
 
@@ -36,15 +32,11 @@ def boostrap_do_embedding(X, shared_queue=None):
     print("[TSNEX] Thread to do embedding is starting ... ")
 
     shared_data['queue'] = shared_queue
-    shared_data['gradients_acc'] = np.zeros(X.shape[0])
     shared_data['fixed_ids'] = []
     shared_data['fixed_pos'] = []
     shared_data['errors'] = []
     shared_data['grad_norms'] = []
-    shared_data['classification_scores'] = [],
-    shared_data['trustworthinesses'] = []
-    shared_data['stabilities'] = []
-    shared_data['convergences'] = []
+    shared_data['gradients_acc'] = np.zeros(X.shape[0])
 
     sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
     tsne = TSNE(
@@ -55,7 +47,7 @@ def boostrap_do_embedding(X, shared_queue=None):
         n_iter_without_progress=500,
         verbose=2
     )
-    tsne._EXPLORATION_N_ITER = 300
+    tsne._EXPLORATION_N_ITER = 250
 
     X_projected = tsne.fit_transform(X)
     return X_projected
@@ -147,26 +139,28 @@ def my_gradient_descent(objective, p0, it, n_iter,
     best_iter = i = it
     tic = time()
 
+    X_original = utils.get_X()
+    dist_X_original = pairwise_distances(X_original, squared=True)
+
     shared_queue = shared_data['queue']
     must_share = utils.get_server_status(['accumulate'])
     must_share = must_share['accumulate']
-
-    gradients_acc = shared_data['gradients_acc']
-    if not must_share:
-        gradients_acc = np.zeros(gradients_acc.shape[0])
 
     fixed_ids = shared_data['fixed_ids'] if must_share else []
     fixed_pos = shared_data['fixed_pos'] if must_share else []
     errors = shared_data['errors'] if must_share else []
     grad_norms = shared_data['grad_norms'] if must_share else []
-    classification_scores = shared_data['classification_scores'] if must_share else []
-    trustworthinesses = shared_data['trustworthinesses'] if must_share else []
-    stabilities = shared_data['stabilities'] if must_share else []
-    convergences = shared_data['convergences'] if must_share else []
+    gradients_acc = shared_data['gradients_acc']
+    if not must_share:
+        gradients_acc = np.zeros(gradients_acc.shape[0])
 
-    X_original = utils.get_X()
-    dist_X_original = pairwise_distances(X_original, squared=True)
-    hubs = pageranks = []
+    # some temporary measurements to plot at client side
+    hubs = []
+    authors = []
+    pageranks = []
+    embedding_scores = []
+    classification_scores = []
+    clustering_scores = []
 
     print("\nGradien Descent:")
     while True:
@@ -230,18 +224,16 @@ def my_gradient_descent(objective, p0, it, n_iter,
         old_p = p.copy()
         p += update
 
-        if (i % status['n_jump'] == 0):           
+        if (i % status['n_jump'] == 0):
             if status['use_pagerank'] and i % 50 == 0:
-                print("Iteration: {}: calculate pagerank...".format(i), end='')
-                
                 min_d, max_d = np.min(dist_y), np.max(dist_y)
                 threshold = (max_d - min_d) * 0.001
                 mask = dist_y < threshold
-                g = nx.from_numpy_matrix(1.0*mask)
+                g = nx.from_numpy_matrix(1.0 * mask)
                 pageranks = list(nx.pagerank_numpy(g).values())
-                hubs = list(nx.hits_numpy(g)[0].values())
-                # gradients_acc = np.array(list(ranks.values()))
-                print("Done!")
+                hubs, authors = nx.hits_numpy(g)
+                hubs, authors = list(hubs.values()), list(authors.values())
+                gradients_acc = np.array(hubs)
             else:
                 # gradients_acc += grad_per_point
                 pass
@@ -249,15 +241,11 @@ def my_gradient_descent(objective, p0, it, n_iter,
             if status['measure'] is True:
                 trustwth = trustworthiness(dist_X_original, X_embedded,
                                            n_neighbors=10, precomputed=True)
-                trustworthinesses.append(trustwth)
-
-                stability, convergence = PIVE_measure(
-                    old_p, p, dist_X_original)
-                stabilities.append(stability)
-                convergences.append(convergence)
-
-                score = run_classify(X_embedded)
-                classification_scores.append(score)
+                stability, convergence = score.PIVE_measure(old_p, p, dist_X_original)
+                embedding_scores.append((trustwth, stability, convergence))
+                
+                classification_scores.append(score.classify(X_embedded))
+                clustering_scores.append(score.clutering(X_embedded))
 
                 errors.append(error)
                 grad_norms.append(float(grad_norm))
@@ -267,11 +255,15 @@ def my_gradient_descent(objective, p0, it, n_iter,
                     'gradients': gradients_acc.tolist(),
                     'seriesData': [
                         {'name': 'errors', 'series': [errors]},
-                        {'name': 'classification score', 'series': [classification_scores]},
+                        {'name': 'classification accuracy',
+                            'series': [classification_scores]},
+                        {'name': 'vmeasure, mutualInfo, silhoutte',
+                            'series': [list(t) for t in zip(*clustering_scores)]},
                         {'name': 'trustworthinesses,statbility,convergence',
-                            'series': [trustworthinesses, stabilities, convergences]},
+                            'series': [list(t) for t in zip(*embedding_scores)]},
                         {'name': 'gradients norms', 'series': [grad_norms]},
                         {'name': 'HUBS', 'series': [hubs]},
+                        {'name': 'Authors', 'series': [authors]},
                         {'name': 'Pageranks', 'series': [pageranks]}
                     ]
                 }
@@ -306,52 +298,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
     return p, error, i
 
 
-def PIVE_measure(old_p, new_p, dist_X, k=10):
-    """ Calculate the measurement in PIVE framework [1]
-
-    stability_{t} = 1/(nk) * \sum^{n}_{i} { |
-        N_k(y_i^{t}) - N_k(y_i^{t-1})
-    | }
-
-    convergence_{t} = 1/(nk) * \sum^{n}_{i} { |
-        N_k(y_i^{t}) \intersection N_k(X_i)
-    | }
-
-    in which N_k(.) is a set of k nearest neighbors
-    and | setA | is the number of elements in setA
-
-    [1]PIVE: Per-Iteration Visualization Environment for Real-Time Interactions
-        with Dimension Reduction and Clustering.
-    """
-    n = dist_X.shape[0]
-
-    dist_old = pairwise_distances(old_p.reshape(-1, 2), squared=True)
-    dist_new = pairwise_distances(new_p.reshape(-1, 2), squared=True)
-
-    k_ind_old = np.argsort(dist_old, axis=1)[:, 1:k + 1]
-    k_ind_new = np.argsort(dist_new, axis=1)[:, 1:k + 1]
-    k_ind_X = np.argsort(dist_X, axis=1)[:, 1:k + 1]
-
-    stability = 0
-    for i in range(n):
-        set_old = set(k_ind_old[i])
-        set_new = set(k_ind_new[i])
-        new_but_not_old = set_new - set_old
-        stability += len(new_but_not_old)
-    stability /= (n * k)
-
-    convergence = 0
-    for i in range(n):
-        set_embedded = set(k_ind_new[i])
-        set_X = set(k_ind_X[i])
-        intersection = set_embedded & set_X
-        convergence += len(intersection)
-    convergence /= (n * k)
-
-    return stability, convergence
-
-
-def share_grad(grad2d, dist_y, fixed_ids, k = 10):
+def share_grad(grad2d, dist_y, fixed_ids, k=10):
     nn = np.argsort(dist_y, axis=1)
     for fixed_id in fixed_ids:
         grad_for_share = grad2d[fixed_id] / k

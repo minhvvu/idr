@@ -4,7 +4,7 @@ import json
 import numpy as np
 import redis
 from sklearn import datasets
-
+from sklearn.utils import shuffle
 
 # status object to store some server infos
 initial_server_status = {
@@ -33,7 +33,7 @@ initial_server_status = {
     'hard_move': True,
 
     # use pagerank to find the most influential points
-    'use_pagerank': False,
+    'use_pagerank': True,
 
     # share grandient of moved points to its neighbors
     'share_grad': False,
@@ -49,14 +49,14 @@ initial_server_status = {
 def load_dataset(name='MNIST-SMALL'):
     """ Some available dataset: MNIST_small, COIL-20
     """
+    name = 'MNIST'
     if name == 'COIL20':
-        return load_coil_20()
+        return load_coil20()
     elif name.startswith('MNIST'):
-        isFull = not name.endswith('SMALL')
-        return load_mnist(isFull)
+        return load_mnist_mini() if name.endswith('SMALL') else load_mnist_full()
 
 
-def load_coil_20():
+def load_coil20():
     import scipy.io
     mat = scipy.io.loadmat("../data/COIL20.mat")
     X = mat['X']
@@ -65,17 +65,20 @@ def load_coil_20():
     return X, y
 
 
-def load_mnist(full=False):
-    if full:
-        from sklearn.datasets import fetch_mldata
-        dataset = fetch_mldata('MNIST original', data_home='../data/')
-    else:
-        dataset = datasets.load_digits()
+def load_mnist_mini():
+    dataset = datasets.load_digits()
+    X, y = shuffle(dataset.data, dataset.target, random_state=0)
+    print("MNIST mini: X.shape={}, len(y)={}".format(X.shape, len(y)))
+    return X, y
 
-    X = dataset.data  # [:400,]
-    y = dataset.target  # [:400,]
-    print("MNIST {}: X.shape={}, len(y)={}".format(
-        'original' if full else 'small', X.shape, len(y)))
+
+def load_mnist_full(n_samples=6000):
+    from sklearn.datasets import fetch_mldata
+    dataset = fetch_mldata('MNIST original', data_home='../data/')
+    X, y = shuffle(dataset.data, dataset.target, n_samples=n_samples, random_state=0)
+    print("MNIST full with n_samples = {}: X.shape={}, len(y)={}"
+          .format(n_samples, X.shape, len(y)))
+    print("Label count: ", np.unique(y, return_counts=True))
     return X, y
 
 
