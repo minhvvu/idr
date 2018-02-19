@@ -47,7 +47,7 @@ initial_server_status = {
 
 
 def load_dataset(name='MNIST-SMALL'):
-    # name = 'COIL20'
+    # name = 'MNIST'
     if name == 'COIL20':
         X, y = load_coil20()
         n_samples = len(y)
