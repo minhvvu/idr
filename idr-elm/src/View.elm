@@ -1,7 +1,7 @@
 module View exposing (view)
 
 import Html exposing (..)
-import Html.Attributes as HtmlAttrs exposing (class, min, max, value)
+import Html.Attributes as HtmlAttrs exposing (class, min, max, value, src)
 import Html.Events as HtmlEvents exposing (onInput)
 import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
@@ -16,6 +16,8 @@ import Models exposing (Model)
 import Msgs exposing (Msg(..))
 import Plot.Scatter exposing (scatterView, movedPointsView, selectedPointsView)
 import Plot.LineChart exposing (viewLineChart)
+import Svg exposing (image)
+import Svg.Attributes exposing (x, y, xlinkHref)
 
 
 view : Model -> Html Msg
@@ -65,7 +67,16 @@ view model =
         , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]
             [ Grid.col [] [ scatterView model.scatter ]
             , Grid.col []
-                [ Grid.row [] [ Grid.col [] [ selectedPointsView model.scatter ] ]
+                [ Grid.row []
+                    [ Grid.col []
+                        [ --Html.img
+                          --    [ HtmlAttrs.src ("http://localhost:8000/data/imgs/mnist-small_v1.svg#" ++ model.scatter.selectedId)
+                          --    ]
+                          --    []
+                          Svg.image [ x "100", y "100", xlinkHref "data/images/mnist-small_v1.svg#0" ] []
+                        ]
+                    ]
+                , Grid.row [] [ Grid.col [] [ selectedPointsView model.scatter ] ]
                 , Grid.row [] [ Grid.col [] [ movedPointsView model.scatter ] ]
                 ]
             ]

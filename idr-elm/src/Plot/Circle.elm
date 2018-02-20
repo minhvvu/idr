@@ -3,6 +3,7 @@ module Plot.Circle exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, getX, getY, distanceSquared)
 import Draggable
 import Html exposing (Html, div, text)
+import Html.Attributes as HtmlAttr exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Events exposing (onMouseUp)
@@ -124,22 +125,33 @@ circleView { id, position, radius, label, status, fixed } =
                     ++ (Draggable.touchTriggers id DragMsg)
                 )
                 []
+
+        bgCircle =
+            Svg.circle
+                [ cx centerX
+                , cy centerY
+                , r (toString plotConfig.selectionRadius)
+                , fill (Common.labelToColorStr label 0.15)
+                , stroke strokeColor
+                , strokeWidth (toString (2 * plotConfig.strokeWidth))
+                ]
+                []
+
+        imageElem =
+            Svg.image
+                [ x centerX
+                , y centerY
+                , fill "red"
+                , xlinkHref ("http://localhost:8000/data/imgs/mnist-full6000.svg#" ++ id)
+                ]
+                []
     in
         Svg.g []
             (if status == Selected then
-                [ Svg.circle
-                    [ cx centerX
-                    , cy centerY
-                    , r (toString plotConfig.selectionRadius)
-                    , fill (Common.labelToColorStr label 0.15)
-                    , stroke strokeColor
-                    , strokeWidth (toString (2 * plotConfig.strokeWidth))
-                    ]
-                    []
-                , fgCircle
+                [ imageElem
                 ]
              else
-                [] ++ [ fgCircle ]
+                [ imageElem ]
             )
 
 

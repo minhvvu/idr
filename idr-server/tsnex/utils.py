@@ -47,7 +47,7 @@ initial_server_status = {
 
 
 def load_dataset(name='MNIST-SMALL'):
-    # name = 'MNIST'
+    name = 'MNIST'
     if name == 'COIL20':
         X, y = load_coil20()
         n_samples = len(y)
@@ -57,7 +57,7 @@ def load_dataset(name='MNIST-SMALL'):
             n_samples = len(y)
         else:
             X, y = load_mnist_full()
-            n_samples = 600
+            n_samples = 6000
 
     X, y = shuffle(X, y, n_samples=n_samples, random_state=0)
     print("{}: X.shape={}, len(y)={}".format(name, X.shape, len(y)))
