@@ -12,6 +12,7 @@ import numpy as np
 
 import tsnex
 import utils
+import datasets
 
 # flask-socket application
 app = Flask(__name__)
@@ -39,29 +40,22 @@ def do_load_dataset(ws):
     while not ws.closed:
         datasetName = ws.receive()
         if datasetName:
-            if datasetName.upper() in ['MNIST', 'MNIST-SMALL', 'COIL20']:
-                X, y = utils.load_dataset(datasetName)
-
-                metadata = {
-                    'n_total': X.shape[0],
-                    'original_dim': X.shape[1],
-                    'reduced_dim': 2,
-                    'shape_X': X.shape,
-                    'type_X': X.dtype.name,
-                    'shape_y': y.shape,
-                    'type_y': y.dtype.name
-                }
-
-                # In dev mode: flush all data in redis
-                utils.clean_data()
-
-                utils.set_dataset_metadata(metadata)
-                utils.set_ndarray(name='X_original', arr=X)
-                utils.set_ndarray(name='y_original', arr=y)
-
-                ws.send(json.dumps(metadata))
-            else:
-                ws.send("Dataset {} is not supported".format(datasetName))
+            X, y, labels = datasets.load_dataset(datasetName)                
+            metadata = {
+                'n_total': X.shape[0],
+                'original_dim': X.shape[1],
+                'reduced_dim': 2,
+                'shape_X': X.shape,
+                'type_X': X.dtype.name,
+                'shape_y': y.shape,
+                'type_y': y.dtype.name
+                # 'labels': labels
+            }
+            utils.clean_data() # In dev mode: flush all data in redis
+            utils.set_dataset_metadata(metadata)
+            utils.set_ndarray(name='X_original', arr=X)
+            utils.set_ndarray(name='y_original', arr=y)
+            ws.send(json.dumps(metadata))
 
 
 @sockets.route('/tsnex/do_embedding')
@@ -73,12 +67,8 @@ def do_embedding(ws):
         if message:
             client_iteration = int(message)
             if client_iteration == 0:
-                do_boostrap(ws)  # TODO add more client params: max_iter, ...
-            else:
-                pass
-        else:
-            pass  # subscription message in client websocket connection
-
+                do_boostrap(ws)
+                
 
 def do_boostrap(ws):
     """ Util function to do boostrap for setting up the two threads:

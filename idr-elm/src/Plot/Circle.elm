@@ -143,15 +143,25 @@ circleView { id, position, radius, label, status, fixed } =
                 , y centerY
                 , fill "red"
                 , xlinkHref ("http://localhost:8000/data/imgs/mnist-full6000.svg#" ++ id)
+                , Svg.Attributes.cursor "move"
+                , Draggable.mouseTrigger id DragMsg
+                , Svg.Events.onMouseUp StopDragging
                 ]
                 []
+
+        displayCircle =
+            if plotConfig.showImage then
+                imageElem
+            else
+                fgCircle
     in
         Svg.g []
             (if status == Selected then
-                [ imageElem
+                [ bgCircle
+                , displayCircle
                 ]
              else
-                [ imageElem ]
+                [ displayCircle ]
             )
 
 

@@ -24,6 +24,7 @@ type alias PlotConfig =
     , defaultStrokeColor : String
     , selectedStrokeColor : String
     , nNeighbors : Int
+    , showImage : Bool
     }
 
 
@@ -42,6 +43,7 @@ plotConfig =
     , defaultStrokeColor = "#D5D8DC"
     , selectedStrokeColor = "#E67E22"
     , nNeighbors = 10
+    , showImage = True
     }
 
 

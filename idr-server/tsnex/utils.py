@@ -3,8 +3,7 @@ import queue
 import json
 import numpy as np
 import redis
-from sklearn import datasets
-from sklearn.utils import shuffle
+
 
 # status object to store some server infos
 initial_server_status = {
@@ -44,42 +43,6 @@ initial_server_status = {
     # need to stop all running threads to clean data
     'stop': False
 }
-
-
-def load_dataset(name='MNIST-SMALL'):
-    name = 'MNIST'
-    if name == 'COIL20':
-        X, y = load_coil20()
-        n_samples = len(y)
-    elif name.startswith('MNIST'):
-        if name.endswith('SMALL'):
-            X, y = load_mnist_mini()
-            n_samples = len(y)
-        else:
-            X, y = load_mnist_full()
-            n_samples = 6000
-
-    X, y = shuffle(X, y, n_samples=n_samples, random_state=0)
-    print("{}: X.shape={}, len(y)={}".format(name, X.shape, len(y)))
-    print("Label count: ", np.unique(y, return_counts=True))
-    return X, y
-
-
-def load_coil20():
-    import scipy.io
-    mat = scipy.io.loadmat("../data/COIL20.mat")
-    return mat['X'], mat['Y'][:, 0]
-
-
-def load_mnist_mini():
-    dataset = datasets.load_digits()
-    return dataset.data, dataset.target
-
-
-def load_mnist_full():
-    from sklearn.datasets import fetch_mldata
-    dataset = fetch_mldata('MNIST original', data_home='../data/')
-    return dataset.data, dataset.target
 
 
 # redis database to store the dataset and the intermediate results
