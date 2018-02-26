@@ -34,7 +34,7 @@ plotConfig =
     , height = 700.0
     , padding = 30.0
     , circleRadius = 5
-    , selectionRadius = 20
+    , selectionRadius = 0 -- set to zero to disable, default = 20
     , minCircleRadius = 4
     , maxCircleRadius = 8
     , fixedRadius = False
@@ -43,7 +43,7 @@ plotConfig =
     , defaultStrokeColor = "#D5D8DC"
     , selectedStrokeColor = "#E67E22"
     , nNeighbors = 10
-    , showImage = True
+    , showImage = False
     }
 
 

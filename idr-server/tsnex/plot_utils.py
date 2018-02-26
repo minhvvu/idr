@@ -98,7 +98,6 @@ def plot_default_tsne():
 
 
 if __name__ == '__main__':
-    # X, y = utils.load_dataset(name='MNIST')
-    # data_size = 28
-    # generate_svg_stack('mnist-full600-test1', X, 1, data_size)
-    pass
+    X, y, labels = datasets.load_dataset(name='MNIST-SMALL')
+    data_size = 8 # for MNIST: 28, MNIST-SMALL: 8
+    generate_svg_stack('mnist-small', X, len(y), data_size)

@@ -142,7 +142,7 @@ circleView { id, position, radius, label, status, fixed } =
                 [ x centerX
                 , y centerY
                 , fill "red"
-                , xlinkHref ("http://localhost:8000/data/imgs/mnist-full6000.svg#" ++ id)
+                , xlinkHref ("http://localhost:8000/data/imgs/mnist-small.svg#" ++ id)
                 , Svg.Attributes.cursor "move"
                 , Draggable.mouseTrigger id DragMsg
                 , Svg.Events.onMouseUp StopDragging

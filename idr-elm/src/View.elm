@@ -67,16 +67,7 @@ view model =
         , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]
             [ Grid.col [] [ scatterView model.scatter ]
             , Grid.col []
-                [ Grid.row []
-                    [ Grid.col []
-                        [ --Html.img
-                          --    [ HtmlAttrs.src ("http://localhost:8000/data/imgs/mnist-small_v1.svg#" ++ model.scatter.selectedId)
-                          --    ]
-                          --    []
-                          Svg.image [ x "100", y "100", xlinkHref "data/images/mnist-small_v1.svg#0" ] []
-                        ]
-                    ]
-                , Grid.row [] [ Grid.col [] [ selectedPointsView model.scatter ] ]
+                [ Grid.row [] [ Grid.col [] [ selectedPointsView model.scatter ] ]
                 , Grid.row [] [ Grid.col [] [ movedPointsView model.scatter ] ]
                 ]
             ]

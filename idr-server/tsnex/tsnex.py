@@ -244,27 +244,26 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 classification_scores.append(score.classify(X_embedded))
                 clustering_scores.append(score.clutering(X_embedded))
 
-                errors.append(error)
-                grad_norms.append(float(grad_norm))
-
-                client_data = {
-                    'embedding': X_embedded.ravel().tostring().decode('latin-1'),
-                    'gradients': gradients_acc.tolist(),
-                    'seriesData': [
-                        {'name': 'errors', 'series': [errors]},
-                        {'name': 'classification accuracy',
-                            'series': [classification_scores]},
-                        {'name': 'vmeasure, silhoutte',
-                            'series': [list(t) for t in zip(*clustering_scores)]},
-                        {'name': 'trustworthinesses,statbility,convergence',
-                            'series': [list(t) for t in zip(*embedding_scores)]},
-                        {'name': 'gradients norms', 'series': [grad_norms]},
-                        {'name': 'HUBS', 'series': [hubs]},
-                        {'name': 'Authors', 'series': [authors]},
-                        {'name': 'Pageranks', 'series': [pageranks]}
-                    ]
-                }
-                utils.publish_data(client_data)
+            errors.append(error)
+            grad_norms.append(float(grad_norm))
+            client_data = {
+                'embedding': X_embedded.ravel().tostring().decode('latin-1'),
+                'gradients': gradients_acc.tolist(),
+                'seriesData': [
+                    {'name': 'errors', 'series': [errors]},
+                    {'name': 'classification accuracy',
+                        'series': [classification_scores]},
+                    {'name': 'vmeasure, silhoutte',
+                        'series': [list(t) for t in zip(*clustering_scores)]},
+                    {'name': 'trustworthinesses,statbility,convergence',
+                        'series': [list(t) for t in zip(*embedding_scores)]},
+                    {'name': 'gradients norms', 'series': [grad_norms]},
+                    {'name': 'HUBS', 'series': [hubs]},
+                    {'name': 'Authors', 'series': [authors]},
+                    {'name': 'Pageranks', 'series': [pageranks]}
+                ]
+            }
+            utils.publish_data(client_data)
 
         if (i + 1) % n_iter_check == 0:
             toc = time()
