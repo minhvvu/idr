@@ -81,14 +81,11 @@ toggleSelected circleId circle =
 circleView : Circle -> Svg Msg
 circleView { id, position, radius, label, status, fixed } =
     let
-        alphaFactor =
-            if status == Selected then
-                1.0
-            else
-                0.6
-
         color =
-            Common.labelToColorStr label alphaFactor
+            if status == Selected then
+                Common.labelToColorStr label 1.0
+            else
+                "rgba(0, 0, 0, 0.2)"
 
         strokeColor =
             if status == Selected then
@@ -111,21 +108,31 @@ circleView { id, position, radius, label, status, fixed } =
             position |> getY |> round |> toString
 
         fgCircle =
-            Svg.circle
-                ([ cx centerX
-                 , cy centerY
-                 , r (toString circleRadius)
-                 , fill color
-                 , stroke strokeColor
-                 , strokeWidth (toString plotConfig.strokeWidth)
-                 , Svg.Attributes.cursor "move"
-                 , Draggable.mouseTrigger id DragMsg
-                 , Svg.Events.onMouseUp StopDragging
-                 ]
-                    ++ (Draggable.touchTriggers id DragMsg)
-                )
-                []
+            Svg.text_
+                [ x centerX
+                , y centerY
+                , fill color
+                , fontSize "10px"
+                , Svg.Attributes.cursor "move"
+                , Draggable.mouseTrigger id DragMsg
+                , Svg.Events.onMouseUp StopDragging
+                ]
+                [ Html.text label ]
 
+        --Svg.circle
+        --    ([ cx centerX
+        --     , cy centerY
+        --     , r (toString circleRadius)
+        --     , fill color
+        --     , stroke strokeColor
+        --     , strokeWidth (toString plotConfig.strokeWidth)
+        --     , Svg.Attributes.cursor "move"
+        --     , Draggable.mouseTrigger id DragMsg
+        --     , Svg.Events.onMouseUp StopDragging
+        --     ]
+        --        ++ (Draggable.touchTriggers id DragMsg)
+        --    )
+        --    []
         bgCircle =
             Svg.circle
                 [ cx centerX
@@ -141,6 +148,8 @@ circleView { id, position, radius, label, status, fixed } =
             Svg.image
                 [ x centerX
                 , y centerY
+                , Svg.Attributes.width "8"
+                , Svg.Attributes.height "8"
                 , fill "red"
                 , xlinkHref ("http://localhost:8000/data/imgs/mnist-small.svg#" ++ id)
                 , Svg.Attributes.cursor "move"

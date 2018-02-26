@@ -39,8 +39,9 @@ def do_load_dataset(ws):
     """
     while not ws.closed:
         datasetName = ws.receive()
+        datasetName = 'COIL20'
         if datasetName:
-            X, y, labels = datasets.load_dataset(datasetName)                
+            X, y, labels = datasets.load_dataset(datasetName)
             metadata = {
                 'n_total': X.shape[0],
                 'original_dim': X.shape[1],
@@ -49,12 +50,12 @@ def do_load_dataset(ws):
                 'type_X': X.dtype.name,
                 'shape_y': y.shape,
                 'type_y': y.dtype.name
-                # 'labels': labels
             }
             utils.clean_data() # In dev mode: flush all data in redis
             utils.set_dataset_metadata(metadata)
             utils.set_ndarray(name='X_original', arr=X)
             utils.set_ndarray(name='y_original', arr=y)
+            utils.set_to_db(key='labels', str_value=json.dumps(labels))
             ws.send(json.dumps(metadata))
 
 
@@ -127,12 +128,13 @@ def run_send_to_client(ws):
                 gradients = subscribedData['gradients']
                 idx = np.argsort(gradients)[::-1]
                 y = utils.get_y()
+                labels = json.loads(utils.get_from_db(key='labels'))
                 raw_points = [{
                     'id': str(i),
                     'x': float(X_embedded[i][0]),
                     'y': float(X_embedded[i][1]),
                     'z': float(gradients[i]),
-                    'label': str(y[i]),
+                    'label': labels[i],
                     'fixed': i in fixed_ids
                 } for i in idx]
                 subscribedData['embedding'] = raw_points

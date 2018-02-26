@@ -7,7 +7,7 @@ import pickle
 def load_dataset(name='MNIST-SMALL'):
     return {
         'COIL20': load_coil20(),
-        'MNIST': load_mnist_full(),
+        'MNIST': load_mnist_full(n_samples=3000),
         'MNIST-SMALL': load_mnist_mini(),
         'WIKI-FR': load_wiki('wiki_fr_n3000_d300'),
     }[name]
@@ -17,8 +17,9 @@ def load_coil20():
     import scipy.io
     mat = scipy.io.loadmat("../data/COIL20.mat")
     X, y = mat['X'], mat['Y'][:, 0]
+    X, y = shuffle(X, y, n_samples=len(y), random_state=0)
     labels = list(map(str, y.tolist()))
-    return shuffle(X, y, n_samples=len(y), random_state=0), labels
+    return X, y, labels
 
 
 def load_mnist_mini():
@@ -28,12 +29,14 @@ def load_mnist_mini():
     return X, y, labels
 
 
-def load_mnist_full(n_samples=6000):
+def load_mnist_full(n_samples=2000):
     from sklearn.datasets import fetch_mldata
     dataset = fetch_mldata('MNIST original', data_home='../data/')
     X, y = dataset.data, dataset.target
+    X, y = shuffle(X, y, n_samples=n_samples, random_state=0)
+    y = y.astype(int)
     labels = list(map(str, y.tolist()))
-    return shuffle(X, y, n_samples=n_samples, random_state=0)
+    return X, y, labels
 
 
 def load_wiki(wiki_name):
@@ -57,9 +60,10 @@ def top_words(outName, k):
     data = []
     labels = []
     for i in range(k):
-        word, *vec = input().split(' ')    
+        word, *vec = input().split(' ')[:-1]
+        vec = list(map(float, vec))
         labels.append(word)
-        data.append(map(float, vec))
+        data.append(vec)
     pickle.dump({'data':np.array(data), 'labels': labels}, open(outName, 'wb'))
 
 
@@ -72,5 +76,6 @@ if __name__ == '__main__':
     outputVecFile = '../data/wiki_fr_n{}_d300.pickle'.format(k)
     # top_words(outputVecFile, k=3000)
 
-    data, labels = load_wiki(outputVecFile)
-    print(labels[:200])
+    wiki_name = 'wiki_fr_n{}_d300'.format(k)
+    data, y, labels = load_wiki(wiki_name)
+    print(data.shape, y.shape, len(labels))
