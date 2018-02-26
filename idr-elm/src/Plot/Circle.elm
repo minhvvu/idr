@@ -101,42 +101,41 @@ circleView { id, position, radius, label, status, fixed } =
             else
                 radius
 
-        centerX =
-            position |> getX |> round |> toString
+        centerX offset =
+            position |> getX |> (+) offset |> round |> toString
 
-        centerY =
-            position |> getY |> round |> toString
+        centerY offset =
+            position |> getY |> (+) offset |> round |> toString
 
-        fgCircle =
+        lblText =
             Svg.text_
-                [ x centerX
-                , y centerY
-                , fill color
-                , fontSize "10px"
-                , Svg.Attributes.cursor "move"
-                , Draggable.mouseTrigger id DragMsg
-                , Svg.Events.onMouseUp StopDragging
+                [ x (centerX 6)
+                , y (centerY -6)
+                , fill "black"
+                , fontSize "16px"
                 ]
                 [ Html.text label ]
 
-        --Svg.circle
-        --    ([ cx centerX
-        --     , cy centerY
-        --     , r (toString circleRadius)
-        --     , fill color
-        --     , stroke strokeColor
-        --     , strokeWidth (toString plotConfig.strokeWidth)
-        --     , Svg.Attributes.cursor "move"
-        --     , Draggable.mouseTrigger id DragMsg
-        --     , Svg.Events.onMouseUp StopDragging
-        --     ]
-        --        ++ (Draggable.touchTriggers id DragMsg)
-        --    )
-        --    []
+        fgCircle =
+            Svg.circle
+                ([ cx (centerX 0)
+                 , cy (centerY 0)
+                 , r (toString circleRadius)
+                 , fill color
+                 , stroke strokeColor
+                 , strokeWidth (toString plotConfig.strokeWidth)
+                 , Svg.Attributes.cursor "move"
+                 , Draggable.mouseTrigger id DragMsg
+                 , Svg.Events.onMouseUp StopDragging
+                 ]
+                    ++ (Draggable.touchTriggers id DragMsg)
+                )
+                []
+
         bgCircle =
             Svg.circle
-                [ cx centerX
-                , cy centerY
+                [ cx (centerX 0)
+                , cy (centerY 0)
                 , r (toString plotConfig.selectionRadius)
                 , fill (Common.labelToColorStr label 0.15)
                 , stroke strokeColor
@@ -146,8 +145,8 @@ circleView { id, position, radius, label, status, fixed } =
 
         imageElem =
             Svg.image
-                [ x centerX
-                , y centerY
+                [ x (centerX 0)
+                , y (centerY 0)
                 , Svg.Attributes.width "8"
                 , Svg.Attributes.height "8"
                 , fill "red"
@@ -166,8 +165,8 @@ circleView { id, position, radius, label, status, fixed } =
     in
         Svg.g []
             (if status == Selected then
-                [ bgCircle
-                , displayCircle
+                [ displayCircle
+                , lblText
                 ]
              else
                 [ displayCircle ]
