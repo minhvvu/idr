@@ -15,8 +15,11 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg ({ scatter, ready } as model) =
     case msg of
         {- Do embedding commands -}
+        SelectDataset datasetName ->
+            { model | datasetName = datasetName } ! []
+
         LoadDataset ->
-            ( Models.initialModel, loadDataset )
+            ( model, loadDataset model.datasetName )
 
         DatasetStatus status ->
             { model | debugMsg = status } ! []

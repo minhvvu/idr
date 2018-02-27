@@ -33,16 +33,16 @@ plotConfig =
     { width = 860.0
     , height = 700.0
     , padding = 30.0
-    , circleRadius = 5
+    , circleRadius = 4
     , selectionRadius = 0 -- set to zero to disable, default = 20
-    , minCircleRadius = 4
-    , maxCircleRadius = 8
+    , minCircleRadius = 3
+    , maxCircleRadius = 6
     , fixedRadius = False
     , autoZoom = True
     , strokeWidth = 0.5
     , defaultStrokeColor = "#D5D8DC"
     , selectedStrokeColor = "#E67E22"
-    , nNeighbors = 10
+    , nNeighbors = 20
     , showImage = False
     }
 
@@ -82,6 +82,14 @@ emptySeriesData =
 type alias EmbeddingResult =
     { embedding : List Point
     , seriesData : List SeriesData
+    }
+
+
+{-| Data structure containing the pairwise distance of the original dataset
+-}
+type alias DatasetInfo =
+    { distance : List (List Float)
+    , neighbors : List (List String)
     }
 
 

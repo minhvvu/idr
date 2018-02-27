@@ -1,16 +1,18 @@
 from sklearn import datasets
+from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.utils import shuffle
 import numpy as np
 import pickle
 
 
 def load_dataset(name='MNIST-SMALL'):
+    print("input dataset name = ", name)
     return {
-        'COIL20': load_coil20(),
-        'MNIST': load_mnist_full(n_samples=3000),
-        'MNIST-SMALL': load_mnist_mini(),
-        'WIKI-FR': load_wiki('wiki_fr_n3000_d300'),
-    }[name]
+        'COIL20': load_coil20,
+        'MNIST': load_mnist_full,
+        'MNIST-SMALL': load_mnist_mini,
+        'WIKI-FR': load_wiki,
+    }[name]()
 
 
 def load_coil20():
@@ -39,12 +41,19 @@ def load_mnist_full(n_samples=2000):
     return X, y, labels
 
 
-def load_wiki(wiki_name):
+def load_wiki(wiki_name='wiki_fr_n3000_d300'):
+    print("WIKI-FR")
     inputName = '../data/{}.pickle'.format(wiki_name)
     dataset = pickle.load(open(inputName, 'rb'))
     X, labels = dataset['data'], dataset['labels']
     y = np.zeros(X.shape[0])
     return X, y, labels
+
+
+def calculate_distances(X, k=100):
+    distances = pairwise_distances(X, squared=True)
+    neighbors = np.argsort(dist, axis=1)[:, 1:k + 1]
+    return {'distances': distances.tolist(), 'neighbors': neighbors.tolist()}
 
 
 def read_bytes_file(inputName):

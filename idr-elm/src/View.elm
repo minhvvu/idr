@@ -11,7 +11,7 @@ import Bootstrap.Button as Button exposing (secondary, onClick, attrs)
 import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.ListGroup as ListGroup exposing (..)
 import Bootstrap.Badge as Badge
-import Bootstrap.Form as BForm
+import Bootstrap.Form.Select as Select exposing (..)
 import Models exposing (Model)
 import Msgs exposing (Msg(..))
 import Plot.Scatter exposing (scatterView, movedPointsView, selectedPointsView)
@@ -26,12 +26,23 @@ view model =
         [ CDN.stylesheet
         , Grid.row [{- A serie of buttons -}]
             [ Grid.col []
-                [ Button.button
-                    [ secondary, Button.attrs [ class "ml-2" ], onClick LoadDataset ]
-                    [ text "Load dataset" ]
+                [ Select.select
+                    [ Select.id "dataset-name"
+                    , Select.onChange SelectDataset
+                    ]
+                    [ Select.item [ value "" ] [ text "--Select dataset--" ]
+                    , Select.item [ value "MNIST-SMALL" ] [ text "MNIST mini" ]
+                    , Select.item [ value "MNIST" ] [ text "MNIST full sample 3000" ]
+                    , Select.item [ value "COIL20" ] [ text "COIL-20" ]
+                    , Select.item [ value "WIKI-FR" ] [ text "Top 3k Wiki French" ]
+                    , Select.item [ value "WIKI-EN" ] [ text "Top 3K Wiki English" ]
+                    ]
                 , ButtonGroup.buttonGroup
                     [ ButtonGroup.attrs [ class "ml-1" ] ]
                     [ ButtonGroup.button
+                        [ secondary, onClick LoadDataset ]
+                        [ text "Load Dataset" ]
+                    , ButtonGroup.button
                         [ secondary, onClick DoEmbedding ]
                         [ text "Do Embedding" ]
                     , ButtonGroup.button

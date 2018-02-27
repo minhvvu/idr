@@ -24,9 +24,12 @@ loadDatasetURI =
 
 {-| Client command to load a new dataset
 -}
-loadDataset : Cmd Msg
-loadDataset =
-    WebSocket.send loadDatasetURI "MNIST-SMALL"
+loadDataset : String -> Cmd Msg
+loadDataset datasetName =
+    if String.isEmpty datasetName then
+        Cmd.none
+    else
+        WebSocket.send loadDatasetURI datasetName
 
 
 {-| Socket endpoint for calling function to do embedding
@@ -173,3 +176,17 @@ embeddingResultDecoder =
 decodeEmbeddingResult : String -> Result String EmbeddingResult
 decodeEmbeddingResult str =
     Decode.decodeString embeddingResultDecoder str
+
+
+{-| Util function to decode dataset info
+-}
+datasetInfoDecoder : Decode.Decoder DatasetInfo
+datasetInfoDecoder =
+    decode DatasetInfo
+        |> required "distances" (Decode.list (Decode.list Decode.float))
+        |> required "neighbors" (Decode.list (Decode.list Decode.string))
+
+
+decodeDatasetInfo : String -> Result String DatasetInfo
+decodeDatasetInfo str =
+    Decode.decodeString datasetInfoDecoder

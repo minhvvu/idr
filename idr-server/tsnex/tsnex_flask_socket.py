@@ -39,10 +39,11 @@ def do_load_dataset(ws):
     """
     while not ws.closed:
         datasetName = ws.receive()
-        datasetName = 'COIL20'
         if datasetName:
+            print("Load dataset: {}".format(datasetName))
             X, y, labels = datasets.load_dataset(datasetName)
             metadata = {
+                'dataset_name': datasetName,
                 'n_total': X.shape[0],
                 'original_dim': X.shape[1],
                 'reduced_dim': 2,
@@ -51,12 +52,15 @@ def do_load_dataset(ws):
                 'shape_y': y.shape,
                 'type_y': y.dtype.name
             }
+            print('metadata', metadata)
             utils.clean_data() # In dev mode: flush all data in redis
             utils.set_dataset_metadata(metadata)
             utils.set_ndarray(name='X_original', arr=X)
             utils.set_ndarray(name='y_original', arr=y)
             utils.set_to_db(key='labels', str_value=json.dumps(labels))
-            ws.send(json.dumps(metadata))
+            distances = datasets.calculate_distances(X)
+            ws.send(json.dumps(distances))
+            # ws.send(json.dumps(metadata))
 
 
 @sockets.route('/tsnex/do_embedding')
