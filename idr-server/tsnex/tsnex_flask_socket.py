@@ -52,7 +52,7 @@ def do_load_dataset(ws):
                 'shape_y': y.shape,
                 'type_y': y.dtype.name
             }
-            
+
             utils.clean_data()  # In dev mode: flush all data in redis
             utils.set_dataset_metadata(metadata)
             utils.set_ndarray(name='X_original', arr=X)

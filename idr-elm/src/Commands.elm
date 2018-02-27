@@ -186,6 +186,7 @@ datasetInfoDecoder =
         |> required "distances" (Decode.list (Decode.list Decode.float))
         |> required "neighbors" (Decode.list (Decode.list Decode.string))
         |> required "importantPoints" (Decode.list Decode.string)
+        |> required "infoMsg" Decode.string
 
 
 decodeDatasetInfo : String -> Result String DatasetInfo

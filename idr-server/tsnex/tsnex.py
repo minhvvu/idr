@@ -250,17 +250,17 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 'embedding': X_embedded.ravel().tostring().decode('latin-1'),
                 'gradients': gradients_acc.tolist(),
                 'seriesData': [
-                    {'name': 'errors', 'series': [errors]},
-                    {'name': 'classification accuracy',
-                        'series': [classification_scores]},
-                    {'name': 'vmeasure, silhoutte',
-                        'series': [list(t) for t in zip(*clustering_scores)]},
-                    {'name': 'trustworthinesses,statbility,convergence',
-                        'series': [list(t) for t in zip(*embedding_scores)]},
-                    {'name': 'gradients norms', 'series': [grad_norms]},
-                    {'name': 'HUBS', 'series': [hubs]},
-                    {'name': 'Authors', 'series': [authors]},
-                    {'name': 'Pageranks', 'series': [pageranks]}
+                    # {'name': 'errors', 'series': [errors]},
+                    # {'name': 'classification accuracy',
+                    #     'series': [classification_scores]},
+                    # {'name': 'vmeasure, silhoutte',
+                    #     'series': [list(t) for t in zip(*clustering_scores)]},
+                    # {'name': 'trustworthinesses,statbility,convergence',
+                    #     'series': [list(t) for t in zip(*embedding_scores)]},
+                    # {'name': 'gradients norms', 'series': [grad_norms]},
+                    # {'name': 'HUBS', 'series': [hubs]},
+                    # {'name': 'Authors', 'series': [authors]},
+                    # {'name': 'Pageranks', 'series': [pageranks]}
                 ]
             }
             utils.publish_data(client_data)

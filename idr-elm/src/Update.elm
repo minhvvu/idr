@@ -19,7 +19,13 @@ update msg ({ scatter, ready } as model) =
             { model | datasetName = datasetName } ! []
 
         LoadDataset ->
-            ( model, loadDataset model.datasetName )
+            let
+                newModel =
+                    Models.initialModel
+            in
+                ( { newModel | datasetName = model.datasetName }
+                , loadDataset model.datasetName
+                )
 
         DatasetStatus datasetInfo ->
             updateDatasetInfo model datasetInfo
@@ -40,7 +46,11 @@ update msg ({ scatter, ready } as model) =
             ( { model | ready = True }, sendContinue model.current_it )
 
         ResetData ->
-            ( Models.initialModel, sendReset )
+            let
+                newModel =
+                    Models.initialModel
+            in
+                ( { newModel | datasetName = model.datasetName }, sendReset )
 
         {- Client interact commands -}
         SendMovedPoints ->
@@ -127,6 +137,7 @@ updateNewData ({ ready, current_it } as model) dataStr =
                     Plot.Scatter.createScatter rawPoints model.zoomFactor
                         -- show aura around the selected point if we have in previous iteration
                         |> Plot.Scatter.updateSelectedCircle previousSelectedId
+                        |> Plot.Scatter.updateImportantPoints model.importantPoints
             in
                 ( { model
                     | current_it = current_it + 1
@@ -150,5 +161,6 @@ updateDatasetInfo model dataStr =
                 | neighbors = datasetInfo.neighbors
                 , distances = datasetInfo.distances
                 , importantPoints = datasetInfo.importantPoints
+                , debugMsg = datasetInfo.infoMsg
             }
                 ! []

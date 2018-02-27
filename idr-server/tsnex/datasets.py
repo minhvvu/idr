@@ -78,7 +78,7 @@ def top_words(outName, k):
                 open(outName, 'wb'))
 
 
-def pre_calculate(X, k=100):
+def pre_calculate(X, k=100, use_pagerank=True):
     """ Calculate the k-nearest neighbors matrix
         Calculate Hubs or Pagerank for each points
     """
@@ -93,19 +93,19 @@ def pre_calculate(X, k=100):
     nn = model.kneighbors_graph(mode='distance')
     g = nx.from_scipy_sparse_matrix(nn)
 
-    print("Calculate pagerank")
-    pageranks = nx.pagerank_scipy(g)
-    top_pagerank = sorted(pageranks, key=pageranks.get, reverse=True)[:k]
+    if use_pagerank:
+        print("Calculate pagerank")
+        pageranks = nx.pagerank_scipy(g)
+        top_important = sorted(pageranks, key=pageranks.get, reverse=True)[:k]
+    else:
+        print("Calculate hits")
+        hubs, authorities = nx.hits_scipy(g)
+        top_important = sorted(hubs, key=hubs.get, reverse=True)[:k]
 
-    print("Calculate hits")
-    hubs, authorities = nx.hits_scipy(g)
-    top_hub = sorted(hubs, key=hubs.get, reverse=True)[:k]
-
-    top_common = set(top_pagerank) & set(top_hub)
-
-    return {'distances': distances.tolist(),
+    return {'distances': [], # distances.tolist(),
             'neighbors': list(map( lambda s: list(map(str, s)), indices)),
-            'importantPoints': list(map(str, top_common))}
+            'importantPoints': list(map(str, top_important)),
+            'infoMsg': 'Dataset size: {}, important points: {}'.format(X.shape, k)}
 
 
 if __name__ == '__main__':

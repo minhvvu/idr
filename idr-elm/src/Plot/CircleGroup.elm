@@ -138,6 +138,11 @@ updateSelectedCircle circleId group =
     }
 
 
+updateImportantPoint : List String -> CircleGroup -> CircleGroup
+updateImportantPoint importantPoints group =
+    { group | idleCircles = List.map (Plot.Circle.makeImportant importantPoints) group.idleCircles }
+
+
 {-| Util function to update a list of moved circles
 TODO FIX: we have a list of moving circles now!
 -}
@@ -148,9 +153,14 @@ addMovedCircleFrom movingCircles movedCircles =
             List.map .id movingCircles
 
         ( dejaMovedPoints, otherMovedPoints ) =
-            List.partition (\c -> List.member c.id movingIds) movedCircles
+            List.partition
+                (\c ->
+                    List.member c.id movingIds
+                )
+                movedCircles
     in
-        movingCircles ++ otherMovedPoints
+        movingCircles
+            ++ otherMovedPoints
 
 
 {-| Public API for rendering the circles in group

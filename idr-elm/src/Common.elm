@@ -39,7 +39,7 @@ plotConfig =
     , maxCircleRadius = 6
     , fixedRadius = False
     , autoZoom = True
-    , strokeWidth = 0.5
+    , strokeWidth = 0.8
     , defaultStrokeColor = "#D5D8DC"
     , selectedStrokeColor = "#E67E22"
     , nNeighbors = 20
@@ -91,6 +91,7 @@ type alias DatasetInfo =
     { distances : List (List Float)
     , neighbors : List (List String)
     , importantPoints : List String
+    , infoMsg : String
     }
 
 
@@ -113,7 +114,7 @@ labelToColorStr label alphaFactor =
             label
                 |> String.toInt
                 |> Result.toMaybe
-                |> Maybe.withDefault 0
+                |> Maybe.withDefault -1
     in
         category20a
             |> Array.fromList

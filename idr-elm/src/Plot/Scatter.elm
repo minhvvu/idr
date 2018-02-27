@@ -95,7 +95,7 @@ createScatter rawPoints zoomFactor =
         { xScale = xScale
         , yScale = yScale
         , zScale = zScale
-        , points = createCircleGroup mappedPoints
+        , points = Plot.CircleGroup.createCircleGroup mappedPoints
         , selectedId = "0"
         }
 
@@ -182,6 +182,11 @@ updateSelectedCircle circleId scatter =
         | selectedId = circleId
         , points = Plot.CircleGroup.updateSelectedCircle circleId scatter.points
     }
+
+
+updateImportantPoints : List String -> Scatter -> Scatter
+updateImportantPoints importantPoints scatter =
+    { scatter | points = Plot.CircleGroup.updateImportantPoint importantPoints scatter.points }
 
 
 selectedPointsView : Scatter -> Html Msg
