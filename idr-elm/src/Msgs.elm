@@ -21,6 +21,7 @@ type Msg
     | StopDragging
     | Select String
     | UpdateZoomFactor String -- zoom in/ zoom out the svg
+    | ClickSvg String
 
 
 myDragConfig : Draggable.Config CircleId Msg

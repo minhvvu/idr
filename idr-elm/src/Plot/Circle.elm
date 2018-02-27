@@ -31,7 +31,7 @@ createCircle point =
     let
         status =
             if point.fixed then
-                Bitwise.and sIDLE sFIXED
+                Bitwise.or sIDLE sFIXED
             else
                 sIDLE
     in
@@ -62,35 +62,39 @@ moveCircle delta circle =
 {-| Click to select a circle
 -}
 toggleSelected : CircleId -> Circle -> Circle
-toggleSelected circleId circle =
+toggleSelected circleId ({ id, status } as circle) =
     { circle
         | status =
-            if circleId == circle.id then
-                setSelected circle.status
+            if circleId == id then
+                setSelected status
             else
-                unsetSelected circle.status
+                unsetSelected status
     }
 
 
+{-| Toggle `sNEIGHBOR_HIGH` status of a point if its id in `neighbors`
+-}
+toggleNeighborHigh : List String -> Circle -> Circle
+toggleNeighborHigh neighbors ({ id, status } as circle) =
+    { circle
+        | status =
+            if List.member id neighbors then
+                setNeighborHigh status
+            else
+                unsetNeighborHigh status
+    }
+
+
+{-| Set status of a point in a list of important points
+-}
 makeImportant : List String -> Circle -> Circle
-makeImportant importantPoints circle =
+makeImportant importantPoints ({ id, status } as circle) =
     { circle
         | status =
-            if List.member circle.id importantPoints then
-                setImportant circle.status
+            if List.member id importantPoints then
+                setImportant status
             else
-                circle.status
-    }
-
-
-makeNeighborHigh : List String -> Circle -> Circle
-makeNeighborHigh neighbors circle =
-    { circle
-        | status =
-            if List.member circle.id neighbors then
-                setNeighborHigh circle.status
-            else
-                unsetNeighborHigh circle.status
+                status
     }
 
 
@@ -100,9 +104,10 @@ circleView : Circle -> Svg Msg
 circleView { id, position, radius, label, status } =
     let
         deco =
-            { alpha = 0.2
-            , sColor = "black"
+            { alpha = 0.0
+            , sColor = "white"
             , sWidth = 0
+            , labelSize = "0px"
             }
                 |> decoIdle (isIdle status)
                 |> decoSelected (isSelected status)
@@ -111,14 +116,15 @@ circleView { id, position, radius, label, status } =
                 |> decoNeighborHigh (isNeighborHigh status)
 
         color =
-            Common.labelToColorStr label deco.alpha
+            if
+                plotConfig.makeGris
+                    && not (isImportant status)
+                    && not (isSelected status)
+            then
+                "rgba(0, 0, 0, 0.2)"
+            else
+                Common.labelToColorStr label deco.alpha
 
-        --(if (isIdle status) then
-        --    "-1"
-        -- else
-        --    label
-        --)
-        --    |> flip Common.labelToColorStr deco.alpha
         strokeColor =
             deco.sColor
 
@@ -142,7 +148,7 @@ circleView { id, position, radius, label, status } =
                 [ x (centerX 4)
                 , y (centerY -4)
                 , fill "black"
-                , fontSize "14px"
+                , fontSize deco.labelSize
                 ]
                 [ Html.text label ]
 
@@ -194,7 +200,7 @@ circleView { id, position, radius, label, status } =
                 fgCircle
     in
         Svg.g []
-            (if (isSelected status) || (isNeighborHigh status) then
+            (if (isSelected status) || (plotConfig.showLabel && (isNeighborHigh status)) then
                 [ displayCircle
                 , lblText
                 ]
@@ -220,19 +226,12 @@ distance c1 c2 =
 {-| Decoration for circle
 -}
 type alias Deco =
-    { alpha : Float, sColor : String, sWidth : Float }
+    { alpha : Float, sColor : String, sWidth : Float, labelSize : String }
 
 
 decoIdle : Bool -> Deco -> Deco
 decoIdle flag deco =
-    if flag then
-        { deco
-            | alpha = 0.2
-            , sColor = "white"
-            , sWidth = 0
-        }
-    else
-        deco
+    deco
 
 
 decoSelected : Bool -> Deco -> Deco
@@ -240,8 +239,9 @@ decoSelected flag deco =
     if flag then
         { deco
             | alpha = 1
-            , sColor = "red"
+            , sColor = "rgba(255, 0, 0, 1)"
             , sWidth = 1.0
+            , labelSize = "12px"
         }
     else
         deco
@@ -250,11 +250,7 @@ decoSelected flag deco =
 decoImportant : Bool -> Deco -> Deco
 decoImportant flag deco =
     if flag then
-        { deco
-            | alpha = 0.6
-            , sColor = "blue"
-            , sWidth = 1.0
-        }
+        { deco | alpha = 1 }
     else
         deco
 
@@ -263,9 +259,9 @@ decoFixed : Bool -> Deco -> Deco
 decoFixed flag deco =
     if flag then
         { deco
-            | alpha = 0.8
-            , sColor = "green"
-            , sWidth = 1.5
+            | alpha = 0.6
+            , sColor = "rgba(255, 0, 0, 1)"
+            , sWidth = 2.0
         }
     else
         deco
@@ -276,8 +272,9 @@ decoNeighborHigh flag deco =
     if flag then
         { deco
             | alpha = 0.4
-            , sColor = "orange"
+            , sColor = "rgba(255, 69, 0, 0.8)"
             , sWidth = 1.0
+            , labelSize = "9px"
         }
     else
         deco

@@ -59,7 +59,8 @@ def do_load_dataset(ws):
             utils.set_ndarray(name='y_original', arr=y)
             utils.set_to_db(key='labels', str_value=json.dumps(labels))
 
-            ws.send(json.dumps(datasets.pre_calculate(X, k=100)))
+            info = datasets.pre_calculate(X, k=100, ntop=50, use_pagerank=True)
+            ws.send(json.dumps(info))
 
 
 @sockets.route('/tsnex/do_embedding')

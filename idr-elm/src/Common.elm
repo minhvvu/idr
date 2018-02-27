@@ -20,30 +20,28 @@ type alias PlotConfig =
     , maxCircleRadius : Float
     , fixedRadius : Bool
     , autoZoom : Bool
-    , strokeWidth : Float
-    , defaultStrokeColor : String
-    , selectedStrokeColor : String
     , nNeighbors : Int
     , showImage : Bool
+    , showLabel : Bool
+    , makeGris : Bool
     }
 
 
 plotConfig : PlotConfig
 plotConfig =
-    { width = 860.0
-    , height = 700.0
+    { width = 1220.0
+    , height = 960.0
     , padding = 30.0
-    , circleRadius = 4
+    , circleRadius = 5
     , selectionRadius = 0 -- set to zero to disable, default = 20
-    , minCircleRadius = 3
-    , maxCircleRadius = 6
+    , minCircleRadius = 4
+    , maxCircleRadius = 8
     , fixedRadius = False
     , autoZoom = True
-    , strokeWidth = 0.8
-    , defaultStrokeColor = "#D5D8DC"
-    , selectedStrokeColor = "#E67E22"
     , nNeighbors = 20
     , showImage = False
+    , showLabel = True
+    , makeGris = True
     }
 
 

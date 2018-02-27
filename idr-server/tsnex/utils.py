@@ -8,7 +8,7 @@ import redis
 # status object to store some server infos
 initial_server_status = {
     # time in second to sleep while waiting the data being sent to client
-    'tick_frequence': 0.005,
+    'tick_frequence': 0.2,
 
     # number of iterations that we skip sending data to client
     'n_jump': 10,

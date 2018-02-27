@@ -78,7 +78,7 @@ def top_words(outName, k):
                 open(outName, 'wb'))
 
 
-def pre_calculate(X, k=100, use_pagerank=True):
+def pre_calculate(X, k=100, ntop=50, use_pagerank=True):
     """ Calculate the k-nearest neighbors matrix
         Calculate Hubs or Pagerank for each points
     """
@@ -96,15 +96,15 @@ def pre_calculate(X, k=100, use_pagerank=True):
     if use_pagerank:
         print("Calculate pagerank")
         pageranks = nx.pagerank_scipy(g)
-        top_important = sorted(pageranks, key=pageranks.get, reverse=True)[:k]
+        top_important = sorted(pageranks, key=pageranks.get, reverse=True)
     else:
         print("Calculate hits")
         hubs, authorities = nx.hits_scipy(g)
-        top_important = sorted(hubs, key=hubs.get, reverse=True)[:k]
+        top_important = sorted(hubs, key=hubs.get, reverse=True)
 
     return {'distances': [], # distances.tolist(),
             'neighbors': list(map( lambda s: list(map(str, s)), indices)),
-            'importantPoints': list(map(str, top_important)),
+            'importantPoints': list(map(str, top_important[:ntop])),
             'infoMsg': 'Dataset size: {}, important points: {}'.format(X.shape, k)}
 
 

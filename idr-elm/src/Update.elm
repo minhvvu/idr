@@ -12,7 +12,7 @@ import Array exposing (..)
 {-| Big update function to handle all system messages
 -}
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ scatter, ready } as model) =
+update msg ({ scatter, ready, neighbors } as model) =
     case msg of
         {- Do embedding commands -}
         SelectDataset datasetName ->
@@ -75,6 +75,9 @@ update msg ({ scatter, ready } as model) =
                         | selectedId = circleId
                         , points = startDragging circleId scatter.points
                     }
+                        -- the dragged circle is also a selected one,
+                        -- so we have to show its neighbors in high-dim
+                        |> Plot.Scatter.updateSelectedCircle circleId neighbors
             in
                 { model | scatter = newScatter } ! []
 
@@ -86,7 +89,12 @@ update msg ({ scatter, ready } as model) =
                 { model | scatter = newScatter } ! []
 
         Select selectedId ->
-            { model | scatter = Plot.Scatter.updateSelectedCircle selectedId scatter } ! []
+            { model
+                | scatter =
+                    scatter
+                        |> Plot.Scatter.updateSelectedCircle selectedId neighbors
+            }
+                ! []
 
         DragMsg dragMsg ->
             Draggable.update myDragConfig dragMsg model
@@ -97,14 +105,14 @@ update msg ({ scatter, ready } as model) =
                     Result.withDefault 10.0 (String.toFloat amount)
 
                 updatedScatter =
-                    Plot.Scatter.createScatter
-                        model.rawData
-                        newZoomFactor
-
-                updatedScatterWithSelectedId =
-                    Plot.Scatter.updateSelectedCircle scatter.selectedId updatedScatter
+                    model.rawData
+                        |> flip Plot.Scatter.createScatter newZoomFactor
+                        |> Plot.Scatter.updateSelectedCircle scatter.selectedId neighbors
             in
-                { model | zoomFactor = newZoomFactor, scatter = updatedScatterWithSelectedId } ! []
+                { model | zoomFactor = newZoomFactor, scatter = updatedScatter } ! []
+
+        ClickSvg str ->
+            ( model, Cmd.none )
 
 
 {-| Util function to update new received data into model
@@ -130,13 +138,12 @@ updateNewData ({ ready, current_it } as model) dataStr =
                 seriesData =
                     embeddingResult.seriesData
 
-                previousSelectedId =
+                oldSelectedId =
                     model.scatter.selectedId
 
                 newScatter =
                     Plot.Scatter.createScatter rawPoints model.zoomFactor
-                        -- show aura around the selected point if we have in previous iteration
-                        |> Plot.Scatter.updateSelectedCircle previousSelectedId
+                        |> Plot.Scatter.updateSelectedCircle oldSelectedId model.neighbors
                         |> Plot.Scatter.updateImportantPoints model.importantPoints
             in
                 ( { model
@@ -158,7 +165,7 @@ updateDatasetInfo model dataStr =
 
         Ok datasetInfo ->
             { model
-                | neighbors = datasetInfo.neighbors
+                | neighbors = Array.fromList datasetInfo.neighbors
                 , distances = datasetInfo.distances
                 , importantPoints = datasetInfo.importantPoints
                 , debugMsg = datasetInfo.infoMsg

@@ -6,6 +6,7 @@ import Bootstrap.ListGroup as ListGroup exposing (..)
 import Bootstrap.Badge as Badge
 import Svg exposing (..)
 import Svg.Attributes as SvgAttrs exposing (width, height)
+import Svg.Events as SvgEvents exposing (onClick)
 import Visualization.Scale as Scale exposing (ContinuousScale)
 import Draggable
 import Msgs exposing (Msg)
@@ -34,7 +35,7 @@ emptyScatter =
     , xScale = Scale.linear ( 0, 0 ) ( 0, 0 )
     , yScale = Scale.linear ( 0, 0 ) ( 0, 0 )
     , zScale = Scale.linear ( 0, 0 ) ( 0, 0 )
-    , selectedId = "0"
+    , selectedId = ""
     }
 
 
@@ -96,7 +97,7 @@ createScatter rawPoints zoomFactor =
         , yScale = yScale
         , zScale = zScale
         , points = Plot.CircleGroup.createCircleGroup mappedPoints
-        , selectedId = "0"
+        , selectedId = ""
         }
 
 
@@ -107,9 +108,10 @@ scatterView { points, xScale, yScale } =
     svg
         [ SvgAttrs.width <| toString <| plotConfig.width
         , SvgAttrs.height <| toString <| plotConfig.height
+        , SvgEvents.onClick (Msgs.ClickSvg "do-nothing")
         ]
-        [ drawAxes ( xScale, yScale )
-        , drawScatter points
+        [ --drawAxes ( xScale, yScale )
+          drawScatter points
         ]
 
 
@@ -176,12 +178,23 @@ getMovedPoints { points, xScale, yScale } =
         List.map invertDomain movedPoint
 
 
-updateSelectedCircle : CircleId -> Scatter -> Scatter
-updateSelectedCircle circleId scatter =
-    { scatter
-        | selectedId = circleId
-        , points = Plot.CircleGroup.updateSelectedCircle circleId scatter.points
-    }
+updateSelectedCircle : CircleId -> Array (List CircleId) -> Scatter -> Scatter
+updateSelectedCircle circleId allNeighbors scatter =
+    let
+        neighbors =
+            circleId
+                |> String.toInt
+                |> Result.toMaybe
+                |> Maybe.withDefault -1
+                |> flip Array.get allNeighbors
+                |> Maybe.withDefault []
+    in
+        { scatter
+            | selectedId = circleId
+            , points =
+                scatter.points
+                    |> Plot.CircleGroup.updateSelectedCircle circleId neighbors
+        }
 
 
 updateImportantPoints : List String -> Scatter -> Scatter

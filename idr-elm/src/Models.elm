@@ -3,6 +3,7 @@ module Models exposing (..)
 import Draggable
 import Common exposing (..)
 import Plot.Scatter exposing (Scatter, emptyScatter)
+import Array exposing (Array, fromList)
 
 
 type alias Model =
@@ -15,7 +16,7 @@ type alias Model =
     , debugMsg : String
     , zoomFactor : Float
     , datasetName : String
-    , neighbors : List (List String)
+    , neighbors : Array (List String)
     , distances : List (List Float)
     , importantPoints : List String
     }
@@ -32,7 +33,7 @@ initialModel =
     , debugMsg = "Client ready"
     , zoomFactor = 1.0
     , datasetName = ""
-    , neighbors = []
+    , neighbors = Array.fromList []
     , distances = []
     , importantPoints = []
     }

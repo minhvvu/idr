@@ -84,14 +84,13 @@ correctCircleGroup oldGroup =
 
 
 {-| When start moving the circle(s), add them into moving list
+Drag also the neighbors point in 2D
 -}
 startDragging : CircleId -> CircleGroup -> CircleGroup
 startDragging circleId oldGroup =
     let
         group =
-            oldGroup
-                |> correctCircleGroup
-                |> updateSelectedCircle circleId
+            correctCircleGroup oldGroup
 
         neighbors =
             getKNN circleId oldGroup
@@ -130,11 +129,13 @@ dragActiveBy delta group =
 
 {-| Update selected circle
 -}
-updateSelectedCircle : CircleId -> CircleGroup -> CircleGroup
-updateSelectedCircle circleId group =
+updateSelectedCircle : CircleId -> List CircleId -> CircleGroup -> CircleGroup
+updateSelectedCircle circleId neighbors group =
     { group
         | idleCircles =
-            List.map (Plot.Circle.toggleSelected circleId) group.idleCircles
+            group.idleCircles
+                |> List.map (Plot.Circle.toggleSelected circleId)
+                |> List.map (Plot.Circle.toggleNeighborHigh neighbors)
     }
 
 
