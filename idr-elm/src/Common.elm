@@ -88,8 +88,9 @@ type alias EmbeddingResult =
 {-| Data structure containing the pairwise distance of the original dataset
 -}
 type alias DatasetInfo =
-    { distance : List (List Float)
+    { distances : List (List Float)
     , neighbors : List (List String)
+    , importantPoints : List String
     }
 
 

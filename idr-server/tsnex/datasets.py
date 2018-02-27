@@ -2,6 +2,7 @@ from sklearn import datasets
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.utils import shuffle
 import numpy as np
+import networkx as nx
 import pickle
 
 
@@ -64,7 +65,7 @@ def read_bytes_file(inputName):
         print(struct.unpack('f', f.read(4)))
 
 
-def top_words(outName, k):   
+def top_words(outName, k):
     n, d = map(int, input().split(' '))
     data = []
     labels = []
@@ -73,18 +74,53 @@ def top_words(outName, k):
         vec = list(map(float, vec))
         labels.append(word)
         data.append(vec)
-    pickle.dump({'data':np.array(data), 'labels': labels}, open(outName, 'wb'))
+    pickle.dump({'data': np.array(data), 'labels': labels},
+                open(outName, 'wb'))
+
+
+def pre_calculate(X, k=100):
+    """ Calculate the k-nearest neighbors matrix
+        Calculate Hubs or Pagerank for each points
+    """
+    from sklearn.neighbors import NearestNeighbors
+    model = NearestNeighbors(n_neighbors=k, algorithm='ball_tree')
+    model.fit(X)
+
+    print("Calculate distance")
+    distances, indices = model.kneighbors()
+
+    print("Build knn graph")
+    nn = model.kneighbors_graph(mode='distance')
+    g = nx.from_scipy_sparse_matrix(nn)
+
+    print("Calculate pagerank")
+    pageranks = nx.pagerank_scipy(g)
+    top_pagerank = sorted(pageranks, key=pageranks.get, reverse=True)[:k]
+
+    print("Calculate hits")
+    hubs, authorities = nx.hits_scipy(g)
+    top_hub = sorted(hubs, key=hubs.get, reverse=True)[:k]
+
+    top_common = set(top_pagerank) & set(top_hub)
+
+    return {'distances': distances.tolist(),
+            'neighbors': list(map( lambda s: list(map(str, s)), indices)),
+            'importantPoints': list(map(str, top_common))}
 
 
 if __name__ == '__main__':
-    inputBytesFile = "../data/iris_tensors.bytes"
-    # read_bytes_file(inputBytesFile)
+    # inputBytesFile = "../data/iris_tensors.bytes"
+    # # read_bytes_file(inputBytesFile)
 
-    # # run command: cat '/home/vmvu/Dataset/FastText/wiki.fr.vec' | python datasets.py 
-    k=3000
-    outputVecFile = '../data/wiki_fr_n{}_d300.pickle'.format(k)
-    # top_words(outputVecFile, k=3000)
+    # # # run command: cat '/home/vmvu/Dataset/FastText/wiki.fr.vec' | python datasets.py
+    # k=3000
+    # outputVecFile = '../data/wiki_fr_n{}_d300.pickle'.format(k)
+    # # top_words(outputVecFile, k=3000)
 
-    wiki_name = 'wiki_fr_n{}_d300'.format(k)
-    data, y, labels = load_wiki(wiki_name)
-    print(data.shape, y.shape, len(labels))
+    # wiki_name = 'wiki_fr_n{}_d300'.format(k)
+    # data, y, labels = load_wiki(wiki_name)
+    # print(data.shape, y.shape, len(labels))
+
+    X, y, labels = load_dataset(name='MNIST-SMALL')
+    res = pre_calculate(X)
+    print(res['neighbors'])

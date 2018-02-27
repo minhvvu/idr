@@ -15,8 +15,9 @@ type alias Model =
     , debugMsg : String
     , zoomFactor : Float
     , datasetName : String
-    , neighbors : List (List Int)
+    , neighbors : List (List String)
     , distances : List (List Float)
+    , importantPoints : List String
     }
 
 
@@ -33,4 +34,5 @@ initialModel =
     , datasetName = ""
     , neighbors = []
     , distances = []
+    , importantPoints = []
     }

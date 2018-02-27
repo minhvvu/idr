@@ -4,7 +4,7 @@ import WebSocket
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
-import Common exposing (Point, SeriesData, EmbeddingResult)
+import Common exposing (Point, SeriesData, EmbeddingResult, DatasetInfo)
 import Msgs exposing (Msg)
 
 
@@ -185,8 +185,9 @@ datasetInfoDecoder =
     decode DatasetInfo
         |> required "distances" (Decode.list (Decode.list Decode.float))
         |> required "neighbors" (Decode.list (Decode.list Decode.string))
+        |> required "importantPoints" (Decode.list Decode.string)
 
 
 decodeDatasetInfo : String -> Result String DatasetInfo
 decodeDatasetInfo str =
-    Decode.decodeString datasetInfoDecoder
+    Decode.decodeString datasetInfoDecoder str

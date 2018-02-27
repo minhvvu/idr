@@ -21,8 +21,8 @@ update msg ({ scatter, ready } as model) =
         LoadDataset ->
             ( model, loadDataset model.datasetName )
 
-        DatasetStatus status ->
-            { model | debugMsg = status } ! []
+        DatasetStatus datasetInfo ->
+            updateDatasetInfo model datasetInfo
 
         DoEmbedding ->
             ( model, doEmbedding model.current_it )
@@ -136,3 +136,19 @@ updateNewData ({ ready, current_it } as model) dataStr =
                   }
                 , nextCommand
                 )
+
+
+updateDatasetInfo : Model -> String -> ( Model, Cmd Msg )
+updateDatasetInfo model dataStr =
+    case decodeDatasetInfo dataStr of
+        Err msg ->
+            Debug.log ("[ERROR]decodeEmbeddingResult:\n" ++ msg)
+                ( Models.initialModel, Cmd.none )
+
+        Ok datasetInfo ->
+            { model
+                | neighbors = datasetInfo.neighbors
+                , distances = datasetInfo.distances
+                , importantPoints = datasetInfo.importantPoints
+            }
+                ! []

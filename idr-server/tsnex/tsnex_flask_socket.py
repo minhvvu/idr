@@ -52,15 +52,14 @@ def do_load_dataset(ws):
                 'shape_y': y.shape,
                 'type_y': y.dtype.name
             }
-            print('metadata', metadata)
-            utils.clean_data() # In dev mode: flush all data in redis
+            
+            utils.clean_data()  # In dev mode: flush all data in redis
             utils.set_dataset_metadata(metadata)
             utils.set_ndarray(name='X_original', arr=X)
             utils.set_ndarray(name='y_original', arr=y)
             utils.set_to_db(key='labels', str_value=json.dumps(labels))
-            distances = datasets.calculate_distances(X)
-            ws.send(json.dumps(distances))
-            # ws.send(json.dumps(metadata))
+
+            ws.send(json.dumps(datasets.pre_calculate(X, k=100)))
 
 
 @sockets.route('/tsnex/do_embedding')
@@ -73,7 +72,7 @@ def do_embedding(ws):
             client_iteration = int(message)
             if client_iteration == 0:
                 do_boostrap(ws)
-                
+
 
 def do_boostrap(ws):
     """ Util function to do boostrap for setting up the two threads:
