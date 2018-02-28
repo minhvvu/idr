@@ -41,8 +41,8 @@ emptyScatter =
 
 {-| Util function to create scatter model from list of raw points
 -}
-createScatter : List Point -> Float -> Scatter
-createScatter rawPoints zoomFactor =
+createScatter : List Point -> Float -> PlotConfig -> Scatter
+createScatter rawPoints zoomFactor cf =
     let
         ( minX, maxX ) =
             ( Common.minField .x rawPoints, Common.maxField .x rawPoints )
@@ -59,7 +59,7 @@ createScatter rawPoints zoomFactor =
                 |> Maybe.withDefault zoomFactor
 
         zoomFactorXY =
-            if plotConfig.autoZoom then
+            if cf.autoZoom then
                 autoZoomFactor
             else
                 zoomFactor
@@ -67,17 +67,17 @@ createScatter rawPoints zoomFactor =
         xScale =
             Scale.linear
                 ( -zoomFactorXY, zoomFactorXY )
-                ( 0, plotConfig.width - 2 * plotConfig.padding )
+                ( 0, cf.width - 2 * cf.padding )
 
         yScale =
             Scale.linear
                 ( -zoomFactorXY, zoomFactorXY )
-                ( plotConfig.height - 2 * plotConfig.padding, 0 )
+                ( cf.height - 2 * cf.padding, 0 )
 
         zScale =
             Scale.linear
                 ( minZ, maxZ )
-                ( plotConfig.minCircleRadius, plotConfig.maxCircleRadius )
+                ( cf.minCircleRadius, cf.maxCircleRadius )
 
         mappedPoints =
             rawPoints

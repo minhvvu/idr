@@ -112,6 +112,13 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
             in
                 { model | zoomFactor = newZoomFactor } ! []
 
+        UpdateGroupMoving amount ->
+            let
+                groupSize =
+                    Result.withDefault 0.0 (String.toFloat amount)
+            in
+                { model | cf = { cf | selectionRadius = groupSize } } ! []
+
         ClickSvg str ->
             ( model, Cmd.none )
 
@@ -120,6 +127,9 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
 
         ToggleColor ->
             { model | cf = { cf | showColor = not model.cf.showColor } } ! []
+
+        ToggleAutoZoom ->
+            { model | cf = { cf | autoZoom = not model.cf.autoZoom } } ! []
 
 
 {-| Util function to update new received data into model
@@ -149,7 +159,7 @@ updateNewData ({ ready, current_it } as model) dataStr =
                     model.scatter.selectedId
 
                 newScatter =
-                    Plot.Scatter.createScatter rawPoints model.zoomFactor
+                    Plot.Scatter.createScatter rawPoints model.zoomFactor model.cf
                         |> Plot.Scatter.updateSelectedCircle oldSelectedId model.neighbors
                         |> Plot.Scatter.updateImportantPoints model.importantPoints
             in

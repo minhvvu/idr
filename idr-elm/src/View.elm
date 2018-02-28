@@ -24,7 +24,7 @@ view : Model -> Html Msg
 view model =
     Grid.containerFluid []
         [ CDN.stylesheet
-        , Grid.row [{- A serie of buttons -}]
+        , Grid.row [{- select box for dataset and debug message -}]
             [ Grid.col []
                 [ Select.select
                     [ Select.id "dataset-name"
@@ -43,12 +43,17 @@ view model =
                     , Select.item [ value "WIKI-EN-1K" ] [ text "Top 1000 words in Wiki-English" ]
                     , Select.item [ value "WIKI-EN-3K" ] [ text "Top 3000 words in Wiki-English" ]
                     ]
+                ]
+            , Grid.col [] [ text model.debugMsg ]
+            ]
+        , Grid.row [{- A serie of buttons -}]
+            [ Grid.col []
+                [ Button.button
+                    [ secondary, Button.attrs [ class "ml-4" ], onClick LoadDataset ]
+                    [ text "Load Dataset" ]
                 , ButtonGroup.buttonGroup
-                    [ ButtonGroup.attrs [ class "ml-1" ] ]
+                    [ ButtonGroup.attrs [ class "ml-4" ] ]
                     [ ButtonGroup.button
-                        [ secondary, onClick LoadDataset ]
-                        [ text "Load Dataset" ]
-                    , ButtonGroup.button
                         [ secondary, onClick DoEmbedding ]
                         [ text "Do Embedding" ]
                     , ButtonGroup.button
@@ -59,43 +64,67 @@ view model =
                         [ text "Continue Server" ]
                     ]
                 , Button.button
-                    [ secondary, Button.attrs [ class "ml-2" ], onClick ResetData ]
+                    [ secondary, Button.attrs [ class "ml-4" ], onClick ResetData ]
                     [ text "Reset Data" ]
                 , Button.button
-                    [ secondary, Button.attrs [ class "ml-2" ], onClick Msgs.SendMovedPoints ]
+                    [ secondary, Button.attrs [ class "ml-4" ], onClick Msgs.SendMovedPoints ]
                     [ text "Send Moved Points" ]
                 ]
             ]
         , Grid.row [{- debug message and slider for param controlling -}]
-            [ Grid.col [] [ text model.debugMsg ]
-            , Grid.col []
-                [ Html.label [] [ text "Zoom factor:" ]
-                , input
-                    [ HtmlAttrs.type_ "range"
-                    , HtmlAttrs.value (toString model.zoomFactor)
-                    , HtmlAttrs.min "0.1"
-                    , HtmlAttrs.max "200"
-                    , HtmlEvents.onInput UpdateZoomFactor
+            [ Grid.col []
+                [ Html.label [ class "ml-4" ]
+                    [ text "Zoom factor:"
+                    , input
+                        [ HtmlAttrs.type_ "range"
+                        , HtmlAttrs.value (toString model.zoomFactor)
+                        , HtmlAttrs.min "0.1"
+                        , HtmlAttrs.max "200"
+                        , HtmlEvents.onInput UpdateZoomFactor
+                        ]
+                        []
+                    , text (toString model.zoomFactor)
                     ]
-                    []
-                , text (toString model.zoomFactor)
+                , Html.label [ class "ml-4" ]
+                    [ text "Group moving:"
+                    , input
+                        [ HtmlAttrs.type_ "range"
+                        , HtmlAttrs.value (toString model.cf.selectionRadius)
+                        , HtmlAttrs.min "0"
+                        , HtmlAttrs.max "30"
+                        , HtmlEvents.onInput UpdateGroupMoving
+                        ]
+                        []
+                    , text (toString model.cf.selectionRadius)
+                    ]
                 ]
             , Grid.col []
-                [ Html.label []
+                [ Html.label [ class "ml-4" ]
                     [ input
                         [ HtmlAttrs.type_ "checkbox"
+                        , HtmlAttrs.checked model.cf.showLabel
                         , HtmlEvents.onClick ToggleLabel
                         ]
                         []
                     , text "Toggle labels"
                     ]
-                , Html.label []
+                , Html.label [ class "ml-4" ]
                     [ input
                         [ HtmlAttrs.type_ "checkbox"
+                        , HtmlAttrs.checked model.cf.showColor
                         , HtmlEvents.onClick ToggleColor
                         ]
                         []
                     , text "Toggle colors"
+                    ]
+                , Html.label [ class "ml-4" ]
+                    [ input
+                        [ HtmlAttrs.type_ "checkbox"
+                        , HtmlAttrs.checked model.cf.autoZoom
+                        , HtmlEvents.onClick ToggleAutoZoom
+                        ]
+                        []
+                    , text "Toggle AutoZoom"
                     ]
                 ]
             ]
