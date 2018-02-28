@@ -248,10 +248,10 @@ def my_gradient_descent(objective, p0, it, n_iter,
                     {'name': 'gradients norms', 'series': [grad_norms]},
                     # {'name': 'classification accuracy',
                     #     'series': [classification_scores]},
-                    # {'name': 'vmeasure, silhoutte',
-                    #     'series': [list(t) for t in zip(*clustering_scores)]},
-                    # {'name': 'trustworthinesses,statbility,convergence',
-                    #     'series': [list(t) for t in zip(*embedding_scores)]},
+                    {'name': 'vmeasure, silhoutte',
+                        'series': [list(t) for t in zip(*clustering_scores)]},
+                    {'name': 'trustworthinesses,statbility,convergence',
+                        'series': [list(t) for t in zip(*embedding_scores)]},
                 ]
             }
             utils.publish_data(client_data)
@@ -350,11 +350,12 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
     # np.sum(x * y) because it calls BLAS
 
     # Objective: C (Kullback-Leibler divergence of P and Q)
-    # kl_divergence = 2.0 * np.dot(P, np.log(np.maximum(P, MACHINE_EPSILON) / Q))
+    # kl_divergence_original = 2.0 * np.dot(P, np.log(np.maximum(P, MACHINE_EPSILON) / Q))
     divergences = P * np.log(np.maximum(P, MACHINE_EPSILON) / Q)
     kl_divergence = 2.0 * np.sum(divergences)
     divergences = squareform(divergences)
     divergences = np.sum(divergences, axis=1)
+    # assert(np.isclose(np.sum(divergences), kl_divergence_original) == True)
 
     # Gradient: dC/dY
     # pdist always returns double precision distances. Thus we need to take

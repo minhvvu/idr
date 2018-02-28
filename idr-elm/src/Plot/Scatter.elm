@@ -89,6 +89,7 @@ createScatter rawPoints zoomFactor cf =
                             (Scale.convert yScale p.y)
                             (Scale.convert zScale p.z)
                             p.label
+                            p.text
                             p.fixed
                         )
                     )
@@ -171,6 +172,7 @@ getMovedPoints { points, xScale, yScale } =
                     (Scale.invert yScale p.y)
                     p.z
                     p.label
+                    p.text
                     p.fixed
                 )
             )

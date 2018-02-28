@@ -72,8 +72,8 @@ def clutering(X):
     silhoutte = metrics.silhouette_score(
         X, kmeans.labels_, metric='euclidean', sample_size=300)
 
-    print("Clustering measure: vmeasure = {}, silhoutte = {}"
-          .format(float(vmeasure), float(silhoutte)))
+    # print("Clustering measure: vmeasure = {}, silhoutte = {}"
+    #       .format(float(vmeasure), float(silhoutte)))
     return (float(vmeasure), float(silhoutte))
 
 

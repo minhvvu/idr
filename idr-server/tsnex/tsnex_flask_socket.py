@@ -138,7 +138,8 @@ def run_send_to_client(ws):
                     'x': float(X_embedded[i][0]),
                     'y': float(X_embedded[i][1]),
                     'z': float(zInfo[i]),
-                    'label': labels[i],
+                    'text': labels[i],
+                    'label': str(y[i]),
                     'fixed': i in fixed_ids
                 } for i in idx]
                 subscribedData['embedding'] = raw_points

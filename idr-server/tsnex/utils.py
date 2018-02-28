@@ -26,7 +26,7 @@ initial_server_status = {
     'accumulate': False,
 
     # calculate the measurement after each iteration
-    'measure': False,
+    'measure': True,
 
     # hard-fix position of client selected points
     'hard_move': True,

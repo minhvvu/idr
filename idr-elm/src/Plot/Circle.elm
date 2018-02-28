@@ -20,6 +20,7 @@ type alias Circle =
     , position : Vec2
     , radius : Float
     , label : String
+    , text : String
     , status : Int
     }
 
@@ -40,6 +41,7 @@ createCircle point =
             (Vector2.vec2 point.x point.y)
             point.z
             point.label
+            point.text
             status
 
 
@@ -47,7 +49,7 @@ createCircle point =
 -}
 circleToPoint : Circle -> Point
 circleToPoint c =
-    Point c.id (getX c.position) (getY c.position) c.radius c.label (isFixed c.status)
+    Point c.id (getX c.position) (getY c.position) c.radius c.label c.text (isFixed c.status)
 
 
 {-| Move a circle to a new position
@@ -101,10 +103,10 @@ makeImportant importantPoints ({ id, status } as circle) =
 {-| Util function to draw a circle
 -}
 circleView : Circle -> PlotConfig -> Svg Msg
-circleView { id, position, radius, label, status } cf =
+circleView { id, position, radius, label, text, status } cf =
     let
         deco =
-            { alpha = 0.2
+            { alpha = 0.6
             , sColor = "white"
             , sWidth = 0
             , labelSize = "10px"
@@ -125,9 +127,8 @@ circleView { id, position, radius, label, status } cf =
             if (isSelected status) then
                 "red"
             else
-                Common.labelToColorStr label 1
+                Common.labelToColorStr label 0.8
 
-        -- "rgba(0,0,255,0.8)"
         strokeColor =
             deco.sColor
 
@@ -153,7 +154,7 @@ circleView { id, position, radius, label, status } cf =
                 , fill textColor
                 , fontSize deco.labelSize
                 ]
-                [ Html.text label ]
+                [ Html.text text ]
 
         fgCircle =
             Svg.circle
