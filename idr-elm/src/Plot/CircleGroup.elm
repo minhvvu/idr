@@ -135,7 +135,7 @@ updateSelectedCircle circleId neighbors group =
         | idleCircles =
             group.idleCircles
                 |> List.map (Plot.Circle.toggleSelected circleId)
-                |> List.map (Plot.Circle.toggleNeighborHigh neighbors)
+                |> List.map (Plot.Circle.toggleNeighborHigh (List.take plotConfig.nNeighbors neighbors))
     }
 
 
@@ -197,7 +197,7 @@ getKNN : CircleId -> CircleGroup -> List CircleId
 getKNN circleId group =
     group.idleCircles
         |> calculateDistances circleId
-        |> List.filter (\p -> Tuple.first p < plotConfig.selectionRadius * plotConfig.selectionRadius)
+        --|> List.filter (\p -> Tuple.first p < plotConfig.selectionRadius * plotConfig.selectionRadius)
         |> List.take (plotConfig.nNeighbors + 1)
         |> List.tail
         |> Maybe.withDefault [ ( 0, circleId ) ]

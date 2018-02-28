@@ -34,6 +34,8 @@ view model =
                     , Select.item [ value "MNIST-SMALL" ] [ text "MNIST mini" ]
                     , Select.item [ value "MNIST" ] [ text "MNIST full sample 3000" ]
                     , Select.item [ value "COIL20" ] [ text "COIL-20" ]
+                    , Select.item [ value "COUNTRY2014" ] [ text "Country Indicators 2014" ]
+                    , Select.item [ value "COUNTRY2015" ] [ text "Country Indicators 2015" ]
                     , Select.item [ value "WIKI-FR" ] [ text "Top 3k Wiki French" ]
                     , Select.item [ value "WIKI-EN" ] [ text "Top 3K Wiki English" ]
                     ]

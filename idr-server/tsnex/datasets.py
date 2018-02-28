@@ -4,15 +4,18 @@ from sklearn.utils import shuffle
 import numpy as np
 import networkx as nx
 import pickle
+from functools import partial
 
 
 def load_dataset(name='MNIST-SMALL'):
-    print("input dataset name = ", name)
     return {
         'COIL20': load_coil20,
         'MNIST': load_mnist_full,
         'MNIST-SMALL': load_mnist_mini,
-        'WIKI-FR': load_wiki,
+        'WIKI-FR': load_wiki_fr,
+        'WIKI-EN': load_wiki_en,
+        'COUNTRY2014': partial(load_country, 2014),
+        'COUNTRY2015': partial(load_country, 2015)
     }[name]()
 
 
@@ -42,13 +45,24 @@ def load_mnist_full(n_samples=2000):
     return X, y, labels
 
 
-def load_wiki(wiki_name='wiki_fr_n3000_d300'):
-    print("WIKI-FR")
-    inputName = '../data/{}.pickle'.format(wiki_name)
+def load_pickle(name):
+    inputName = '../data/{}.pickle'.format(name)
     dataset = pickle.load(open(inputName, 'rb'))
     X, labels = dataset['data'], dataset['labels']
-    y = np.zeros(X.shape[0])
+    if 'y' in dataset:
+        y = dataset['y']
+    else:
+        y = np.zeros(X.shape[0])
     return X, y, labels
+
+
+def load_wiki_fr(): return load_pickle(name='wiki_fr_n3000_d300')
+
+
+def load_wiki_en(): return load_pickle(name='wiki_en_n3000_d300')
+
+
+def load_country(year): return load_pickle(name='country_indicators_{}'.format(year))
 
 
 def calculate_distances(X, k=100):
@@ -102,8 +116,8 @@ def pre_calculate(X, k=100, ntop=50, use_pagerank=True):
         hubs, authorities = nx.hits_scipy(g)
         top_important = sorted(hubs, key=hubs.get, reverse=True)
 
-    return {'distances': [], # distances.tolist(),
-            'neighbors': list(map( lambda s: list(map(str, s)), indices)),
+    return {'distances': [],  # distances.tolist(),
+            'neighbors': list(map(lambda s: list(map(str, s)), indices)),
             'importantPoints': list(map(str, top_important[:ntop])),
             'infoMsg': 'Dataset size: {}, important points: {}'.format(X.shape, k)}
 
