@@ -13,7 +13,7 @@ import Task exposing (succeed, perform)
 {-| Big update function to handle all system messages
 -}
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ scatter, ready, neighbors } as model) =
+update msg ({ scatter, ready, neighbors, cf } as model) =
     case msg of
         {- Do embedding commands -}
         SelectDataset datasetName ->
@@ -114,6 +114,12 @@ update msg ({ scatter, ready, neighbors } as model) =
 
         ClickSvg str ->
             ( model, Cmd.none )
+
+        ToggleLabel ->
+            { model | cf = { cf | showLabel = not model.cf.showLabel } } ! []
+
+        ToggleColor ->
+            { model | cf = { cf | showColor = not model.cf.showColor } } ! []
 
 
 {-| Util function to update new received data into model

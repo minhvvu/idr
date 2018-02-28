@@ -80,6 +80,24 @@ view model =
                     []
                 , text (toString model.zoomFactor)
                 ]
+            , Grid.col []
+                [ Html.label []
+                    [ input
+                        [ HtmlAttrs.type_ "checkbox"
+                        , HtmlEvents.onClick ToggleLabel
+                        ]
+                        []
+                    , text "Toggle labels"
+                    ]
+                , Html.label []
+                    [ input
+                        [ HtmlAttrs.type_ "checkbox"
+                        , HtmlEvents.onClick ToggleColor
+                        ]
+                        []
+                    , text "Toggle colors"
+                    ]
+                ]
             ]
         , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]
             [ Grid.col [] [ scatterView model.scatter model.cf ]

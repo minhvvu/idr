@@ -104,7 +104,7 @@ circleView : Circle -> PlotConfig -> Svg Msg
 circleView { id, position, radius, label, status } cf =
     let
         deco =
-            { alpha = 0.0
+            { alpha = 0.2
             , sColor = "white"
             , sWidth = 0
             , labelSize = "10px"
@@ -116,11 +116,7 @@ circleView { id, position, radius, label, status } cf =
                 |> decoNeighborHigh (isNeighborHigh status)
 
         color =
-            if
-                plotConfig.makeGris
-                    && not (isImportant status)
-                --&& not (isSelected status)
-            then
+            if not cf.showColor && not (isImportant status) then
                 "rgba(0, 0, 0, 0.2)"
             else
                 Common.labelToColorStr label deco.alpha
@@ -201,14 +197,14 @@ circleView { id, position, radius, label, status } cf =
                 []
 
         displayCircle =
-            if plotConfig.showImage then
+            if cf.showImage then
                 imageElem
             else
                 fgCircle
     in
         Svg.g []
             (if
-                plotConfig.showLabel
+                cf.showLabel
                     || (isImportant status)
                     || (isSelected status)
                     || (isNeighborHigh status)

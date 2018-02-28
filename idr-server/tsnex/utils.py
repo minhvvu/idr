@@ -11,7 +11,7 @@ initial_server_status = {
     'tick_frequence': 0.5,
 
     # number of iterations that we skip sending data to client
-    'n_jump': 15,
+    'n_jump': 10,
 
     # the current iteration in client, server_iter = client_iter * n_jump
     'client_iter': 0,

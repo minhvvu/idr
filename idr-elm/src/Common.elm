@@ -23,7 +23,7 @@ type alias PlotConfig =
     , nNeighbors : Int
     , showImage : Bool
     , showLabel : Bool
-    , makeGris : Bool
+    , showColor : Bool
     }
 
 
@@ -41,7 +41,7 @@ plotConfig =
     , nNeighbors = 50
     , showImage = False
     , showLabel = False
-    , makeGris = True
+    , showColor = False
     }
 
 
