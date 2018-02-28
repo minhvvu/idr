@@ -12,8 +12,10 @@ def load_dataset(name='MNIST-SMALL'):
         'COIL20': load_coil20,
         'MNIST': load_mnist_full,
         'MNIST-SMALL': load_mnist_mini,
-        'WIKI-FR': partial(load_wiki, 'fr'),
-        'WIKI-EN': partial(load_wiki, 'en'),
+        'WIKI-FR-1K': partial(load_wiki, 'fr'),
+        'WIKI-EN-1K': partial(load_wiki, 'en'),
+        'WIKI-FR-3K': partial(load_wiki, 'fr', 3000),
+        'WIKI-EN-3K': partial(load_wiki, 'en', 3000),
         'COUNTRY1999': partial(load_country, 1999),
         'COUNTRY2013': partial(load_country, 2013),
         'COUNTRY2014': partial(load_country, 2014),
@@ -59,7 +61,7 @@ def load_pickle(name):
     return X, y, labels
 
 
-def load_wiki(lang='en'): return load_pickle(name='wiki_{}_n3000_d300'.format(lang))
+def load_wiki(lang='en', n=1000): return load_pickle(name='wiki_{}_n{}_d300'.format(lang,n))
 
 
 def load_country(year): return load_pickle(name='country_indicators_{}'.format(year))
@@ -124,12 +126,12 @@ def pre_calculate(X, k=100, ntop=50, use_pagerank=True):
 
 if __name__ == '__main__':
     # inputBytesFile = "../data/iris_tensors.bytes"
-    # # read_bytes_file(inputBytesFile)
+    # read_bytes_file(inputBytesFile)
 
-    # # run command: cat '/home/vmvu/Dataset/FastText/wiki.en.vec' | python datasets.py
-    k=3000
-    outputVecFile = '../data/wiki_en_n{}_d300.pickle'.format(k)
-    top_words(outputVecFile, k=3000)
+    # # run command: cat '/home/vmvu/Dataset/FastText/wiki.fr.vec' | python datasets.py
+    lang, k = 'fr', 1000
+    outputVecFile = '../data/wiki_{}_n{}_d300.pickle'.format(lang,k)
+    top_words(outputVecFile, k)
 
     # wiki_name = 'wiki_fr_n{}_d300'.format(k)
     # data, y, labels = load_wiki(wiki_name)

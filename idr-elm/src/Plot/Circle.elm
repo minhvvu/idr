@@ -7,7 +7,7 @@ import Html.Attributes as HtmlAttr exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Events exposing (onMouseUp)
-import Svg.Lazy exposing (lazy)
+import Svg.Lazy exposing (lazy2)
 import Msgs exposing (Msg(..))
 import Common exposing (..)
 import Bitwise exposing (and, or, xor)
@@ -100,8 +100,8 @@ makeImportant importantPoints ({ id, status } as circle) =
 
 {-| Util function to draw a circle
 -}
-circleView : Circle -> Svg Msg
-circleView { id, position, radius, label, status } =
+circleView : Circle -> PlotConfig -> Svg Msg
+circleView { id, position, radius, label, status } cf =
     let
         deco =
             { alpha = 0.0
@@ -207,7 +207,12 @@ circleView { id, position, radius, label, status } =
                 fgCircle
     in
         Svg.g []
-            (if plotConfig.showLabel || (isSelected status) || (isNeighborHigh status) then
+            (if
+                plotConfig.showLabel
+                    || (isImportant status)
+                    || (isSelected status)
+                    || (isNeighborHigh status)
+             then
                 [ displayCircle
                 , lblText
                 ]
@@ -218,9 +223,9 @@ circleView { id, position, radius, label, status } =
 
 {-| Public API for drawing a indexed-svg circle (index by key)
 -}
-circleKeyedView : Circle -> ( CircleId, Svg Msg )
-circleKeyedView circle =
-    ( circle.id, lazy circleView circle )
+circleKeyedView : PlotConfig -> Circle -> ( CircleId, Svg Msg )
+circleKeyedView cf circle =
+    ( circle.id, lazy2 circleView circle cf )
 
 
 {-| Calculate the squared distance between the centers of 2 circles

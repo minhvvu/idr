@@ -103,28 +103,28 @@ createScatter rawPoints zoomFactor =
 
 {-| Public API for plot the scatter
 -}
-scatterView : Scatter -> Svg Msg
-scatterView { points, xScale, yScale } =
+scatterView : Scatter -> PlotConfig -> Svg Msg
+scatterView { points, xScale, yScale } cf =
     svg
         [ SvgAttrs.width <| toString <| plotConfig.width
         , SvgAttrs.height <| toString <| plotConfig.height
         , SvgEvents.onClick (Msgs.ClickSvg "do-nothing")
         ]
         [ --drawAxes ( xScale, yScale )
-          drawScatter points
+          drawScatter points cf
         ]
 
 
 {-| Private function take plot the circles by calling the util function from `CircleGroup`
 -}
-drawScatter : CircleGroup -> Svg Msg
-drawScatter points =
+drawScatter : CircleGroup -> PlotConfig -> Svg Msg
+drawScatter points cf =
     let
         padding =
-            toString plotConfig.padding
+            toString cf.padding
     in
         g [ SvgAttrs.transform ("translate(" ++ padding ++ ", " ++ padding ++ ")") ]
-            [ Plot.CircleGroup.circleGroupView points ]
+            [ Plot.CircleGroup.circleGroupView points cf ]
 
 
 {-| Public API for calling drawing a list of moved circle in CircleGroup

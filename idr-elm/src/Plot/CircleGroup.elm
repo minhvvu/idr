@@ -166,12 +166,20 @@ addMovedCircleFrom movingCircles movedCircles =
 
 {-| Public API for rendering the circles in group
 -}
-circleGroupView : CircleGroup -> Svg Msg
-circleGroupView group =
-    group
-        |> getAll
-        |> List.map circleKeyedView
-        |> Svg.Keyed.node "g" []
+circleGroupView : CircleGroup -> PlotConfig -> Svg Msg
+circleGroupView group cf =
+    let
+        allCircle =
+            getAll group
+    in
+        List.map (circleKeyedView cf) allCircle |> Svg.Keyed.node "g" []
+
+
+
+--group
+--    |> getAll
+--    |> List.map circleKeyedView cf
+--    |> Svg.Keyed.node "g" []
 
 
 {-| Public API to get a list of moved circles and convert them to List Point

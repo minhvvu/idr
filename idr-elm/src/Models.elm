@@ -7,8 +7,7 @@ import Array exposing (Array, fromList)
 
 
 type alias Model =
-    { rawData : List Point
-    , scatter : Scatter
+    { scatter : Scatter
     , seriesData : List SeriesData
     , drag : Draggable.State CircleId
     , ready : Bool
@@ -19,13 +18,13 @@ type alias Model =
     , neighbors : Array (List String)
     , distances : List (List Float)
     , importantPoints : List String
+    , cf : PlotConfig
     }
 
 
 initialModel : Model
 initialModel =
-    { rawData = []
-    , scatter = emptyScatter
+    { scatter = emptyScatter
     , seriesData = []
     , drag = Draggable.init
     , ready = True
@@ -36,4 +35,5 @@ initialModel =
     , neighbors = Array.fromList []
     , distances = []
     , importantPoints = []
+    , cf = plotConfig
     }

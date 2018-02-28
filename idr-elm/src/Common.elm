@@ -38,9 +38,9 @@ plotConfig =
     , maxCircleRadius = 8
     , fixedRadius = False
     , autoZoom = False
-    , nNeighbors = 20
+    , nNeighbors = 50
     , showImage = False
-    , showLabel = True
+    , showLabel = False
     , makeGris = True
     }
 

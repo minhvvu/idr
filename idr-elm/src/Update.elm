@@ -105,12 +105,12 @@ update msg ({ scatter, ready, neighbors } as model) =
                 newZoomFactor =
                     Result.withDefault 10.0 (String.toFloat amount)
 
-                updatedScatter =
-                    model.rawData
-                        |> flip Plot.Scatter.createScatter newZoomFactor
-                        |> Plot.Scatter.updateSelectedCircle scatter.selectedId neighbors
+                --updatedScatter =
+                --    model.rawData
+                --        |> flip Plot.Scatter.createScatter newZoomFactor
+                --        |> Plot.Scatter.updateSelectedCircle scatter.selectedId neighbors
             in
-                { model | zoomFactor = newZoomFactor, scatter = updatedScatter } ! []
+                { model | zoomFactor = newZoomFactor } ! []
 
         ClickSvg str ->
             ( model, Cmd.none )
@@ -149,7 +149,6 @@ updateNewData ({ ready, current_it } as model) dataStr =
             in
                 ( { model
                     | current_it = current_it + 1
-                    , rawData = rawPoints
                     , scatter = newScatter
                     , seriesData = seriesData
                   }
