@@ -235,8 +235,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 stability, convergence = score.PIVE_measure(old_p, p, dist_X_original)
                 embedding_scores.append((trustwth, stability, convergence))
                 
-                classification_scores.append(score.classify(X_embedded))
-                clustering_scores.append(score.clutering(X_embedded))
+                # classification_scores.append(score.classify(X_embedded))
+                # clustering_scores.append(score.clutering(X_embedded))
 
             errors.append(error)
             grad_norms.append(float(grad_norm))
