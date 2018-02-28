@@ -124,14 +124,41 @@ def pre_calculate(X, k=100, ntop=50, use_pagerank=True):
             'infoMsg': 'Dataset size: {}, important points: {}'.format(X.shape, k)}
 
 
+
+def load_newsgroups():
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.datasets import fetch_20newsgroups
+    cats = [
+        'comp.graphics',
+        'comp.os.ms-windows.misc',
+        'comp.sys.ibm.pc.hardware',
+        'comp.sys.mac.hardware',
+        'comp.windows.x']
+    newsgroups_train = fetch_20newsgroups(
+        subset='train',
+        remove=('headers', 'footers', 'quotes'),
+        categories=cats)
+
+    from pprint import pprint
+    pprint(list(newsgroups_train.target_names))
+
+    vectorizer = TfidfVectorizer()
+    X = vectorizer.fit_transform(newsgroups_train.data)
+
+    y = newsgroups_train.target
+    labels = [cats[i] for i in y]
+
+    return X.toarray(), y, labels
+
+
 if __name__ == '__main__':
     # inputBytesFile = "../data/iris_tensors.bytes"
     # read_bytes_file(inputBytesFile)
 
     # # run command: cat '/home/vmvu/Dataset/FastText/wiki.fr.vec' | python datasets.py
-    lang, k = 'fr', 1000
-    outputVecFile = '../data/wiki_{}_n{}_d300.pickle'.format(lang,k)
-    top_words(outputVecFile, k)
+    # lang, k = 'fr', 1000
+    # outputVecFile = '../data/wiki_{}_n{}_d300.pickle'.format(lang,k)
+    # top_words(outputVecFile, k)
 
     # wiki_name = 'wiki_fr_n{}_d300'.format(k)
     # data, y, labels = load_wiki(wiki_name)
@@ -140,3 +167,8 @@ if __name__ == '__main__':
     # X, y, labels = load_dataset(name='MNIST-SMALL')
     # res = pre_calculate(X)
     # print(res['neighbors'])
+
+    X, y, labels = load_newsgroups()
+    print(X)
+    print(X.shape, y.shape, len(labels))
+    print(y)

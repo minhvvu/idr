@@ -58,7 +58,7 @@ def classify(X):
     y_true = y[n // 2:]
     y_predict = classifier.predict(X[n // 2:])
     score = metrics.accuracy_score(y_true, y_predict)
-    print("Classification accuracy = {}".format(float(score)))
+    # print("Classification accuracy = {}".format(float(score)))
     return float(score)
 
 
