@@ -12,10 +12,12 @@ def load_dataset(name='MNIST-SMALL'):
         'COIL20': load_coil20,
         'MNIST': load_mnist_full,
         'MNIST-SMALL': load_mnist_mini,
-        'WIKI-FR': load_wiki_fr,
-        'WIKI-EN': load_wiki_en,
+        'WIKI-FR': partial(load_wiki, 'fr'),
+        'WIKI-EN': partial(load_wiki, 'en'),
+        'COUNTRY1999': partial(load_country, 1999),
+        'COUNTRY2013': partial(load_country, 2013),
         'COUNTRY2014': partial(load_country, 2014),
-        'COUNTRY2015': partial(load_country, 2015)
+        'COUNTRY2015': partial(load_country, 2015),
     }[name]()
 
 
@@ -53,13 +55,11 @@ def load_pickle(name):
         y = dataset['y']
     else:
         y = np.zeros(X.shape[0])
+    print("Data from pickle: ", X.shape, y.shape, len(labels))
     return X, y, labels
 
 
-def load_wiki_fr(): return load_pickle(name='wiki_fr_n3000_d300')
-
-
-def load_wiki_en(): return load_pickle(name='wiki_en_n3000_d300')
+def load_wiki(lang='en'): return load_pickle(name='wiki_{}_n3000_d300'.format(lang))
 
 
 def load_country(year): return load_pickle(name='country_indicators_{}'.format(year))
@@ -126,15 +126,15 @@ if __name__ == '__main__':
     # inputBytesFile = "../data/iris_tensors.bytes"
     # # read_bytes_file(inputBytesFile)
 
-    # # # run command: cat '/home/vmvu/Dataset/FastText/wiki.fr.vec' | python datasets.py
-    # k=3000
-    # outputVecFile = '../data/wiki_fr_n{}_d300.pickle'.format(k)
-    # # top_words(outputVecFile, k=3000)
+    # # run command: cat '/home/vmvu/Dataset/FastText/wiki.en.vec' | python datasets.py
+    k=3000
+    outputVecFile = '../data/wiki_en_n{}_d300.pickle'.format(k)
+    top_words(outputVecFile, k=3000)
 
     # wiki_name = 'wiki_fr_n{}_d300'.format(k)
     # data, y, labels = load_wiki(wiki_name)
     # print(data.shape, y.shape, len(labels))
 
-    X, y, labels = load_dataset(name='MNIST-SMALL')
-    res = pre_calculate(X)
-    print(res['neighbors'])
+    # X, y, labels = load_dataset(name='MNIST-SMALL')
+    # res = pre_calculate(X)
+    # print(res['neighbors'])

@@ -107,7 +107,7 @@ circleView { id, position, radius, label, status } =
             { alpha = 0.0
             , sColor = "white"
             , sWidth = 0
-            , labelSize = "0px"
+            , labelSize = "10px"
             }
                 |> decoIdle (isIdle status)
                 |> decoSelected (isSelected status)
@@ -119,7 +119,7 @@ circleView { id, position, radius, label, status } =
             if
                 plotConfig.makeGris
                     && not (isImportant status)
-                    && not (isSelected status)
+                --&& not (isSelected status)
             then
                 "rgba(0, 0, 0, 0.2)"
             else
@@ -129,8 +129,9 @@ circleView { id, position, radius, label, status } =
             if (isSelected status) then
                 "red"
             else
-                "rgba(0,0,255,0.8)"
+                Common.labelToColorStr label 1
 
+        -- "rgba(0,0,255,0.8)"
         strokeColor =
             deco.sColor
 
@@ -206,7 +207,7 @@ circleView { id, position, radius, label, status } =
                 fgCircle
     in
         Svg.g []
-            (if (isSelected status) || (plotConfig.showLabel && (isNeighborHigh status)) then
+            (if plotConfig.showLabel || (isSelected status) || (isNeighborHigh status) then
                 [ displayCircle
                 , lblText
                 ]

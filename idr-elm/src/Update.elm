@@ -7,6 +7,7 @@ import Models exposing (..)
 import Plot.CircleGroup exposing (..)
 import Plot.Scatter exposing (createScatter, getMovedPoints)
 import Array exposing (..)
+import Task exposing (succeed, perform)
 
 
 {-| Big update function to handle all system messages

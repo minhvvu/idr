@@ -213,15 +213,12 @@ def do_reset():
     # stop all threads
     print("[Reset]Stopping the running threads ... ")
     if (shared_states['thread_tsnex']):
-        shared_states['thread_tsnex'].join(timeout=1)
+        shared_states['thread_tsnex'].join(timeout=0.5)
     if (shared_states['thread_pubsub']):
-        shared_states['thread_pubsub'].join(timeout=1)
-    time.sleep(2.5)
+        shared_states['thread_pubsub'].join(timeout=0.5)
+    time.sleep(1)
     print("[Reset]Threads stopped")
-
-    # flush all data in redis
     utils.clean_data()
-
     print("[Reset]Done!")
 
 
