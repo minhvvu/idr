@@ -67,8 +67,8 @@ view model =
                 , input
                     [ HtmlAttrs.type_ "range"
                     , HtmlAttrs.value (toString model.zoomFactor)
-                    , HtmlAttrs.min "1"
-                    , HtmlAttrs.max "150"
+                    , HtmlAttrs.min "0.1"
+                    , HtmlAttrs.max "200"
                     , HtmlEvents.onInput UpdateZoomFactor
                     ]
                     []

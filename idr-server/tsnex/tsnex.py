@@ -6,6 +6,8 @@ import sklearn
 from sklearn.manifold import TSNE
 from sklearn.manifold.t_sne import trustworthiness
 from sklearn.metrics.pairwise import pairwise_distances
+from scipy.spatial.distance import pdist
+from scipy.spatial.distance import squareform
 import numpy as np
 from numpy import linalg
 import networkx as nx
@@ -13,6 +15,7 @@ from time import time, sleep
 import utils
 import score
 
+MACHINE_EPSILON = np.finfo(np.double).eps
 
 shared_data = {
     'queue': None,
@@ -20,7 +23,7 @@ shared_data = {
     'fixed_pos': [],
     'errors': [],
     'grad_norms': [],
-    'gradients_acc': None
+    'z_info': None
 }
 
 
@@ -36,13 +39,14 @@ def boostrap_do_embedding(X, shared_queue=None):
     shared_data['fixed_pos'] = []
     shared_data['errors'] = []
     shared_data['grad_norms'] = []
-    shared_data['gradients_acc'] = np.zeros(X.shape[0])
+    shared_data['z_info'] = np.zeros(X.shape[0])
 
     sklearn.manifold.t_sne._gradient_descent = my_gradient_descent
     tsne = TSNE(
         n_components=2,
         random_state=0,
         init='random',
+        method='exact', # use this method to hook into kl_divergence
         perplexity=50,
         n_iter_without_progress=500,
         verbose=2
@@ -150,9 +154,9 @@ def my_gradient_descent(objective, p0, it, n_iter,
     fixed_pos = shared_data['fixed_pos'] if must_share else []
     errors = shared_data['errors'] if must_share else []
     grad_norms = shared_data['grad_norms'] if must_share else []
-    gradients_acc = shared_data['gradients_acc']
+    z_info = shared_data['z_info']
     if not must_share:
-        gradients_acc = np.zeros(gradients_acc.shape[0])
+        z_info = np.zeros(z_info.shape[0])
 
     # some temporary measurements to plot at client side
     hubs = []
@@ -196,7 +200,9 @@ def my_gradient_descent(objective, p0, it, n_iter,
             p.reshape(-1, 2)[fixed_ids] = fixed_pos
 
         # calculate gradient and KL divergence
-        error, grad = objective(p, *args, **kwargs)
+        # error, grad = objective(p, *args, **kwargs)
+        error, grad, divergences = my_kl_divergence(p, *args, **kwargs)
+        z_info += divergences
 
         X_embedded = p.copy().reshape(-1, 2)
         dist_y = pairwise_distances(X_embedded, squared=True)
@@ -223,18 +229,6 @@ def my_gradient_descent(objective, p0, it, n_iter,
         p += update
 
         if (i % status['n_jump'] == 0):
-            if status['use_pagerank'] and i % 50 == 0:
-                min_d, max_d = np.min(dist_y), np.max(dist_y)
-                threshold = (max_d - min_d) * 0.001
-                mask = dist_y < threshold
-                g = nx.from_numpy_matrix(1.0 * mask)
-                pageranks = list(nx.pagerank_numpy(g).values())
-                hubs, authors = nx.hits_numpy(g)
-                hubs, authors = list(hubs.values()), list(authors.values())
-                gradients_acc = np.array(hubs)
-            else:
-                gradients_acc += grad_per_point
-
             if status['measure'] is True:
                 trustwth = trustworthiness(dist_X_original, X_embedded,
                                            n_neighbors=10, precomputed=True)
@@ -248,19 +242,16 @@ def my_gradient_descent(objective, p0, it, n_iter,
             grad_norms.append(float(grad_norm))
             client_data = {
                 'embedding': X_embedded.ravel().tostring().decode('latin-1'),
-                'gradients': gradients_acc.tolist(),
+                'z_info': z_info.tolist(),
                 'seriesData': [
-                    # {'name': 'errors', 'series': [errors]},
+                    {'name': 'errors', 'series': [errors]},
+                    {'name': 'gradients norms', 'series': [grad_norms]},
                     # {'name': 'classification accuracy',
                     #     'series': [classification_scores]},
                     # {'name': 'vmeasure, silhoutte',
                     #     'series': [list(t) for t in zip(*clustering_scores)]},
                     # {'name': 'trustworthinesses,statbility,convergence',
                     #     'series': [list(t) for t in zip(*embedding_scores)]},
-                    # {'name': 'gradients norms', 'series': [grad_norms]},
-                    # {'name': 'HUBS', 'series': [hubs]},
-                    # {'name': 'Authors', 'series': [authors]},
-                    # {'name': 'Pageranks', 'series': [pageranks]}
                 ]
             }
             utils.publish_data(client_data)
@@ -307,3 +298,73 @@ def share_grad(grad2d, dist_y, fixed_ids, k=10):
                     if ki == k:
                         break
             grad2d[fixed_id] = 0.0
+
+control_var = 99
+
+def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
+                   skip_num_points=0):
+    """t-SNE objective function: gradient of the KL divergence
+    of p_ijs and q_ijs and the absolute error.
+
+    Parameters
+    ----------
+    params : array, shape (n_params,)
+        Unraveled embedding.
+
+    P : array, shape (n_samples * (n_samples-1) / 2,)
+        Condensed joint probability matrix.
+
+    degrees_of_freedom : float
+        Degrees of freedom of the Student's-t distribution.
+
+    n_samples : int
+        Number of samples.
+
+    n_components : int
+        Dimension of the embedded space.
+
+    skip_num_points : int (optional, default:0)
+        This does not compute the gradient for points with indices below
+        `skip_num_points`. This is useful when computing transforms of new
+        data where you'd like to keep the old data fixed.
+
+    Returns
+    -------
+    kl_divergence : float
+        Kullback-Leibler divergence of p_ij and q_ij.
+
+    grad : array, shape (n_params,)
+        Unraveled gradient of the Kullback-Leibler divergence with respect to
+        the embedding.
+    """
+    X_embedded = params.reshape(n_samples, n_components)
+
+    # Q is a heavy-tailed distribution: Student's t-distribution
+    dist = pdist(X_embedded, "sqeuclidean")
+    dist /= degrees_of_freedom
+    dist += 1.
+    dist **= (degrees_of_freedom + 1.0) / -2.0
+    Q = np.maximum(dist / (2.0 * np.sum(dist)), MACHINE_EPSILON)
+
+    # Optimization trick below: np.dot(x, y) is faster than
+    # np.sum(x * y) because it calls BLAS
+
+    # Objective: C (Kullback-Leibler divergence of P and Q)
+    # kl_divergence = 2.0 * np.dot(P, np.log(np.maximum(P, MACHINE_EPSILON) / Q))
+    divergences = P * np.log(np.maximum(P, MACHINE_EPSILON) / Q)
+    kl_divergence = 2.0 * np.sum(divergences)
+    divergences = squareform(divergences)
+    divergences = np.sum(divergences, axis=1)
+
+    # Gradient: dC/dY
+    # pdist always returns double precision distances. Thus we need to take
+    grad = np.ndarray((n_samples, n_components), dtype=params.dtype)
+    PQd = squareform((P - Q) * dist)
+    for i in range(skip_num_points, n_samples):
+        grad[i] = np.dot(np.ravel(PQd[i], order='K'),
+                         X_embedded[i] - X_embedded)
+    grad = grad.ravel()
+    c = 2.0 * (degrees_of_freedom + 1.0) / degrees_of_freedom
+    grad *= c
+
+    return kl_divergence, grad, divergences

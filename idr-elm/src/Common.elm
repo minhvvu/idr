@@ -29,15 +29,15 @@ type alias PlotConfig =
 
 plotConfig : PlotConfig
 plotConfig =
-    { width = 1220.0
-    , height = 960.0
+    { width = 1200.0
+    , height = 840.0
     , padding = 30.0
     , circleRadius = 5
     , selectionRadius = 0 -- set to zero to disable, default = 20
-    , minCircleRadius = 4
+    , minCircleRadius = 3
     , maxCircleRadius = 8
     , fixedRadius = False
-    , autoZoom = True
+    , autoZoom = False
     , nNeighbors = 20
     , showImage = False
     , showLabel = True

@@ -125,6 +125,12 @@ circleView { id, position, radius, label, status } =
             else
                 Common.labelToColorStr label deco.alpha
 
+        textColor =
+            if (isSelected status) then
+                "red"
+            else
+                "rgba(0,0,255,0.8)"
+
         strokeColor =
             deco.sColor
 
@@ -147,7 +153,7 @@ circleView { id, position, radius, label, status } =
             Svg.text_
                 [ x (centerX 4)
                 , y (centerY -4)
-                , fill "black"
+                , fill textColor
                 , fontSize deco.labelSize
                 ]
                 [ Html.text label ]
@@ -241,7 +247,7 @@ decoSelected flag deco =
             | alpha = 1
             , sColor = "rgba(255, 0, 0, 1)"
             , sWidth = 1.0
-            , labelSize = "12px"
+            , labelSize = "16px"
         }
     else
         deco
@@ -271,7 +277,7 @@ decoNeighborHigh : Bool -> Deco -> Deco
 decoNeighborHigh flag deco =
     if flag then
         { deco
-            | alpha = 0.4
+            | alpha = 1.0
             , sColor = "rgba(255, 69, 0, 0.8)"
             , sWidth = 1.0
             , labelSize = "9px"
