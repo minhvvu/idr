@@ -34,8 +34,8 @@ initial_server_status = {
     # use pagerank to find the most influential points
     'use_pagerank': False,
 
-    # use weights for interacted points
-    'use_weight': True,
+    # use weights for interacted points. Weight = 1: no affect
+    'use_weight': 100.0,
 
     # share grandient of moved points to its neighbors
     'share_grad': False,

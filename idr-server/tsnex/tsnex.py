@@ -2,20 +2,23 @@
 # interactive tsne:
 # https://www.oreilly.com/learning/an-illustrated-introduction-to-the-t-sne-algorithm
 
+import numpy as np
+from numpy import linalg
 import sklearn
 from sklearn.manifold import TSNE
 from sklearn.manifold.t_sne import trustworthiness
 from sklearn.metrics.pairwise import pairwise_distances
+from sklearn.neighbors import NearestNeighbors
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
-import numpy as np
-from numpy import linalg
 import networkx as nx
 from time import time, sleep
 import utils
 import score
 
+
 MACHINE_EPSILON = np.finfo(np.double).eps
+
 
 shared_data = {
     'queue': None,
@@ -46,7 +49,7 @@ def boostrap_do_embedding(X, shared_queue=None):
         n_components=2,
         random_state=0,
         init='random',
-        method='exact', # use this method to hook into kl_divergence
+        method='exact',  # use this method to hook into kl_divergence
         perplexity=50,
         n_iter_without_progress=500,
         verbose=2
@@ -148,7 +151,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
     # weights = pdist(X_original)
     # dist_X_original = squareform(weights)
     # weights = weights / np.sum(weights)
-    weights = None
+    weights = np.ones_like(dist_X_original)
+    np.fill_diagonal(weights, 0.0)
 
     shared_queue = shared_data['queue']
     must_share = utils.get_server_status(['accumulate'])
@@ -197,32 +201,42 @@ def my_gradient_descent(objective, p0, it, n_iter,
             fixed_ids = shared_item['fixed_ids']
             fixed_pos = shared_item['fixed_pos']
 
-
         # set the fixed points
         if fixed_ids and fixed_pos:
             p.reshape(-1, 2)[fixed_ids] = fixed_pos
 
         # calculate gradient and KL divergence
         # error, grad = objective(p, *args, **kwargs)
-        
-        if status['use_weight']:
-            # update weight for moved points
-            pass
 
+        if status['use_weight'] != 1.0 and fixed_ids:
+            # update weight for moved points
+            # calculate knn of all points
+            # get neighbors of moved points
+            # add weights for these points (accumulated)
+            X_embedded = p.copy().reshape(-1, 2)
+            model = NearestNeighbors(n_neighbors=5, algorithm='ball_tree')
+            model.fit(X_embedded)
+            yknns = model.kneighbors(fixed_pos, return_distance=False)
+            for i in range(len(fixed_ids)):
+                src_id = fixed_ids[i]
+                target_ids = yknns[i]
+                for target_id in target_ids:
+                    if target_id != src_id:
+                        weights[src_id][target_id] = weights[target_id][src_id] = \
+                            float(status['use_weight'])
 
         kwargs['weights'] = weights
         error, grad, divergences = my_kl_divergence(p, *args, **kwargs)
         z_info += divergences
-        
+
         # tai sao lai su dung odl-`p` o day, le ra phai update roi chu
         # X_embedded = p.copy().reshape(-1, 2)
         # dist_y = pairwise_distances(X_embedded, squared=True)
 
-        if fixed_ids:
-            if status['share_grad']:
-                share_grad(grad.reshape(-1, 2), dist_y, fixed_ids)
-            else:
-                grad.reshape(-1, 2)[fixed_ids] = 0.0
+        if fixed_ids and status['share_grad']:
+            share_grad(grad.reshape(-1, 2), dist_y, fixed_ids)
+        else:
+            grad.reshape(-1, 2)[fixed_ids] = 0.0
 
         # calculate the magnitude of gradient of each point
         grad_per_point = linalg.norm(grad.reshape(-1, 2), axis=1)
@@ -246,9 +260,10 @@ def my_gradient_descent(objective, p0, it, n_iter,
             if status['measure'] is True:
                 trustwth = trustworthiness(dist_X_original, X_embedded,
                                            n_neighbors=10, precomputed=True)
-                stability, convergence = score.PIVE_measure(old_p, p, dist_X_original)
+                stability, convergence = score.PIVE_measure(
+                    old_p, p, dist_X_original)
                 embedding_scores.append((trustwth, stability, convergence))
-                
+
                 # classification_scores.append(score.classify(X_embedded))
                 # clustering_scores.append(score.clutering(X_embedded))
 
@@ -313,10 +328,9 @@ def share_grad(grad2d, dist_y, fixed_ids, k=10):
                         break
             grad2d[fixed_id] = 0.0
 
-control_var = 99
 
 def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
-                   skip_num_points=0, weights=None):
+                     skip_num_points=0, weights=None):
     """t-SNE objective function: gradient of the KL divergence
     of p_ijs and q_ijs and the absolute error.
 
@@ -357,7 +371,11 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
     # Q is a heavy-tailed distribution: Student's t-distribution
     dist = pdist(X_embedded, "sqeuclidean")
     if weights is None:
-        weights = np.ones_like(dist) * 0.1
+        weights = np.ones_like(dist)
+    else:
+        weights = squareform(weights)
+        # BUG ValueError: Distance matrix 'X' diagonal must be zero.
+
     dist *= weights
     dist /= degrees_of_freedom
     dist += 1.
