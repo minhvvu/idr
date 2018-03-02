@@ -145,6 +145,10 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
     X_original = utils.get_X()
     dist_X_original = pairwise_distances(X_original, squared=True)
+    # weights = pdist(X_original)
+    # dist_X_original = squareform(weights)
+    # weights = weights / np.sum(weights)
+    weights = None
 
     shared_queue = shared_data['queue']
     must_share = utils.get_server_status(['accumulate'])
@@ -172,9 +176,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
         if n_iter < 500 and i > n_iter:  # early_exaggeration
             break
 
-        status = utils.get_server_status(
-            ['n_jump', 'tick_frequence', 'n_neighbors', 'share_grad',
-             'measure', 'use_pagerank', 'hard_move', 'stop'])
+        status = utils.get_server_status()
         if status['stop'] is True:
             return p, error, i
 
@@ -195,17 +197,26 @@ def my_gradient_descent(objective, p0, it, n_iter,
             fixed_ids = shared_item['fixed_ids']
             fixed_pos = shared_item['fixed_pos']
 
+
         # set the fixed points
         if fixed_ids and fixed_pos:
             p.reshape(-1, 2)[fixed_ids] = fixed_pos
 
         # calculate gradient and KL divergence
         # error, grad = objective(p, *args, **kwargs)
+        
+        if status['use_weight']:
+            # update weight for moved points
+            pass
+
+
+        kwargs['weights'] = weights
         error, grad, divergences = my_kl_divergence(p, *args, **kwargs)
         z_info += divergences
-
-        X_embedded = p.copy().reshape(-1, 2)
-        dist_y = pairwise_distances(X_embedded, squared=True)
+        
+        # tai sao lai su dung odl-`p` o day, le ra phai update roi chu
+        # X_embedded = p.copy().reshape(-1, 2)
+        # dist_y = pairwise_distances(X_embedded, squared=True)
 
         if fixed_ids:
             if status['share_grad']:
@@ -227,6 +238,9 @@ def my_gradient_descent(objective, p0, it, n_iter,
         update = momentum * update - learning_rate * grad
         old_p = p.copy()
         p += update
+
+        X_embedded = p.copy().reshape(-1, 2)
+        dist_y = pairwise_distances(X_embedded, squared=True)
 
         if (i % status['n_jump'] == 0):
             if status['measure'] is True:
@@ -302,7 +316,7 @@ def share_grad(grad2d, dist_y, fixed_ids, k=10):
 control_var = 99
 
 def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
-                   skip_num_points=0):
+                   skip_num_points=0, weights=None):
     """t-SNE objective function: gradient of the KL divergence
     of p_ijs and q_ijs and the absolute error.
 
@@ -337,10 +351,14 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
         Unraveled gradient of the Kullback-Leibler divergence with respect to
         the embedding.
     """
+
     X_embedded = params.reshape(n_samples, n_components)
 
     # Q is a heavy-tailed distribution: Student's t-distribution
     dist = pdist(X_embedded, "sqeuclidean")
+    if weights is None:
+        weights = np.ones_like(dist) * 0.1
+    dist *= weights
     dist /= degrees_of_freedom
     dist += 1.
     dist **= (degrees_of_freedom + 1.0) / -2.0
@@ -360,7 +378,7 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
     # Gradient: dC/dY
     # pdist always returns double precision distances. Thus we need to take
     grad = np.ndarray((n_samples, n_components), dtype=params.dtype)
-    PQd = squareform((P - Q) * dist)
+    PQd = squareform((P - Q) * dist * weights)
     for i in range(skip_num_points, n_samples):
         grad[i] = np.dot(np.ravel(PQd[i], order='K'),
                          X_embedded[i] - X_embedded)
