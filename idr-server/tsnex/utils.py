@@ -8,7 +8,7 @@ import redis
 # status object to store some server infos
 initial_server_status = {
     # time in second to sleep while waiting the data being sent to client
-    'tick_frequence': 1,
+    'tick_frequence': 0.25,
 
     # number of iterations that we skip sending data to client
     'n_jump': 10,
@@ -35,7 +35,7 @@ initial_server_status = {
     'use_pagerank': False,
 
     # use weights for interacted points. Weight = 1: no affect
-    'use_weight': 100.0,
+    'use_weight': 10,
 
     # share grandient of moved points to its neighbors
     'share_grad': False,

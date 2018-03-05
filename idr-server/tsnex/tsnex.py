@@ -175,6 +175,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
     clustering_scores = []
 
     print("\nGradien Descent:")
+    i = 0
     while True:
         i += 1
         if n_iter < 500 and i > n_iter:  # early_exaggeration
@@ -201,42 +202,38 @@ def my_gradient_descent(objective, p0, it, n_iter,
             fixed_ids = shared_item['fixed_ids']
             fixed_pos = shared_item['fixed_pos']
 
-        # set the fixed points
-        if fixed_ids and fixed_pos:
-            p.reshape(-1, 2)[fixed_ids] = fixed_pos
+
+        weights = np.ones_like(dist_X_original)
+        np.fill_diagonal(weights, 0.0)
+        
+        if fixed_ids:
+            if status['use_weight'] != 1.0:
+                X_embedded = p.copy().reshape(-1, 2)
+                model = NearestNeighbors(n_neighbors=50, algorithm='auto') # ball_tree
+                model.fit(X_embedded)
+                yknns = model.kneighbors(X_embedded[fixed_ids], return_distance=False)
+                for fid in range(len(fixed_ids)):
+                    src_id = fixed_ids[fid]
+                    target_ids = yknns[fid]
+                    for target_id in target_ids:
+                        if target_id != src_id:
+                            weights[src_id][target_id] = weights[target_id][src_id] = \
+                                float(status['use_weight'])
+
+            # set the fixed points
+            if fixed_pos:
+                p.reshape(-1, 2)[fixed_ids] = fixed_pos
 
         # calculate gradient and KL divergence
-        # error, grad = objective(p, *args, **kwargs)
-
-        if status['use_weight'] != 1.0 and fixed_ids:
-            # update weight for moved points
-            # calculate knn of all points
-            # get neighbors of moved points
-            # add weights for these points (accumulated)
-            X_embedded = p.copy().reshape(-1, 2)
-            model = NearestNeighbors(n_neighbors=5, algorithm='ball_tree')
-            model.fit(X_embedded)
-            yknns = model.kneighbors(fixed_pos, return_distance=False)
-            for i in range(len(fixed_ids)):
-                src_id = fixed_ids[i]
-                target_ids = yknns[i]
-                for target_id in target_ids:
-                    if target_id != src_id:
-                        weights[src_id][target_id] = weights[target_id][src_id] = \
-                            float(status['use_weight'])
-
         kwargs['weights'] = weights
         error, grad, divergences = my_kl_divergence(p, *args, **kwargs)
         z_info += divergences
 
-        # tai sao lai su dung odl-`p` o day, le ra phai update roi chu
-        # X_embedded = p.copy().reshape(-1, 2)
-        # dist_y = pairwise_distances(X_embedded, squared=True)
-
-        if fixed_ids and status['share_grad']:
-            share_grad(grad.reshape(-1, 2), dist_y, fixed_ids)
-        else:
-            grad.reshape(-1, 2)[fixed_ids] = 0.0
+        if fixed_ids:
+            if status['share_grad']:
+                share_grad(grad.reshape(-1, 2), dist_y, fixed_ids)
+            else:
+                grad.reshape(-1, 2)[fixed_ids] = 0.0
 
         # calculate the magnitude of gradient of each point
         grad_per_point = linalg.norm(grad.reshape(-1, 2), axis=1)
@@ -284,6 +281,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 ]
             }
             utils.publish_data(client_data)
+            # hold for a while so that client can receive this new data
+            sleep(status['tick_frequence'])
 
         if (i + 1) % n_iter_check == 0:
             toc = time()

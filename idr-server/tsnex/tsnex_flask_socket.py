@@ -146,7 +146,7 @@ def run_send_to_client(ws):
                 ws.send(json.dumps(subscribedData))
 
         status = utils.get_server_status(['tick_frequence', 'stop'])
-        if status['stop'] is True:
+        if status['stop']:
             break
         else:
             time.sleep(status['tick_frequence'])
@@ -159,9 +159,6 @@ def continue_server(ws):
     while not ws.closed:
         message = ws.receive()
         if message:
-            # status = utils.get_server_status(fields=['client_iter'])
-            # print("Synchronizing current_it: client = {}, server = {}" \
-            #     .format(message, status['client_iter']))
             utils.continue_server()
 
 
