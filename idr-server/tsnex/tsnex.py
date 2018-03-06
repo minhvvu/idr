@@ -373,9 +373,8 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
         weights = np.ones_like(dist)
     else:
         weights = squareform(weights)
-        # BUG ValueError: Distance matrix 'X' diagonal must be zero.
 
-    dist *= weights
+    # dist *= weights
     dist /= degrees_of_freedom
     dist += 1.
     dist **= (degrees_of_freedom + 1.0) / -2.0
@@ -386,7 +385,7 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
 
     # Objective: C (Kullback-Leibler divergence of P and Q)
     # kl_divergence_original = 2.0 * np.dot(P, np.log(np.maximum(P, MACHINE_EPSILON) / Q))
-    divergences = P * np.log(np.maximum(P, MACHINE_EPSILON) / Q)
+    divergences = P * np.log(np.maximum(P, MACHINE_EPSILON) / Q) * weights
     kl_divergence = 2.0 * np.sum(divergences)
     divergences = squareform(divergences)
     divergences = np.sum(divergences, axis=1)
@@ -395,7 +394,8 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
     # Gradient: dC/dY
     # pdist always returns double precision distances. Thus we need to take
     grad = np.ndarray((n_samples, n_components), dtype=params.dtype)
-    PQd = squareform((P - Q) * dist * weights)
+    # PQd = squareform((P - Q) * dist * weights)
+    PQd = squareform((P - Q) * dist)
     for i in range(skip_num_points, n_samples):
         grad[i] = np.dot(np.ravel(PQd[i], order='K'),
                          X_embedded[i] - X_embedded)
