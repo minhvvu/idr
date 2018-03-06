@@ -54,10 +54,10 @@ circleToPoint c =
 
 {-| Move a circle to a new position
 -}
-moveCircle : Draggable.Delta -> Circle -> Circle
+moveCircle : Vec2 -> Circle -> Circle
 moveCircle delta circle =
     { circle
-        | position = Vector2.add (Vector2.fromTuple delta) circle.position
+        | position = Vector2.add delta circle.position
     }
 
 

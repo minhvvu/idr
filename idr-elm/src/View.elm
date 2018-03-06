@@ -59,17 +59,17 @@ view model =
             ]
         , Grid.row [{- debug message and slider for param controlling -}]
             [ Grid.col []
-                [ slider "Zoom factor:" model.zoomFactor ( 0.1, 300 ) UpdateZoomFactor
-                , slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
-                , Html.label [ class "ml-4" ]
+                [ Html.label [ class "ml-4" ]
                     [ text "Filter: "
                     , input [ HtmlAttrs.placeholder "Search by label", onInput SearchByLabel ] []
                     ]
+                , slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
+                , slider "Zoom factor:" model.zoomFactor ( 0.1, 50 ) UpdateZoomFactor
                 ]
             , Grid.col []
                 [ checkbox "Toggle labels" model.cf.showLabel ToggleLabel
                 , checkbox "Toggle colors" model.cf.showColor ToggleColor
-                , checkbox "Toggle AutoZoom" model.cf.autoZoom ToggleAutoZoom
+                , checkbox "Toggle Fit" model.cf.autoZoom ToggleAutoZoom
                 ]
             ]
         , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]

@@ -8,6 +8,7 @@ import Plot.CircleGroup exposing (..)
 import Plot.Scatter exposing (createScatter, getMovedPoints)
 import Array exposing (..)
 import Task exposing (succeed, perform)
+import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
 
 
 {-| Big update function to handle all system messages
@@ -63,24 +64,37 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
 
         {- Drag circle in scatter plot commands -}
         OnDragBy delta ->
-            let
-                newScatter =
-                    { scatter | points = dragActiveBy delta scatter.points }
-            in
-                { model | scatter = newScatter } ! []
+            if model.pointMoving then
+                let
+                    newScatter =
+                        { scatter | points = dragActiveBy delta scatter.points }
+                in
+                    { model | scatter = newScatter } ! []
+            else
+                let
+                    newDelta =
+                        Vector2.scale -1.0 delta
+
+                    newConfig =
+                        { cf | center = cf.center |> Vector2.add newDelta }
+                in
+                    { model | cf = newConfig } ! []
 
         StartDragging circleId ->
-            let
-                newScatter =
-                    { scatter
-                        | selectedId = circleId
-                        , points = startDragging circleId scatter.points
-                    }
-                        -- the dragged circle is also a selected one,
-                        -- so we have to show its neighbors in high-dim
-                        |> Plot.Scatter.updateSelectedCircle circleId neighbors
-            in
-                { model | scatter = newScatter } ! []
+            if String.isEmpty circleId then
+                { model | pointMoving = False } ! []
+            else
+                let
+                    newScatter =
+                        { scatter
+                            | selectedId = circleId
+                            , points = startDragging circleId scatter.points
+                        }
+                            -- the dragged circle is also a selected one,
+                            -- so we have to show its neighbors in high-dim
+                            |> Plot.Scatter.updateSelectedCircle circleId neighbors
+                in
+                    { model | scatter = newScatter, pointMoving = True } ! []
 
         StopDragging ->
             let
@@ -119,9 +133,6 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
             in
                 { model | cf = { cf | selectionRadius = groupSize } } ! []
 
-        ClickSvg str ->
-            ( model, Cmd.none )
-
         ToggleLabel ->
             { model | cf = { cf | showLabel = not model.cf.showLabel } } ! []
 
@@ -129,7 +140,14 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
             { model | cf = { cf | showColor = not model.cf.showColor } } ! []
 
         ToggleAutoZoom ->
-            { model | cf = { cf | autoZoom = not model.cf.autoZoom } } ! []
+            { model
+                | cf =
+                    { cf
+                        | autoZoom = not model.cf.autoZoom
+                        , center = Vector2.vec2 0 0
+                    }
+            }
+                ! []
 
         SearchByLabel query ->
             let
@@ -142,6 +160,22 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                     }
             in
                 { model | scatter = newScatter } ! []
+
+        Zoom factor ->
+            let
+                newZoom =
+                    model.zoomFactor
+                        |> (+)
+                            (if factor > 0 then
+                                1.0
+                             else
+                                -1.0
+                            )
+                        |> round
+                        |> toFloat
+                        |> clamp 0.1 50
+            in
+                { model | zoomFactor = newZoom } ! []
 
 
 {-| Util function to update new received data into model

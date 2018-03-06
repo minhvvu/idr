@@ -5,17 +5,19 @@ import Html.Attributes as HtmlAttrs exposing (class)
 import Bootstrap.ListGroup as ListGroup exposing (..)
 import Bootstrap.Badge as Badge
 import Svg exposing (..)
-import Svg.Attributes as SvgAttrs exposing (width, height)
+import Svg.Attributes as SvgAttrs exposing (..)
 import Svg.Events as SvgEvents exposing (onClick)
 import Visualization.Scale as Scale exposing (ContinuousScale)
 import Draggable
-import Msgs exposing (Msg)
+import Msgs exposing (..)
 import Common exposing (..)
 import Plot.Circle exposing (..)
 import Plot.CircleGroup exposing (..)
 import Plot.Axes exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
 import Array exposing (..)
+import VirtualDom
+import Json.Decode as Decode
 
 
 {-| Scatter Model contains data used for rendering a scatter plot
@@ -54,7 +56,7 @@ createScatter rawPoints zoomFactor cf =
             ( Common.minField .z rawPoints, Common.maxField .z rawPoints )
 
         autoZoomFactor =
-            [ zoomFactor, abs minX, abs maxX, abs minY, abs maxY ]
+            [ abs minX, abs maxX, abs minY, abs maxY ]
                 |> List.maximum
                 |> Maybe.withDefault zoomFactor
 
@@ -103,17 +105,47 @@ createScatter rawPoints zoomFactor cf =
 
 
 {-| Public API for plot the scatter
+-- Zooming and Panning: <https://github.com/zaboco/elm-draggable/blob/master/examples/PanAndZoomExample.elm>
 -}
 scatterView : Scatter -> PlotConfig -> Svg Msg
 scatterView { points, xScale, yScale } cf =
-    svg
-        [ SvgAttrs.width <| toString <| plotConfig.width
-        , SvgAttrs.height <| toString <| plotConfig.height
-        , SvgEvents.onClick (Msgs.ClickSvg "do-nothing")
-        ]
-        [ --drawAxes ( xScale, yScale )
-          drawScatter points cf
-        ]
+    let
+        ( cx, cy ) =
+            ( getX cf.center, getY cf.center )
+
+        panning =
+            "translate(" ++ toString -cx ++ ", " ++ toString -cy ++ ")"
+    in
+        svg
+            [ SvgAttrs.width <| toString <| plotConfig.width
+            , SvgAttrs.height <| toString <| plotConfig.height
+            , handleZoom Msgs.Zoom
+            , Draggable.mouseTrigger "" DragMsg
+            ]
+            [ Svg.g
+                [ SvgAttrs.transform (panning)
+                ]
+                [ -- drawAxes ( xScale, yScale )
+                  drawScatter points cf
+                ]
+            ]
+
+
+handleZoom : (Float -> msg) -> Svg.Attribute msg
+handleZoom onZoom =
+    let
+        ignoreDefaults =
+            VirtualDom.Options True True
+    in
+        VirtualDom.onWithOptions
+            "wheel"
+            ignoreDefaults
+            (Decode.map onZoom <| Decode.field "deltaY" Decode.float)
+
+
+num : (String -> Svg.Attribute msg) -> number -> Svg.Attribute msg
+num attr value =
+    attr (toString value)
 
 
 {-| Private function take plot the circles by calling the util function from `CircleGroup`

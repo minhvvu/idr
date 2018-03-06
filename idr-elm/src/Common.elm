@@ -4,6 +4,7 @@ import List.Extra exposing (maximumBy, minimumBy)
 import Array
 import Color exposing (..)
 import Visualization.Scale exposing (category20a, category10)
+import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
 
 
 type alias CircleId =
@@ -24,6 +25,7 @@ type alias PlotConfig =
     , showImage : Bool
     , showLabel : Bool
     , showColor : Bool
+    , center : Vec2
     }
 
 
@@ -37,11 +39,12 @@ plotConfig =
     , minCircleRadius = 3
     , maxCircleRadius = 8
     , fixedRadius = False
-    , autoZoom = True
+    , autoZoom = False
     , nNeighbors = 50
     , showImage = False
     , showLabel = False
     , showColor = False
+    , center = Vector2.vec2 0 0
     }
 
 

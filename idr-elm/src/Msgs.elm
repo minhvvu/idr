@@ -3,6 +3,7 @@ module Msgs exposing (..)
 import Draggable
 import Draggable.Events exposing (onDragBy, onDragStart, onClick)
 import Common exposing (CircleId)
+import Math.Vector2 as Vector2 exposing (Vec2)
 
 
 type Msg
@@ -17,22 +18,22 @@ type Msg
     | ResetData -- [send] send reset data command
     | DragMsg (Draggable.Msg CircleId) -- draggable message
     | StartDragging CircleId
-    | OnDragBy Draggable.Delta
+    | OnDragBy Vec2
     | StopDragging
     | Select String
     | UpdateZoomFactor String -- zoom in/ zoom out the svg
     | UpdateGroupMoving String -- size of the radius using for group moving
-    | ClickSvg String
     | ToggleLabel
     | ToggleColor
     | ToggleAutoZoom
     | SearchByLabel String
+    | Zoom Float
 
 
 myDragConfig : Draggable.Config CircleId Msg
 myDragConfig =
     Draggable.customConfig
-        [ onDragBy OnDragBy
+        [ onDragBy (OnDragBy << Vector2.fromTuple)
         , onDragStart StartDragging
         , onClick Select
         ]

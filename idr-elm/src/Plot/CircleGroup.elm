@@ -8,6 +8,7 @@ import Svg.Keyed
 import Plot.Circle exposing (..)
 import Common exposing (..)
 import Array exposing (..)
+import Math.Vector2 exposing (Vec2)
 
 
 type alias CircleGroup =
@@ -120,7 +121,7 @@ stopDragging group =
 
 {-| Drag the moving circles by applying `moveCircle` to each circle
 -}
-dragActiveBy : Delta -> CircleGroup -> CircleGroup
+dragActiveBy : Vec2 -> CircleGroup -> CircleGroup
 dragActiveBy delta group =
     { group
         | movingCircles = List.map (moveCircle delta) group.movingCircles
