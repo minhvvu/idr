@@ -26,6 +26,7 @@ type Msg
     | ToggleLabel
     | ToggleColor
     | ToggleAutoZoom
+    | SearchByLabel String
 
 
 myDragConfig : Draggable.Config CircleId Msg

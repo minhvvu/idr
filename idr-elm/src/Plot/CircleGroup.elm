@@ -127,7 +127,7 @@ dragActiveBy delta group =
     }
 
 
-{-| Update selected circle
+{-| Update status flag for the selected point by user
 -}
 updateSelectedCircle : CircleId -> List CircleId -> CircleGroup -> CircleGroup
 updateSelectedCircle circleId neighbors group =
@@ -139,6 +139,19 @@ updateSelectedCircle circleId neighbors group =
     }
 
 
+{-| Update status flag for highlighted points via user query
+-}
+updateHighlightPoint : String -> CircleGroup -> CircleGroup
+updateHighlightPoint lowerQuery group =
+    { group
+        | idleCircles =
+            group.idleCircles
+                |> List.map (Plot.Circle.toggleHighlight lowerQuery)
+    }
+
+
+{-| Update status flag for the important points returned from server
+-}
 updateImportantPoint : List String -> CircleGroup -> CircleGroup
 updateImportantPoint importantPoints group =
     { group | idleCircles = List.map (Plot.Circle.makeImportant importantPoints) group.idleCircles }

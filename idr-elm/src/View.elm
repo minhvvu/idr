@@ -61,6 +61,10 @@ view model =
             [ Grid.col []
                 [ slider "Zoom factor:" model.zoomFactor ( 0.1, 300 ) UpdateZoomFactor
                 , slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
+                , Html.label [ class "ml-4" ]
+                    [ text "Filter: "
+                    , input [ HtmlAttrs.placeholder "Search by label", onInput SearchByLabel ] []
+                    ]
                 ]
             , Grid.col []
                 [ checkbox "Toggle labels" model.cf.showLabel ToggleLabel

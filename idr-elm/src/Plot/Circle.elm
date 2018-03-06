@@ -87,6 +87,22 @@ toggleNeighborHigh neighbors ({ id, status } as circle) =
     }
 
 
+{-| Toggle `sHIGHLIGHT` status of a point when user searches by label
+-}
+toggleHighlight : String -> Circle -> Circle
+toggleHighlight lowerQuery ({ status, text } as circle) =
+    { circle
+        | status =
+            if
+                not (String.isEmpty lowerQuery)
+                    && (String.contains lowerQuery (String.toLower text))
+            then
+                setHighligh status
+            else
+                unsetHighlight status
+    }
+
+
 {-| Set status of a point in a list of important points
 -}
 makeImportant : List String -> Circle -> Circle
@@ -116,6 +132,7 @@ circleView { id, position, radius, label, text, status } cf =
                 |> decoImportant (isImportant status)
                 |> decoFixed (isFixed status)
                 |> decoNeighborHigh (isNeighborHigh status)
+                |> decoHighlight (isHighlight status)
 
         color =
             if not cf.showColor && not (isImportant status) then
@@ -209,6 +226,7 @@ circleView { id, position, radius, label, text, status } cf =
                     || (isImportant status)
                     || (isSelected status)
                     || (isNeighborHigh status)
+                    || (isHighlight status)
              then
                 [ displayCircle
                 , lblText
@@ -289,6 +307,18 @@ decoNeighborHigh flag deco =
         deco
 
 
+decoHighlight : Bool -> Deco -> Deco
+decoHighlight flag deco =
+    if flag then
+        { deco
+            | sColor = "rgba(88, 24, 69, 1.0)"
+            , sWidth = 2.5
+            , labelSize = "12px"
+        }
+    else
+        deco
+
+
 
 {- Status of a point in scatter plot -}
 
@@ -313,6 +343,10 @@ sNEIGHBOR_HIGH =
     16
 
 
+sHIGHLIGHT =
+    32
+
+
 isIdle status =
     (Bitwise.and status sIDLE) > 0
 
@@ -331,6 +365,10 @@ isFixed status =
 
 isNeighborHigh status =
     (Bitwise.and status sNEIGHBOR_HIGH) > 0
+
+
+isHighlight status =
+    (Bitwise.and status sHIGHLIGHT) > 0
 
 
 setIdle status =
@@ -353,6 +391,10 @@ setNeighborHigh status =
     Bitwise.or status sNEIGHBOR_HIGH
 
 
+setHighligh status =
+    Bitwise.or status sHIGHLIGHT
+
+
 unsetSelected status =
     if (isSelected status) then
         Bitwise.xor status sSELECTED
@@ -363,5 +405,12 @@ unsetSelected status =
 unsetNeighborHigh status =
     if (isNeighborHigh status) then
         Bitwise.xor status sNEIGHBOR_HIGH
+    else
+        status
+
+
+unsetHighlight status =
+    if (isHighlight status) then
+        Bitwise.xor status sHIGHLIGHT
     else
         status

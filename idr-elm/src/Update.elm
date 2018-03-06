@@ -131,6 +131,18 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
         ToggleAutoZoom ->
             { model | cf = { cf | autoZoom = not model.cf.autoZoom } } ! []
 
+        SearchByLabel query ->
+            let
+                lowerQuery =
+                    String.toLower query
+
+                newScatter =
+                    { scatter
+                        | points = Plot.CircleGroup.updateHighlightPoint lowerQuery scatter.points
+                    }
+            in
+                { model | scatter = newScatter } ! []
+
 
 {-| Util function to update new received data into model
 -}
