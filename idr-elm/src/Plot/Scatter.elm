@@ -122,12 +122,10 @@ scatterView { points, xScale, yScale } cf =
             , handleZoom Msgs.Zoom
             , Draggable.mouseTrigger "" DragMsg
             ]
-            [ Svg.g
-                [ SvgAttrs.transform (panning)
-                ]
-                [ -- drawAxes ( xScale, yScale )
-                  drawScatter points cf
-                ]
+            [ drawAxes ( xScale, yScale )
+            , Svg.g
+                [ SvgAttrs.transform (panning) ]
+                [ drawScatter points cf ]
             ]
 
 

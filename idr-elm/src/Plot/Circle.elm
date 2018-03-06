@@ -221,18 +221,10 @@ circleView { id, position, radius, label, text, status } cf =
                 fgCircle
     in
         Svg.g []
-            (if
-                cf.showLabel
-                    || (isImportant status)
-                    || (isSelected status)
-                    || (isNeighborHigh status)
-                    || (isHighlight status)
-             then
-                [ displayCircle
-                , lblText
-                ]
-             else
+            (if isJustIdle status && not cf.showLabel then
                 [ displayCircle ]
+             else
+                [ displayCircle, lblText ]
             )
 
 
@@ -349,6 +341,10 @@ sHIGHLIGHT =
 
 isIdle status =
     (Bitwise.and status sIDLE) > 0
+
+
+isJustIdle status =
+    (Bitwise.or status sIDLE) == sIDLE
 
 
 isSelected status =
