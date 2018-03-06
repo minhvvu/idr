@@ -27,105 +27,45 @@ view model =
         , Grid.row [{- select box for dataset and debug message -}]
             [ Grid.col []
                 [ Select.select
-                    [ Select.id "dataset-name"
-                    , Select.onChange SelectDataset
-                    ]
-                    [ Select.item [ value "" ] [ text "--Select dataset--" ]
-                    , Select.item [ value "MNIST-SMALL" ] [ text "MNIST mini" ]
-                    , Select.item [ value "MNIST" ] [ text "MNIST full sample 3000" ]
-                    , Select.item [ value "COIL20" ] [ text "COIL-20" ]
-                    , Select.item [ value "COUNTRY1999" ] [ text "Country Indicators 1999" ]
-                    , Select.item [ value "COUNTRY2013" ] [ text "Country Indicators 2013" ]
-                    , Select.item [ value "COUNTRY2014" ] [ text "Country Indicators 2014" ]
-                    , Select.item [ value "COUNTRY2015" ] [ text "Country Indicators 2015" ]
-                    , Select.item [ value "WIKI-FR-1K" ] [ text "Top 1000 words in Wiki-French" ]
-                    , Select.item [ value "WIKI-FR-3K" ] [ text "Top 3000 words in Wiki-French" ]
-                    , Select.item [ value "WIKI-EN-1K" ] [ text "Top 1000 words in Wiki-English" ]
-                    , Select.item [ value "WIKI-EN-3K" ] [ text "Top 3000 words in Wiki-English" ]
+                    [ Select.id "dataset-name", Select.onChange SelectDataset ]
+                    [ sitem "--Select dataset--" ""
+                    , sitem "MNIST mini" "MNIST-SMALL"
+                    , sitem "MNIST full sample 3000" "MNIST"
+                    , sitem "COIL-20" "COIL20"
+                    , sitem "Country Indicators 1999" "COUNTRY1999"
+                    , sitem "Country Indicators 2013" "COUNTRY2013"
+                    , sitem "Country Indicators 2014" "COUNTRY2014"
+                    , sitem "Country Indicators 2015" "COUNTRY2015"
+                    , sitem "Top 1000 words in Wiki-French" "WIKI-FR-1K"
+                    , sitem "Top 3000 words in Wiki-French" "WIKI-FR-3K"
+                    , sitem "Top 1000 words in Wiki-English" "WIKI-EN-1K"
+                    , sitem "Top 3000 words in Wiki-English" "WIKI-EN-3K"
                     ]
                 ]
             , Grid.col [] [ text model.debugMsg ]
             ]
         , Grid.row [{- A serie of buttons -}]
             [ Grid.col []
-                [ Button.button
-                    [ secondary, Button.attrs [ class "ml-4" ], onClick LoadDataset ]
-                    [ text "Load Dataset" ]
+                [ button "Load Dataset" LoadDataset
                 , ButtonGroup.buttonGroup
                     [ ButtonGroup.attrs [ class "ml-4" ] ]
-                    [ ButtonGroup.button
-                        [ secondary, onClick DoEmbedding ]
-                        [ text "Do Embedding" ]
-                    , ButtonGroup.button
-                        [ secondary, onClick PauseServer ]
-                        [ text "Pause Server" ]
-                    , ButtonGroup.button
-                        [ secondary, onClick ContinueServer ]
-                        [ text "Continue Server" ]
+                    [ groupButton "Do Embedding" DoEmbedding
+                    , groupButton "Pause" PauseServer
+                    , groupButton "Continue" ContinueServer
                     ]
-                , Button.button
-                    [ secondary, Button.attrs [ class "ml-4" ], onClick ResetData ]
-                    [ text "Reset Data" ]
-                , Button.button
-                    [ secondary, Button.attrs [ class "ml-4" ], onClick Msgs.SendMovedPoints ]
-                    [ text "Send Moved Points" ]
+                , button "Reset Data" ResetData
+                , button "Send Moved Points" SendMovedPoints
                 ]
             ]
         , Grid.row [{- debug message and slider for param controlling -}]
             [ Grid.col []
-                [ Html.label [ class "ml-4" ]
-                    [ text "Zoom factor:"
-                    , input
-                        [ HtmlAttrs.type_ "range"
-                        , HtmlAttrs.value (toString model.zoomFactor)
-                        , HtmlAttrs.min "0.1"
-                        , HtmlAttrs.max "200"
-                        , HtmlEvents.onInput UpdateZoomFactor
-                        ]
-                        []
-                    , text (toString model.zoomFactor)
-                    ]
-                , Html.label [ class "ml-4" ]
-                    [ text "Group moving:"
-                    , input
-                        [ HtmlAttrs.type_ "range"
-                        , HtmlAttrs.value (toString model.cf.selectionRadius)
-                        , HtmlAttrs.min "0"
-                        , HtmlAttrs.max "30"
-                        , HtmlEvents.onInput UpdateGroupMoving
-                        ]
-                        []
-                    , text (toString model.cf.selectionRadius)
-                    ]
+                [ slider "Zoom factor:" model.zoomFactor ( 0.1, 300 ) UpdateZoomFactor
+                , slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
                 ]
             , Grid.col []
-                [ Html.label [ class "ml-4" ]
-                    [ input
-                        [ HtmlAttrs.type_ "checkbox"
-                        , HtmlAttrs.checked model.cf.showLabel
-                        , HtmlEvents.onClick ToggleLabel
-                        ]
-                        []
-                    , text "Toggle labels"
-                    ]
-                , Html.label [ class "ml-4" ]
-                    [ input
-                        [ HtmlAttrs.type_ "checkbox"
-                        , HtmlAttrs.checked model.cf.showColor
-                        , HtmlEvents.onClick ToggleColor
-                        ]
-                        []
-                    , text "Toggle colors"
-                    ]
-                , Html.label [ class "ml-4" ]
-                    [ input
-                        [ HtmlAttrs.type_ "checkbox"
-                        , HtmlAttrs.checked model.cf.autoZoom
-                        , HtmlEvents.onClick ToggleAutoZoom
-                        ]
-                        []
-                    , text "Toggle AutoZoom"
-                    ]
+                [ checkbox "Toggle labels" model.cf.showLabel ToggleLabel
+                , checkbox "Toggle colors" model.cf.showColor ToggleColor
+                , checkbox "Toggle AutoZoom" model.cf.autoZoom ToggleAutoZoom
                 ]
             ]
         , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]
@@ -143,3 +83,50 @@ view model =
                 )
             ]
         ]
+
+
+checkbox : String -> Bool -> Msg -> Html Msg
+checkbox name value toggleMsg =
+    Html.label [ class "ml-4" ]
+        [ input
+            [ HtmlAttrs.type_ "checkbox"
+            , HtmlAttrs.checked value
+            , HtmlEvents.onClick toggleMsg
+            ]
+            []
+        , text name
+        ]
+
+
+slider : String -> Float -> ( Float, Float ) -> (String -> Msg) -> Html Msg
+slider name value ( minVal, maxVal ) msgWithString =
+    Html.label [ class "ml-4" ]
+        [ text name
+        , input
+            [ HtmlAttrs.type_ "range"
+            , HtmlAttrs.value (toString value)
+            , HtmlAttrs.min (toString minVal)
+            , HtmlAttrs.max (toString maxVal)
+            , HtmlEvents.onInput msgWithString
+            ]
+            []
+        , text (toString value)
+        ]
+
+
+button : String -> Msg -> Html Msg
+button name clickMsg =
+    Button.button [ secondary, Button.attrs [ class "ml-4" ], onClick clickMsg ]
+        [ text name ]
+
+
+groupButton : String -> Msg -> ButtonGroup.ButtonItem Msg
+groupButton name clickMsg =
+    ButtonGroup.button
+        [ secondary, onClick clickMsg ]
+        [ text name ]
+
+
+sitem : String -> String -> Select.Item msg
+sitem sname svalue =
+    Select.item [ HtmlAttrs.value svalue ] [ text sname ]
