@@ -24,31 +24,40 @@ view : Model -> Html Msg
 view model =
     Grid.containerFluid []
         [ CDN.stylesheet
-        , Grid.row [{- select box for dataset and debug message -}]
-            [ Grid.col []
+        , Grid.row []
+            [ Grid.col [ Col.xs4 ] [ text model.debugMsg ]
+            , Grid.col [ Col.xs8 ]
+                [ input [ class "ml-2", HtmlAttrs.placeholder "Search by label", onInput SearchByLabel ] []
+
+                -- , slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
+                , slider "Zoom:" model.zoomFactor ( 0.1, 50 ) UpdateZoomFactor
+                , checkbox "Toggle labels" model.cf.showLabel ToggleLabel
+                , checkbox "Toggle colors" model.cf.showColor ToggleColor
+                , checkbox "Toggle Fit" model.cf.autoZoom ToggleAutoZoom
+                ]
+            ]
+        , Grid.row []
+            [ Grid.col [ Col.xs4 ]
                 [ Select.select
                     [ Select.id "dataset-name", Select.onChange SelectDataset ]
                     [ sitem "--Select dataset--" ""
-                    , sitem "MNIST mini" "MNIST-SMALL"
-                    , sitem "MNIST full sample 3000" "MNIST"
-                    , sitem "COIL-20" "COIL20"
                     , sitem "Country Indicators 1999" "COUNTRY1999"
                     , sitem "Country Indicators 2013" "COUNTRY2013"
                     , sitem "Country Indicators 2014" "COUNTRY2014"
                     , sitem "Country Indicators 2015" "COUNTRY2015"
+                    , sitem "MNIST mini" "MNIST-SMALL"
+                    , sitem "MNIST full sample 3000" "MNIST"
+                    , sitem "COIL-20" "COIL20"
                     , sitem "Top 1000 words in Wiki-French" "WIKI-FR-1K"
                     , sitem "Top 3000 words in Wiki-French" "WIKI-FR-3K"
                     , sitem "Top 1000 words in Wiki-English" "WIKI-EN-1K"
                     , sitem "Top 3000 words in Wiki-English" "WIKI-EN-3K"
                     ]
                 ]
-            , Grid.col [] [ text model.debugMsg ]
-            ]
-        , Grid.row [{- A serie of buttons -}]
-            [ Grid.col []
+            , Grid.col [ Col.xs8 ]
                 [ button "Load Dataset" LoadDataset
                 , ButtonGroup.buttonGroup
-                    [ ButtonGroup.attrs [ class "ml-4" ] ]
+                    [ ButtonGroup.attrs [ class "ml-2" ] ]
                     [ groupButton "Do Embedding" DoEmbedding
                     , groupButton "Pause" PauseServer
                     , groupButton "Continue" ContinueServer
@@ -57,24 +66,9 @@ view model =
                 , button "Send Moved Points" SendMovedPoints
                 ]
             ]
-        , Grid.row [{- debug message and slider for param controlling -}]
-            [ Grid.col []
-                [ Html.label [ class "ml-4" ]
-                    [ text "Filter: "
-                    , input [ HtmlAttrs.placeholder "Search by label", onInput SearchByLabel ] []
-                    ]
-                , slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
-                , slider "Zoom factor:" model.zoomFactor ( 0.1, 50 ) UpdateZoomFactor
-                ]
-            , Grid.col []
-                [ checkbox "Toggle labels" model.cf.showLabel ToggleLabel
-                , checkbox "Toggle colors" model.cf.showColor ToggleColor
-                , checkbox "Toggle Fit" model.cf.autoZoom ToggleAutoZoom
-                ]
-            ]
         , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]
-            [ Grid.col [] [ scatterView model.scatter model.cf ]
-            , Grid.col []
+            [ Grid.col [ Col.xs8 ] [ scatterView model.scatter model.cf ]
+            , Grid.col [ Col.xs4 ]
                 [ --Grid.row [] [ Grid.col [] [ selectedPointsView model.scatter ] ]
                   Grid.row [] [ Grid.col [] [ movedPointsView model.scatter ] ]
                 ]
@@ -91,7 +85,7 @@ view model =
 
 checkbox : String -> Bool -> Msg -> Html Msg
 checkbox name value toggleMsg =
-    Html.label [ class "ml-4" ]
+    Html.label [ class "ml-2" ]
         [ input
             [ HtmlAttrs.type_ "checkbox"
             , HtmlAttrs.checked value
@@ -104,7 +98,7 @@ checkbox name value toggleMsg =
 
 slider : String -> Float -> ( Float, Float ) -> (String -> Msg) -> Html Msg
 slider name value ( minVal, maxVal ) msgWithString =
-    Html.label [ class "ml-4" ]
+    Html.label [ class "ml-2" ]
         [ text name
         , input
             [ HtmlAttrs.type_ "range"
@@ -120,7 +114,7 @@ slider name value ( minVal, maxVal ) msgWithString =
 
 button : String -> Msg -> Html Msg
 button name clickMsg =
-    Button.button [ secondary, Button.attrs [ class "ml-4" ], onClick clickMsg ]
+    Button.button [ secondary, Button.attrs [ class "ml-2" ], onClick clickMsg ]
         [ text name ]
 
 
