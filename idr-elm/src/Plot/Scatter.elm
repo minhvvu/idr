@@ -169,13 +169,15 @@ movedPointsView { points } =
                     [ ListGroup.attrs [ HtmlAttrs.class "justify-content-between" ] ]
                     [ Badge.pill [] [ Html.text p.id ]
                     , Html.text
-                        ("[label:"
+                        ("["
+                            ++ p.text
+                            ++ "], ("
                             ++ p.label
-                            ++ "], (x = "
+                            ++ "), {"
                             ++ (toString <| round <| getX <| p.position)
-                            ++ "; y = "
+                            ++ ", "
                             ++ (toString <| round <| getY <| p.position)
-                            ++ ")"
+                            ++ "}"
                         )
                     ]
             )

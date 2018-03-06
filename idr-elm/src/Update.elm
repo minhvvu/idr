@@ -3,11 +3,11 @@ module Update exposing (..)
 import Draggable
 import Msgs exposing (Msg(..), myDragConfig)
 import Commands exposing (..)
+import Common exposing (Point)
 import Models exposing (..)
 import Plot.CircleGroup exposing (..)
-import Plot.Scatter exposing (createScatter, getMovedPoints)
+import Plot.Scatter exposing (Scatter, createScatter, getMovedPoints)
 import Array exposing (..)
-import Task exposing (succeed, perform)
 import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
 
 
@@ -119,12 +119,10 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                 newZoomFactor =
                     Result.withDefault 10.0 (String.toFloat amount)
 
-                --updatedScatter =
-                --    model.rawData
-                --        |> flip Plot.Scatter.createScatter newZoomFactor
-                --        |> Plot.Scatter.updateSelectedCircle scatter.selectedId neighbors
+                newScatter =
+                    buildScatter model model.rawPoints model.scatter.selectedId newZoomFactor
             in
-                { model | zoomFactor = newZoomFactor } ! []
+                { model | zoomFactor = newZoomFactor, scatter = newScatter } ! []
 
         UpdateGroupMoving amount ->
             let
@@ -163,7 +161,7 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
 
         Zoom factor ->
             let
-                newZoom =
+                newZoomFactor =
                     model.zoomFactor
                         |> (+)
                             (if factor > 0 then
@@ -174,8 +172,11 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                         |> round
                         |> toFloat
                         |> clamp 0.1 50
+
+                newScatter =
+                    buildScatter model model.rawPoints model.scatter.selectedId newZoomFactor
             in
-                { model | zoomFactor = newZoom } ! []
+                { model | zoomFactor = newZoomFactor, scatter = newScatter } ! []
 
 
 {-| Util function to update new received data into model
@@ -198,24 +199,24 @@ updateNewData ({ ready, current_it } as model) dataStr =
                 rawPoints =
                     embeddingResult.embedding
 
-                seriesData =
-                    embeddingResult.seriesData
-
-                oldSelectedId =
-                    model.scatter.selectedId
-
                 newScatter =
-                    Plot.Scatter.createScatter rawPoints model.zoomFactor model.cf
-                        |> Plot.Scatter.updateSelectedCircle oldSelectedId model.neighbors
-                        |> Plot.Scatter.updateImportantPoints model.importantPoints
+                    buildScatter model model.rawPoints model.scatter.selectedId model.zoomFactor
             in
                 ( { model
                     | current_it = current_it + 1
                     , scatter = newScatter
-                    , seriesData = seriesData
+                    , seriesData = embeddingResult.seriesData
+                    , rawPoints = rawPoints
                   }
                 , nextCommand
                 )
+
+
+buildScatter : Model -> List Point -> String -> Float -> Scatter
+buildScatter model rawPoints selectedId zoomFactor =
+    Plot.Scatter.createScatter rawPoints zoomFactor model.cf
+        |> Plot.Scatter.updateSelectedCircle selectedId model.neighbors
+        |> Plot.Scatter.updateImportantPoints model.importantPoints
 
 
 updateDatasetInfo : Model -> String -> ( Model, Cmd Msg )

@@ -202,25 +202,26 @@ def my_gradient_descent(objective, p0, it, n_iter,
             fixed_ids = shared_item['fixed_ids']
             fixed_pos = shared_item['fixed_pos']
 
-
         weights = np.ones_like(dist_X_original)
         np.fill_diagonal(weights, 0.0)
         
         if fixed_ids:
+            # update weights for each pair of moved points and its neighbors
             if status['use_weight'] != 1.0:
                 X_embedded = p.copy().reshape(-1, 2)
-                model = NearestNeighbors(n_neighbors=50, algorithm='auto') # ball_tree
+                n_neighbors = int(0.05 * X_embedded.shape[0])
+                model = NearestNeighbors(n_neighbors=n_neighbors, algorithm='auto') # ball_tree
                 model.fit(X_embedded)
-                yknns = model.kneighbors(X_embedded[fixed_ids], return_distance=False)
-                for fid in range(len(fixed_ids)):
-                    src_id = fixed_ids[fid]
-                    target_ids = yknns[fid]
+                knn = model.kneighbors(X_embedded[fixed_ids], return_distance=False)
+                for idx in range(len(fixed_ids)):
+                    src_id = fixed_ids[idx]
+                    target_ids = knn[idx]
                     for target_id in target_ids:
                         if target_id != src_id:
                             weights[src_id][target_id] = weights[target_id][src_id] = \
                                 float(status['use_weight'])
 
-            # set the fixed points
+            # set positions for the fixed points
             if fixed_pos:
                 p.reshape(-1, 2)[fixed_ids] = fixed_pos
 
@@ -365,6 +366,8 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
         the embedding.
     """
 
+    use_weights_on_Q = False
+
     X_embedded = params.reshape(n_samples, n_components)
 
     # Q is a heavy-tailed distribution: Student's t-distribution
@@ -374,7 +377,13 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
     else:
         weights = squareform(weights)
 
-    # dist *= weights
+    if use_weights_on_Q:
+        """ q_{ij} = \frac
+                {(1 + w_{ij} * \norm^2{y_i - y_j})^{-1}}
+                {\sum_{k,l}(1 + w_{kl} * \norm^2{y_k - y_l})^{-1}}
+        """
+        dist *= weights
+
     dist /= degrees_of_freedom
     dist += 1.
     dist **= (degrees_of_freedom + 1.0) / -2.0
@@ -385,20 +394,25 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
 
     # Objective: C (Kullback-Leibler divergence of P and Q)
     # kl_divergence_original = 2.0 * np.dot(P, np.log(np.maximum(P, MACHINE_EPSILON) / Q))
-    divergences = P * np.log(np.maximum(P, MACHINE_EPSILON) / Q) * weights
+    divergences = P * np.log(np.maximum(P, MACHINE_EPSILON) / Q)
+    if not use_weights_on_Q:
+        # use simple weight: KL(P||Q) = \sum_i \sum_j w_{ij} * p_{ij} * log (p_{ij}/q_{ij})
+        divergences *= weights
     kl_divergence = 2.0 * np.sum(divergences)
     divergences = squareform(divergences)
     divergences = np.sum(divergences, axis=1)
-    # assert(np.isclose(np.sum(divergences), kl_divergence_original) == True)
 
     # Gradient: dC/dY
-    # pdist always returns double precision distances. Thus we need to take
     grad = np.ndarray((n_samples, n_components), dtype=params.dtype)
-    # PQd = squareform((P - Q) * dist * weights)
-    PQd = squareform((P - Q) * dist)
+    
+    if use_weights_on_Q:
+        PQd = squareform((P - Q) * dist * weights)
+    else:
+        PQd = squareform((P - Q) * dist)
+    
     for i in range(skip_num_points, n_samples):
-        grad[i] = np.dot(np.ravel(PQd[i], order='K'),
-                         X_embedded[i] - X_embedded)
+        grad[i] = np.dot(np.ravel(PQd[i], order='K'), X_embedded[i] - X_embedded)
+
     grad = grad.ravel()
     c = 2.0 * (degrees_of_freedom + 1.0) / degrees_of_freedom
     grad *= c

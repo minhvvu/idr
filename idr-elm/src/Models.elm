@@ -20,6 +20,7 @@ type alias Model =
     , importantPoints : List String -- a list of important points calculated by server
     , cf : PlotConfig -- all config for ploting
     , pointMoving : Bool -- panning or moving a point
+    , rawPoints : List Point -- a list of raw point from server, store it for zoom when pausing
     }
 
 
@@ -38,4 +39,5 @@ initialModel =
     , importantPoints = []
     , cf = plotConfig
     , pointMoving = False
+    , rawPoints = []
     }

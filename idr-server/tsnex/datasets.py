@@ -110,14 +110,15 @@ def pre_calculate(X, k=100, ntop=50, use_pagerank=True):
     g = nx.from_scipy_sparse_matrix(nn)
 
     if use_pagerank:
-        print("Calculate pagerank")
+        print("Calculate pagerank", end=',')
         pageranks = nx.pagerank_scipy(g)
         top_important = sorted(pageranks, key=pageranks.get, reverse=True)
     else:
-        print("Calculate hits")
+        print("Calculate hits", end=',')
         hubs, authorities = nx.hits_scipy(g)
         top_important = sorted(hubs, key=hubs.get, reverse=True)
-
+    print("\tDone!")
+    
     return {'distances': [],  # distances.tolist(),
             'neighbors': list(map(lambda s: list(map(str, s)), indices)),
             'importantPoints': list(map(str, top_important[:ntop])),
