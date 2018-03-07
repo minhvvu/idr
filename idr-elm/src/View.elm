@@ -45,6 +45,7 @@ view model =
                     , sitem "Country Indicators 2013" "COUNTRY2013"
                     , sitem "Country Indicators 2014" "COUNTRY2014"
                     , sitem "Country Indicators 2015" "COUNTRY2015"
+                    , sitem "Cars and Trucks 2004" "CARS04"
                     , sitem "MNIST mini" "MNIST-SMALL"
                     , sitem "MNIST full sample 3000" "MNIST"
                     , sitem "COIL-20" "COIL20"

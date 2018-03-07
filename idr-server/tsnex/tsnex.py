@@ -366,7 +366,7 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
         the embedding.
     """
 
-    use_weights_on_Q = False
+    use_weights_on_Q = True
 
     X_embedded = params.reshape(n_samples, n_components)
 

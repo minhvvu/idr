@@ -181,9 +181,10 @@ circleView { id, position, radius, label, text, status } cf =
                  , fill color
                  , stroke strokeColor
                  , strokeWidth myStrokeWidth
-                 , Svg.Attributes.cursor "move"
-                 , Draggable.mouseTrigger id DragMsg
-                 , Svg.Events.onMouseUp StopDragging
+
+                 --, Svg.Attributes.cursor "move"
+                 --, Draggable.mouseTrigger id DragMsg
+                 --, Svg.Events.onMouseUp StopDragging
                  ]
                     ++ (Draggable.touchTriggers id DragMsg)
                 )
@@ -208,9 +209,10 @@ circleView { id, position, radius, label, text, status } cf =
                 , Svg.Attributes.width "8"
                 , Svg.Attributes.height "8"
                 , xlinkHref ("http://localhost:8000/data/imgs/mnist-small.svg#" ++ id)
-                , Svg.Attributes.cursor "move"
-                , Draggable.mouseTrigger id DragMsg
-                , Svg.Events.onMouseUp StopDragging
+
+                --, Svg.Attributes.cursor "move"
+                --, Draggable.mouseTrigger id DragMsg
+                --, Svg.Events.onMouseUp StopDragging
                 ]
                 []
 
@@ -220,11 +222,15 @@ circleView { id, position, radius, label, text, status } cf =
             else
                 fgCircle
     in
-        Svg.g []
+        Svg.g
+            [ Svg.Attributes.cursor "move"
+            , Draggable.mouseTrigger id DragMsg
+            , Svg.Events.onMouseUp StopDragging
+            ]
             (if isJustIdle status && not cf.showLabel then
                 [ displayCircle ]
              else
-                [ displayCircle, lblText ]
+                [ lblText, displayCircle ]
             )
 
 

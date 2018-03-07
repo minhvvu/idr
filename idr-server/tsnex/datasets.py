@@ -20,6 +20,7 @@ def load_dataset(name='MNIST-SMALL'):
         'COUNTRY2013': partial(load_country, 2013),
         'COUNTRY2014': partial(load_country, 2014),
         'COUNTRY2015': partial(load_country, 2015),
+        'CARS04': load_cars,
     }[name]()
 
 
@@ -65,6 +66,9 @@ def load_wiki(lang='en', n=1000): return load_pickle(name='wiki_{}_n{}_d300'.for
 
 
 def load_country(year): return load_pickle(name='country_indicators_{}'.format(year))
+
+
+def load_cars(): return load_pickle(name='cars04')
 
 
 def calculate_distances(X, k=100):
@@ -118,7 +122,7 @@ def pre_calculate(X, k=100, ntop=50, use_pagerank=True):
         hubs, authorities = nx.hits_scipy(g)
         top_important = sorted(hubs, key=hubs.get, reverse=True)
     print("\tDone!")
-    
+
     return {'distances': [],  # distances.tolist(),
             'neighbors': list(map(lambda s: list(map(str, s)), indices)),
             'importantPoints': list(map(str, top_important[:ntop])),
@@ -169,7 +173,5 @@ if __name__ == '__main__':
     # res = pre_calculate(X)
     # print(res['neighbors'])
 
-    X, y, labels = load_newsgroups()
-    print(X)
+    X, y, labels = load_dataset(name='CARS04')
     print(X.shape, y.shape, len(labels))
-    print(y)
