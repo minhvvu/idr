@@ -66,73 +66,6 @@ def my_gradient_descent(objective, p0, it, n_iter,
                         n_iter_check=1, n_iter_without_progress=300,
                         momentum=0.8, learning_rate=200.0, min_gain=0.01,
                         min_grad_norm=1e-7, verbose=0, args=None, kwargs=None):
-    """Batch gradient descent with momentum and individual gains.
-
-        Parameters
-        ----------
-        objective : function or callable
-            Should return a tuple of cost and gradient for a given parameter
-            vector. When expensive to compute, the cost can optionally
-            be None and can be computed every n_iter_check steps using
-            the objective_error function.
-
-        p0 : array-like, shape (n_params,)
-            Initial parameter vector.
-
-        it : int
-            Current number of iterations (this function will be called more than
-            once during the optimization).
-
-        n_iter : int
-            Maximum number of gradient descent iterations.
-
-        n_iter_check : int
-            Number of iterations before evaluating the global error. If the error
-            is sufficiently low, we abort the optimization.
-
-        n_iter_without_progress : int, optional (default: 300)
-            Maximum number of iterations without progress before we abort the
-            optimization.
-
-        momentum : float, within (0.0, 1.0), optional (default: 0.8)
-            The momentum generates a weight for previous gradients that decays
-            exponentially.
-
-        learning_rate : float, optional (default: 200.0)
-            The learning rate for t-SNE is usually in the range [10.0, 1000.0]. If
-            the learning rate is too high, the data may look like a 'ball' with any
-            point approximately equidistant from its nearest neighbours. If the
-            learning rate is too low, most points may look compressed in a dense
-            cloud with few outliers.
-
-        min_gain : float, optional (default: 0.01)
-            Minimum individual gain for each parameter.
-
-        min_grad_norm : float, optional (default: 1e-7)
-            If the gradient norm is below this threshold, the optimization will
-            be aborted.
-
-        verbose : int, optional (default: 0)
-            Verbosity level.
-
-        args : sequence
-            Arguments to pass to objective function.
-
-        kwargs : dict
-            Keyword arguments to pass to objective function.
-
-        Returns
-        -------
-        p : array, shape (n_params,)
-            Optimum parameters.
-
-        error : float
-            Optimum.
-
-        i : int
-            Last iteration.
-    """
-
     if args is None:
         args = []
     if kwargs is None:
@@ -173,6 +106,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
     embedding_scores = []
     classification_scores = []
     clustering_scores = []
+    penalties = []
 
     print("\nGradien Descent:")
     i = 0
@@ -204,45 +138,60 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
         weights = np.ones_like(dist_X_original)
         np.fill_diagonal(weights, 0.0)
-        
+
         if fixed_ids:
             # update weights for each pair of moved points and its neighbors
             if status['use_weight'] != 1.0:
                 X_embedded = p.copy().reshape(-1, 2)
                 n_neighbors = int(0.05 * X_embedded.shape[0])
-                model = NearestNeighbors(n_neighbors=n_neighbors, algorithm='auto') # ball_tree
+                model = NearestNeighbors(
+                    n_neighbors=n_neighbors, algorithm='auto')  # ball_tree
                 model.fit(X_embedded)
-                distances, knn = model.kneighbors(X_embedded[fixed_ids], return_distance=True)
-                
-                for idx in range(len(fixed_ids)):
-                    src_id = fixed_ids[idx]
-                    targets = knn[idx]
+                distances, knn = model.kneighbors(
+                    X_embedded[fixed_ids], return_distance=True)
+                knn = knn[:,1:]
 
-                    for idx2 in range(len(targets)):
-                        target_id = targets[idx2]
+                # add param for kl_divergence function
+                kwargs['fixed_ids'] = fixed_ids
+                kwargs['new_pos'] = fixed_pos
+                kwargs['neighbor_ids'] = knn
+                # fixed_ids=None, neighbor_ids=None, new_pos=None):
 
-                        if target_id != src_id:
-                            dist = 1.0 / float(distances[idx][idx2])
-                            weights[src_id][target_id] = weights[target_id][src_id] = dist
+                # for idx in range(len(fixed_ids)):
+                #     src_id = fixed_ids[idx]
+                #     targets = knn[idx]
+
+                #     for idx2 in range(len(targets)):
+                #         target_id = targets[idx2]
+
+                #         if target_id != src_id:
+                #             dist = float(distances[idx][idx2])
+                #             weights[src_id][target_id] = weights[target_id][src_id] = \
+                #                 float(status['use_weight'])
 
             # set positions for the fixed points
             if fixed_pos:
                 p.reshape(-1, 2)[fixed_ids] = fixed_pos
 
         # calculate gradient and KL divergence
-        kwargs['weights'] = weights
-        error, grad, divergences = my_kl_divergence(p, *args, **kwargs)
-        z_info += divergences
+        # 05/03: using weights
+        # kwargs['weights'] = weights
+        # error, grad, divergences = my_kl_divergence(p, *args, **kwargs)
+        # z_info += divergences
 
-        if fixed_ids:
-            if status['share_grad']:
-                share_grad(grad.reshape(-1, 2), dist_y, fixed_ids)
-            else:
-                grad.reshape(-1, 2)[fixed_ids] = 0.0
+        error, penalty, grad = my_kl_divergence2(p, *args, **kwargs)
+        
+
+        # if fixed_ids:
+        #     if status['share_grad']:
+        #         share_grad(grad.reshape(-1, 2), dist_y, fixed_ids)
+        #     else:
+        #         grad.reshape(-1, 2)[fixed_ids] = 0.0
 
         # calculate the magnitude of gradient of each point
         grad_per_point = linalg.norm(grad.reshape(-1, 2), axis=1)
         grad_norm = np.sum(grad_per_point)
+        z_info += grad_per_point # 07/03
 
         # tsne update gradient by momentum
         inc = update * grad < 0.0
@@ -270,12 +219,13 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 # clustering_scores.append(score.clutering(X_embedded))
 
             errors.append(error)
+            penalties.append(penalty)
             grad_norms.append(float(grad_norm))
             client_data = {
                 'embedding': X_embedded.ravel().tostring().decode('latin-1'),
                 'z_info': z_info.tolist(),
                 'seriesData': [
-                    {'name': 'errors', 'series': [errors]},
+                    {'name': 'errors, penalty', 'series': [errors, penalties]},
                     {'name': 'gradients norms', 'series': [grad_norms]},
                     # {'name': 'classification accuracy',
                     #     'series': [classification_scores]},
@@ -333,42 +283,8 @@ def share_grad(grad2d, dist_y, fixed_ids, k=10):
             grad2d[fixed_id] = 0.0
 
 
-def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
-                     skip_num_points=0, weights=None):
-    """t-SNE objective function: gradient of the KL divergence
-    of p_ijs and q_ijs and the absolute error.
-
-    Parameters
-    ----------
-    params : array, shape (n_params,)
-        Unraveled embedding.
-
-    P : array, shape (n_samples * (n_samples-1) / 2,)
-        Condensed joint probability matrix.
-
-    degrees_of_freedom : float
-        Degrees of freedom of the Student's-t distribution.
-
-    n_samples : int
-        Number of samples.
-
-    n_components : int
-        Dimension of the embedded space.
-
-    skip_num_points : int (optional, default:0)
-        This does not compute the gradient for points with indices below
-        `skip_num_points`. This is useful when computing transforms of new
-        data where you'd like to keep the old data fixed.
-
-    Returns
-    -------
-    kl_divergence : float
-        Kullback-Leibler divergence of p_ij and q_ij.
-
-    grad : array, shape (n_params,)
-        Unraveled gradient of the Kullback-Leibler divergence with respect to
-        the embedding.
-    """
+def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components, 
+    skip_num_points=0, weights=None):
 
     use_weights_on_Q = True
 
@@ -408,17 +324,74 @@ def my_kl_divergence(params, P, degrees_of_freedom, n_samples, n_components,
 
     # Gradient: dC/dY
     grad = np.ndarray((n_samples, n_components), dtype=params.dtype)
-    
+
     if use_weights_on_Q:
         PQd = squareform((P - Q) * dist * weights)
     else:
         PQd = squareform((P - Q) * dist)
-    
+
     for i in range(skip_num_points, n_samples):
-        grad[i] = np.dot(np.ravel(PQd[i], order='K'), X_embedded[i] - X_embedded)
+        grad[i] = np.dot(np.ravel(PQd[i], order='K'),
+                         X_embedded[i] - X_embedded)
 
     grad = grad.ravel()
     c = 2.0 * (degrees_of_freedom + 1.0) / degrees_of_freedom
     grad *= c
 
     return kl_divergence, grad, divergences
+
+
+def my_kl_divergence2(params, P, degrees_of_freedom, n_samples, n_components,
+                      skip_num_points=0,
+                      reg_param=1e-9,
+                      fixed_ids=None, neighbor_ids=None, new_pos=None):
+
+    X_embedded = params.reshape(n_samples, n_components)
+
+    # Q is a heavy-tailed distribution: Student's t-distribution
+    dist = pdist(X_embedded, "sqeuclidean")
+    dist /= degrees_of_freedom
+    dist += 1.
+    dist **= (degrees_of_freedom + 1.0) / -2.0
+    Q = np.maximum(dist / (2.0 * np.sum(dist)), MACHINE_EPSILON)
+
+    # Optimization trick below: np.dot(x, y) is faster than
+    # np.sum(x * y) because it calls BLAS
+
+    # Objective: C (Kullback-Leibler divergence of P and Q)
+    kl_divergence = 2.0 * np.dot(P, np.log(np.maximum(P, MACHINE_EPSILON) / Q))
+
+    # add penalty term for moved points
+    penalty = 0.0
+    if new_pos is not None and neighbor_ids is not None:
+        for i in range(len(new_pos)):
+            pos = new_pos[i]
+            nbs = neighbor_ids[i]
+            old_nbs_pos = X_embedded[nbs]
+            penalty += np.sum(np.square(pos - old_nbs_pos))
+        penalty /= len(new_pos) * len(neighbor_ids[0])
+    kl_divergence += penalty
+
+    # Gradient: dC/dY
+    # pdist always returns double precision distances. Thus we need to take
+    grad = np.ndarray((n_samples, n_components), dtype=params.dtype)
+    PQd = squareform((P - Q) * dist)
+    for i in range(skip_num_points, n_samples):
+        grad[i] = 0 if fixed_ids and i in fixed_ids else \
+            np.dot(np.ravel(PQd[i], order='K'), X_embedded[i] - X_embedded)
+
+    grad = grad.ravel()
+    c = 2.0 * (degrees_of_freedom + 1.0) / degrees_of_freedom
+    grad *= c
+
+
+    grad = grad.reshape(-1, n_components)
+    # BIZARRE, need fix
+    if fixed_ids is not None and new_pos is not None and neighbor_ids is not None:
+        for fid in range(len(fixed_ids)):
+            fixedid = fixed_ids[fid]
+            nbs = neighbor_ids[fid]
+            grad[nbs] += reg_param * (X_embedded[nbs] - new_pos[fid]) / len(nbs)
+
+    grad = grad.ravel()
+    return kl_divergence, penalty, grad

@@ -68,18 +68,19 @@ view model =
                 ]
             ]
         , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]
-            [ Grid.col [ Col.xs9 ] [ scatterView model.scatter model.cf ]
-            , Grid.col [ Col.xs3 ]
-                [ --Grid.row [] [ Grid.col [] [ selectedPointsView model.scatter ] ]
-                  Grid.row [] [ Grid.col [] [ movedPointsView model.scatter ] ]
+            [ Grid.col [ Col.xs8 ] [ scatterView model.scatter model.cf ]
+            , Grid.col [ Col.xs4 ]
+                [ Grid.row [{- line charts for measurement -}]
+                    [ Grid.col []
+                        (model.seriesData
+                            |> List.map
+                                (\aseries -> viewLineChart aseries.name aseries.series)
+                        )
+                    ]
+                , Grid.row [] [ Grid.col [] [ movedPointsView model.scatter ] ]
+
+                --m Grid.row [] [ Grid.col [] [ selectedPointsView model.scatter ] ]
                 ]
-            ]
-        , Grid.row [{- line charts for measurement -}]
-            [ Grid.col []
-                (model.seriesData
-                    |> List.map
-                        (\aseries -> viewLineChart aseries.name aseries.series)
-                )
             ]
         ]
 
