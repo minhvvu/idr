@@ -212,14 +212,18 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 n_neighbors = int(0.05 * X_embedded.shape[0])
                 model = NearestNeighbors(n_neighbors=n_neighbors, algorithm='auto') # ball_tree
                 model.fit(X_embedded)
-                knn = model.kneighbors(X_embedded[fixed_ids], return_distance=False)
+                distances, knn = model.kneighbors(X_embedded[fixed_ids], return_distance=True)
+                
                 for idx in range(len(fixed_ids)):
                     src_id = fixed_ids[idx]
-                    target_ids = knn[idx]
-                    for target_id in target_ids:
+                    targets = knn[idx]
+
+                    for idx2 in range(len(targets)):
+                        target_id = targets[idx2]
+
                         if target_id != src_id:
-                            weights[src_id][target_id] = weights[target_id][src_id] = \
-                                float(status['use_weight'])
+                            dist = 1.0 / float(distances[idx][idx2])
+                            weights[src_id][target_id] = weights[target_id][src_id] = dist
 
             # set positions for the fixed points
             if fixed_pos:
