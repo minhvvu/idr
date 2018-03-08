@@ -87,14 +87,14 @@ correctCircleGroup oldGroup =
 {-| When start moving the circle(s), add them into moving list
 Drag also the neighbors point in 2D
 -}
-startDragging : CircleId -> CircleGroup -> CircleGroup
-startDragging circleId oldGroup =
+startDragging : CircleId -> PlotConfig -> CircleGroup -> CircleGroup
+startDragging circleId cf oldGroup =
     let
         group =
             correctCircleGroup oldGroup
 
         neighbors =
-            getKNN circleId oldGroup
+            getKNN circleId cf oldGroup
 
         searchCond =
             \c -> List.member c.id (circleId :: neighbors)
@@ -215,12 +215,12 @@ getCircleById listCircleIds group =
 
 {-| Public API to get a list of k nearest neighbors of a circle
 -}
-getKNN : CircleId -> CircleGroup -> List CircleId
-getKNN circleId group =
+getKNN : CircleId -> PlotConfig -> CircleGroup -> List CircleId
+getKNN circleId cf group =
     group.idleCircles
         |> calculateDistances circleId
-        |> List.filter (\p -> Tuple.first p < plotConfig.selectionRadius * plotConfig.selectionRadius)
-        |> List.take (plotConfig.nNeighbors + 1)
+        |> List.filter (\p -> Tuple.first p < cf.selectionRadius * cf.selectionRadius)
+        |> List.take (cf.nNeighbors + 1)
         |> List.tail
         |> Maybe.withDefault [ ( 0, circleId ) ]
         |> List.map Tuple.second

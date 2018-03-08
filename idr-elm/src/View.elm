@@ -28,8 +28,7 @@ view model =
             [ Grid.col [ Col.xs4 ] [ text model.debugMsg ]
             , Grid.col [ Col.xs8 ]
                 [ input [ class "ml-2", HtmlAttrs.placeholder "Search by label", onInput SearchByLabel ] []
-
-                -- , slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
+                , slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
                 , slider "Zoom:" model.zoomFactor ( 0.1, 50 ) UpdateZoomFactor
                 , checkbox "Toggle labels" model.cf.showLabel ToggleLabel
                 , checkbox "Toggle colors" model.cf.showColor ToggleColor

@@ -153,8 +153,8 @@ circleView { id, position, radius, label, text, status } cf =
             toString deco.sWidth
 
         circleRadius =
-            if plotConfig.fixedRadius then
-                plotConfig.circleRadius
+            if cf.fixedRadius then
+                cf.circleRadius
             else
                 radius
 
@@ -191,11 +191,10 @@ circleView { id, position, radius, label, text, status } cf =
                 [ Svg.path [ x (centerX 0), y (centerY 0), d "M2 1 h1 v1 h1 v1 h-1 v1 h-1 v-1 h-1 v-1 h1 z" ] [{- doesnot work -}] ]
 
         bgCircle =
-            {- not used -}
             Svg.circle
                 [ cx (centerX 0)
                 , cy (centerY 0)
-                , r (toString plotConfig.selectionRadius)
+                , r (toString cf.selectionRadius)
                 , fill (Common.labelToColorStr label 0.15)
                 , stroke strokeColor
                 , strokeWidth myStrokeWidth
@@ -227,10 +226,16 @@ circleView { id, position, radius, label, text, status } cf =
             , Draggable.mouseTrigger id DragMsg
             , Svg.Events.onMouseUp StopDragging
             ]
-            (if isJustIdle status && not cf.showLabel then
-                [ displayCircle ]
-             else
-                [ lblText, displayCircle ]
+            ((if isSelected status && cf.selectionRadius > 0 then
+                [ bgCircle ]
+              else
+                []
+             )
+                ++ (if isJustIdle status && not cf.showLabel then
+                        [ displayCircle ]
+                    else
+                        [ lblText, displayCircle ]
+                   )
             )
 
 

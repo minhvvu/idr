@@ -238,20 +238,24 @@ updateImportantPoints importantPoints scatter =
 
 selectedPointsView : Scatter -> Html Msg
 selectedPointsView { points, selectedId } =
-    let
-        neighbors =
-            Plot.CircleGroup.getKNN selectedId points
-    in
-        Html.div []
-            [ Html.text ("Selected Id: " ++ selectedId)
-            , Html.br [] []
-            , Html.text
-                (if List.isEmpty neighbors then
-                    "No neighbors"
-                 else
-                    (toString (List.length neighbors)
-                        ++ " neighbors: "
-                        ++ (toString neighbors)
-                    )
-                )
-            ]
+    Html.div [] []
+
+
+
+--let
+--    neighbors =
+--        Plot.CircleGroup.getKNN selectedId {-missing config here-} points
+--in
+--    Html.div []
+--        [ Html.text ("Selected Id: " ++ selectedId)
+--        , Html.br [] []
+--        , Html.text
+--            (if List.isEmpty neighbors then
+--                "No neighbors"
+--             else
+--                (toString (List.length neighbors)
+--                    ++ " neighbors: "
+--                    ++ (toString neighbors)
+--                )
+--            )
+--        ]

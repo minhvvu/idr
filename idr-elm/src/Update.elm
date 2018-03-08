@@ -88,7 +88,7 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                     newScatter =
                         { scatter
                             | selectedId = circleId
-                            , points = startDragging circleId scatter.points
+                            , points = startDragging circleId model.cf scatter.points
                         }
                             -- the dragged circle is also a selected one,
                             -- so we have to show its neighbors in high-dim
