@@ -58,6 +58,7 @@ moveCircle : Vec2 -> Circle -> Circle
 moveCircle delta circle =
     { circle
         | position = Vector2.add delta circle.position
+        , status = setFixed circle.status
     }
 
 

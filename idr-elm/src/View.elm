@@ -29,7 +29,7 @@ view model =
             , Grid.col [ Col.xs8 ]
                 [ input [ class "ml-2", HtmlAttrs.placeholder "Search by label", onInput SearchByLabel ] []
                 , slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
-                , slider "Zoom:" model.zoomFactor ( 0.1, 50 ) UpdateZoomFactor
+                , slider "Zoom:" model.zoomFactor ( 0.1, 150 ) UpdateZoomFactor
                 , checkbox "Toggle labels" model.cf.showLabel ToggleLabel
                 , checkbox "Toggle colors" model.cf.showColor ToggleColor
                 , checkbox "Toggle Fit" model.cf.autoZoom ToggleAutoZoom
@@ -45,6 +45,7 @@ view model =
                     , sitem "Country Indicators 2014" "COUNTRY2014"
                     , sitem "Country Indicators 2015" "COUNTRY2015"
                     , sitem "Cars and Trucks 2004" "CARS04"
+                    , sitem "Breast Cancer Wisconsin (Diagnostic)" "BREAST-CANCER95"
                     , sitem "MNIST mini" "MNIST-SMALL"
                     , sitem "MNIST full sample 3000" "MNIST"
                     , sitem "COIL-20" "COIL20"

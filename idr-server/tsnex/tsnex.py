@@ -133,7 +133,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
         if fixed_ids and fixed_pos:
             # keep the old embedding for calculate neighbors of moved points
             X2d = p.copy().reshape(-1, 2)
-            n_neighbors = int(0.1 * X2d.shape[0])
+            n_neighbors = int(0.05 * X2d.shape[0])
             distances = cdist(X2d[fixed_ids], X2d, 'sqeuclidean')
             knn = np.argsort(distances, axis=1)[:, 1:n_neighbors+1]
             kwargs['fixed_ids'] = fixed_ids

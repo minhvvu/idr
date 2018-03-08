@@ -171,7 +171,7 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                             )
                         |> round
                         |> toFloat
-                        |> clamp 0.1 50
+                        |> clamp 0.1 150
 
                 newScatter =
                     buildScatter model model.rawPoints model.scatter.selectedId newZoomFactor

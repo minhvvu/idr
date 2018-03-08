@@ -20,7 +20,8 @@ def load_dataset(name='MNIST-SMALL'):
         'COUNTRY2013': partial(load_country, 2013),
         'COUNTRY2014': partial(load_country, 2014),
         'COUNTRY2015': partial(load_country, 2015),
-        'CARS04': load_cars,
+        'CARS04': partial(load_pickle, 'cars04'),
+        'BREAST-CANCER95': partial(load_pickle, 'breastCancer'),
     }[name]()
 
 
@@ -66,9 +67,6 @@ def load_wiki(lang='en', n=1000): return load_pickle(name='wiki_{}_n{}_d300'.for
 
 
 def load_country(year): return load_pickle(name='country_indicators_{}'.format(year))
-
-
-def load_cars(): return load_pickle(name='cars04')
 
 
 def calculate_distances(X, k=100):
@@ -173,5 +171,5 @@ if __name__ == '__main__':
     # res = pre_calculate(X)
     # print(res['neighbors'])
 
-    X, y, labels = load_dataset(name='CARS04')
+    X, y, labels = load_dataset(name='BREAST-CANCER95')
     print(X.shape, y.shape, len(labels))
