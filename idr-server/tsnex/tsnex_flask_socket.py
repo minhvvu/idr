@@ -171,10 +171,9 @@ def client_moved_points(ws):
     while not ws.closed:
         message = ws.receive()
         if message:
-            new_moved_points = json.loads(message)
             fixed_data = utils.get_from_db(key='fixed_points')
             fixed_points = json.loads(fixed_data) if fixed_data else {}
-
+            new_moved_points = json.loads(message)
             for p in new_moved_points:
                 pid = p['id']  # for fixed_points dict, key is string
                 pos = [float(p['x']), float(p['y'])]

@@ -28,8 +28,8 @@ initial_server_status = {
     # calculate the measurement after each iteration
     'measure': False,
 
-    # hard-fix position of client selected points
-    'hard_move': True,
+    # # hard-fix position of client selected points
+    # 'hard_move': False,
 
     # use pagerank to find the most influential points
     'use_pagerank': False,
