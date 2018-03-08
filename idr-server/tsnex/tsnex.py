@@ -9,7 +9,7 @@ from sklearn.manifold import TSNE
 from sklearn.manifold.t_sne import trustworthiness
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.neighbors import NearestNeighbors
-from scipy.spatial.distance import pdist
+from scipy.spatial.distance import pdist, cdist
 from scipy.spatial.distance import squareform
 import networkx as nx
 from time import time, sleep
@@ -132,13 +132,13 @@ def my_gradient_descent(objective, p0, it, n_iter,
 
         if fixed_ids and fixed_pos:
             # keep the old embedding for calculate neighbors of moved points
-            X_embedded = p.copy().reshape(-1, 2)
-            n_neighbors = int(0.05 * X_embedded.shape[0])
-            model = NearestNeighbors(n_neighbors=n_neighbors, algorithm='auto')
-            model.fit(X_embedded)
-            knn = model.kneighbors(X_embedded[fixed_ids], return_distance=False)
+            X2d = p.copy().reshape(-1, 2)
+            n_neighbors = int(0.1 * X2d.shape[0])
+            distances = cdist(X2d[fixed_ids], X2d, 'sqeuclidean')
+            knn = np.argsort(distances, axis=1)[:, 1:n_neighbors+1]
             kwargs['fixed_ids'] = fixed_ids
-            kwargs['neighbor_ids'] = knn[:, 1:]
+            kwargs['neighbor_ids'] = knn
+            kwargs['reg_param'] = 1e-3
 
             # update position of the newly moved points
             p.reshape(-1, 2)[fixed_ids] = fixed_pos
@@ -162,12 +162,13 @@ def my_gradient_descent(objective, p0, it, n_iter,
         old_p = p.copy()
         p += update
 
-        X_embedded = p.copy().reshape(-1, 2)
-        dist_y = pairwise_distances(X_embedded, squared=True)
+        # manual fix the pos of moved point
+        if fixed_ids and fixed_pos:
+            p.reshape(-1, 2)[fixed_ids] = fixed_pos
 
         if (i % status['n_jump'] == 0):
             if status['measure'] is True:
-                trustwth = trustworthiness(dist_X_original, X_embedded,
+                trustwth = trustworthiness(dist_X_original, p.reshape(-1, 2),
                                            n_neighbors=10, precomputed=True)
                 stability, convergence = score.PIVE_measure(
                     old_p, p, dist_X_original)
@@ -180,7 +181,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             penalties.append(penalty)
             grad_norms.append(float(grad_norm))
             client_data = {
-                'embedding': X_embedded.ravel().tostring().decode('latin-1'),
+                'embedding': p.copy().tostring().decode('latin-1'),
                 'z_info': z_info.tolist(),
                 'seriesData': [
                     {'name': 'errors, penalty', 'series': [errors, penalties]},
@@ -331,7 +332,7 @@ def my_kl_divergence2(params, P, degrees_of_freedom, n_samples, n_components,
     kl_divergence = 2.0 * np.sum(divergences)
     divergences = squareform(divergences)
     divergences = np.sum(divergences, axis=1)
-    
+
     # add penalty term for moved points
     penalty = 0.0
     if fixed_ids is not None and neighbor_ids is not None:
@@ -346,8 +347,8 @@ def my_kl_divergence2(params, P, degrees_of_freedom, n_samples, n_components,
     grad = np.ndarray((n_samples, n_components), dtype=params.dtype)
     PQd = squareform((P - Q) * dist)
     for i in range(skip_num_points, n_samples):
-        grad[i] = 0 if fixed_ids and i in fixed_ids else \
-            np.dot(np.ravel(PQd[i], order='K'), X_embedded[i] - X_embedded)
+        grad[i] = np.dot(np.ravel(PQd[i], order='K'),
+                         X_embedded[i] - X_embedded)
     c = 2.0 * (degrees_of_freedom + 1.0) / degrees_of_freedom
     grad *= c
 
@@ -357,6 +358,7 @@ def my_kl_divergence2(params, P, degrees_of_freedom, n_samples, n_components,
             nbs = neighbor_ids[idx]
             const = -2 * reg_param / len(nbs)
             grad[nbs] += const * (X_embedded[fixed_id] - X_embedded[nbs])
+        grad[fixed_ids] = 0.0
 
     grad = grad.ravel()
     return kl_divergence, penalty, grad, divergences

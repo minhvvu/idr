@@ -196,17 +196,17 @@ updateNewData ({ ready, current_it } as model) dataStr =
                     else
                         Cmd.none
 
-                rawPoints =
+                newRawPoints =
                     embeddingResult.embedding
 
                 newScatter =
-                    buildScatter model model.rawPoints model.scatter.selectedId model.zoomFactor
+                    buildScatter model newRawPoints model.scatter.selectedId model.zoomFactor
             in
                 ( { model
                     | current_it = current_it + 1
                     , scatter = newScatter
                     , seriesData = embeddingResult.seriesData
-                    , rawPoints = rawPoints
+                    , rawPoints = newRawPoints
                   }
                 , nextCommand
                 )
