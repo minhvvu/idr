@@ -50,7 +50,9 @@ def boostrap_do_embedding(X, shared_queue=None):
         random_state=0,
         init='random',
         method='exact',  # use this method to hook into kl_divergence
-        perplexity=50,
+        perplexity=30.0,
+        early_exaggeration=12.0,
+        learning_rate=100.0,
         n_iter_without_progress=500,
         verbose=2
     )
