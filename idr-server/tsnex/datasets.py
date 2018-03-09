@@ -24,7 +24,9 @@ def load_dataset(name='MNIST-SMALL'):
         'BREAST-CANCER95': partial(load_pickle, 'breastCancer'),
         'DIABETES': partial(load_pickle, 'diabetes'),
         'MPI': partial(load_pickle, 'MPI_national'),
-        'COVTYPE': partial(load_pickle, 'covtype'),
+        'INSURANCE': partial(load_pickle, 'insurance'),
+        'FIFA18': partial(load_pickle, 'fifa18', 2000),
+        'FR_SALARY': partial(load_pickle, 'FR_net_salary', 2000),
     }[name]()
 
 
@@ -54,14 +56,17 @@ def load_mnist_full(n_samples=2000):
     return X, y, labels
 
 
-def load_pickle(name):
+def load_pickle(name, limit_size=2000):
     inputName = '../data/{}.pickle'.format(name)
     dataset = pickle.load(open(inputName, 'rb'))
     X, labels = dataset['data'], dataset['labels']
+    n = min(limit_size, X.shape[0])
+    X = X[:n]
+    labels = labels[:n]
     if 'y' in dataset:
-        y = dataset['y']
+        y = dataset['y'][:n]
     else:
-        y = np.zeros(X.shape[0])
+        y = np.zeros(n)
     print("Data from pickle: ", X.shape, y.shape, len(labels))
     return X, y, labels
 
