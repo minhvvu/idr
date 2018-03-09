@@ -46,6 +46,8 @@ view model =
                     , sitem "Country Indicators 2015" "COUNTRY2015"
                     , sitem "Cars and Trucks 2004" "CARS04"
                     , sitem "Breast Cancer Wisconsin (Diagnostic)" "BREAST-CANCER95"
+                    , sitem "Pima Indians Diabetes" "DIABETES"
+                    , sitem "Multidimensional Poverty Measures" "MPI"
                     , sitem "MNIST mini" "MNIST-SMALL"
                     , sitem "MNIST full sample 3000" "MNIST"
                     , sitem "COIL-20" "COIL20"

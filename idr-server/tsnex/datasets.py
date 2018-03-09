@@ -22,6 +22,9 @@ def load_dataset(name='MNIST-SMALL'):
         'COUNTRY2015': partial(load_country, 2015),
         'CARS04': partial(load_pickle, 'cars04'),
         'BREAST-CANCER95': partial(load_pickle, 'breastCancer'),
+        'DIABETES': partial(load_pickle, 'diabetes'),
+        'MPI': partial(load_pickle, 'MPI_national'),
+        'COVTYPE': partial(load_pickle, 'covtype'),
     }[name]()
 
 
