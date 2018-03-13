@@ -178,6 +178,7 @@ def client_moved_points(ws):
             fixed_data = utils.get_from_db(key='fixed_points')
             fixed_points = json.loads(fixed_data) if fixed_data else {}
             new_moved_points = json.loads(message)
+            print("New moving points: ", new_moved_points)
             for p in new_moved_points:
                 pid = p['id']  # for fixed_points dict, key is string
                 pos = [float(p['x']), float(p['y'])]

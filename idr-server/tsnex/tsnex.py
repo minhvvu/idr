@@ -177,7 +177,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 embedding_scores.append((trustwth, stability, convergence))
 
                 # classification_scores.append(score.classify(X_embedded))
-                # clustering_scores.append(score.clutering(X_embedded))
+                clustering_scores.append(score.clutering(X_embedded))
 
             errors.append(error)
             penalties.append(penalty)

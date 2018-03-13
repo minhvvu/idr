@@ -42,7 +42,7 @@ def load_coil20():
 def load_mnist_mini():
     dataset = datasets.load_digits()
     X, y = dataset.data, dataset.target
-    labels = list(map(str, y.tolist()))
+    labels = list(map(str, range(len(y))))
     return X, y, labels
 
 
@@ -52,7 +52,7 @@ def load_mnist_full(n_samples=2000):
     X, y = dataset.data, dataset.target
     X, y = shuffle(X, y, n_samples=n_samples, random_state=0)
     y = y.astype(int)
-    labels = list(map(str, y.tolist()))
+    labels = list(map(str, range(len(y))))
     return X, y, labels
 
 
