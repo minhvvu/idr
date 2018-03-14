@@ -16,7 +16,6 @@ from time import time, sleep
 import utils
 import score
 
-
 MACHINE_EPSILON = np.finfo(np.double).eps
 
 
@@ -146,7 +145,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             p.reshape(-1, 2)[fixed_ids] = fixed_pos
 
         # calculate gradient and KL divergence
-        error, penalty, grad, divergences = my_kl_divergence2(p, *args, **kwargs)
+        error, penalty, grad, divergences = my_kl_divergence3(p, *args, **kwargs)
         z_info += divergences
 
         # calculate the magnitude of gradient of each point
@@ -364,3 +363,64 @@ def my_kl_divergence2(params, P, degrees_of_freedom, n_samples, n_components,
 
     grad = grad.ravel()
     return kl_divergence, penalty, grad, divergences
+
+
+def my_kl_divergence3(params, P, degrees_of_freedom, n_samples, n_components,
+                      skip_num_points=0,
+                      reg_param=0, fixed_ids=None, neighbor_ids=None):
+
+    X_embedded = params.reshape(n_samples, n_components)
+
+    # Q is a heavy-tailed distribution: Student's t-distribution
+    dist = pdist(X_embedded, "sqeuclidean")
+    dist /= degrees_of_freedom
+    dist += 1.
+    dist **= (degrees_of_freedom + 1.0) / -2.0
+    Q = np.maximum(dist / (2.0 * np.sum(dist)), MACHINE_EPSILON)
+
+    # Optimization trick below: np.dot(x, y) is faster than
+    # np.sum(x * y) because it calls BLAS
+
+    # Objective: C (Kullback-Leibler divergence of P and Q)
+    # kl_divergence = 2.0 * np.dot(P, np.log(np.maximum(P, MACHINE_EPSILON) / Q))
+    divergences = P * np.log(np.maximum(P, MACHINE_EPSILON) / Q)
+    kl_divergence = 2.0 * np.sum(divergences)
+    divergences = squareform(divergences)
+    divergences = np.sum(divergences, axis=1)
+
+    # add penalty term for moved points
+    sigma = 30*30
+    neg_log_likelihood = 0.0
+    if fixed_ids is not None and neighbor_ids is not None:
+        for idx, fixed_id in enumerate(fixed_ids):
+            nbs = neighbor_ids[idx]
+            diff_norm = np.sum((X_embedded[fixed_id] - X_embedded[nbs])**2, axis=1)
+            diff_norm /= sigma
+            diff_norm += 1.0
+            neg_log_likelihood += np.sum(np.log(diff_norm))
+    kl_divergence += neg_log_likelihood
+
+    # Gradient: dC/dY
+    grad = np.ndarray((n_samples, n_components), dtype=params.dtype)
+    PQd = squareform((P - Q) * dist)
+    for i in range(skip_num_points, n_samples):
+        grad[i] = np.dot(np.ravel(PQd[i], order='K'),
+                         X_embedded[i] - X_embedded)
+    c = 2.0 * (degrees_of_freedom + 1.0) / degrees_of_freedom
+    grad *= c
+
+    # gradient of penalty only for the involved points
+    if fixed_ids is not None and neighbor_ids is not None:
+        for idx, fixed_id in enumerate(fixed_ids):
+            nbs = neighbor_ids[idx]
+            const = -2 / sigma
+            diff = X_embedded[fixed_id] - X_embedded[nbs] 
+            diff_norm = np.sum(diff**2, axis=1)
+            diff_norm /= sigma
+            diff_norm += 1.0
+            diff_norm **= -1
+            grad[nbs] += const * diff * diff_norm.reshape(-1,1)
+        grad[fixed_ids] = 0.0
+
+    grad = grad.ravel()
+    return kl_divergence, neg_log_likelihood, grad, divergences
