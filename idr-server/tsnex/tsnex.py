@@ -389,13 +389,14 @@ def my_kl_divergence3(params, P, degrees_of_freedom, n_samples, n_components,
     divergences = np.sum(divergences, axis=1)
 
     # add penalty term for moved points
-    sigma = 1e5 # need to understand the phenomene in the viz
+    sigma_square = 1e5 # need to understand the phenomene in the viz
     neg_log_likelihood = 0.0
     if fixed_ids is not None and neighbor_ids is not None:
         for idx, fixed_id in enumerate(fixed_ids):
             nbs = neighbor_ids[idx]
-            diff_norm = np.sum((X_embedded[fixed_id] - X_embedded[nbs])**2, axis=1)
-            diff_norm /= sigma
+            diff = X_embedded[nbs] - X_embedded[fixed_id]
+            diff_norm = np.sum(diff**2, axis=1)
+            diff_norm /= sigma_square
             diff_norm += 1.0
             # diff_norm /= np.sum(diff_norm)
             neg_log_likelihood += np.sum(np.log(diff_norm))
@@ -414,10 +415,10 @@ def my_kl_divergence3(params, P, degrees_of_freedom, n_samples, n_components,
     if fixed_ids is not None and neighbor_ids is not None:
         for idx, fixed_id in enumerate(fixed_ids):
             nbs = neighbor_ids[idx]
-            const = -2 / sigma
-            diff = X_embedded[fixed_id] - X_embedded[nbs] 
+            const = -2 / sigma_square
+            diff = X_embedded[nbs] - X_embedded[fixed_id]
             diff_norm = np.sum(diff**2, axis=1)
-            diff_norm /= sigma
+            diff_norm /= sigma_square
             diff_norm += 1.0
             diff_norm **= -1
             grad[nbs] += const * diff * diff_norm.reshape(-1,1)

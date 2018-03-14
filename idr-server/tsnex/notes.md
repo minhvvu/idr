@@ -1,5 +1,7 @@
 ### Change in objective function
 
+#### Using L2-regularization term
+
 + Suppose that the new positions of the fixed points as $\color{blue}{y}^{\prime}$.
 
 + Update the new positions of $\color{blue}{y}^{\prime}$ into the current embedding coordinates to calculate new $\textbf{Q}^{\prime}$
@@ -40,3 +42,49 @@ Test with `MNIST-small` dataset, $\lambda = 1e-3$ gives us a clear result.
     * `perplexity=30.0`
     * `early_exaggeration=12.0` (in `sklearn`: 12.0; in the original paper: 4.0)
     * `learning_rate=100.0` (default in `sklearn`: 200.0, in the original paper: 100.0)
+
+
+#### Using Student t-distribution arround the fixed points
++ For each fixed point $\color{blue}{y_{i}^{\prime}}$, find its `k` nearest neighbors $\color{red}{y_{j}}$ based on its old position $\color{blue}{y_{i}}$.
++ Convert the distance between $y_i^{\prime}$ and $y_j$ into the probability by using a student t-distribution with a degree of freedom $\nu=1$, a centre $\mu$ at the new position $y_i^{\prime}$ and a scale $\sigma$ as a param:
+$$
+    p(\color{red}{y_j} | \color{blue}{y_i^{\prime}}) =
+    \frac{1}{\pi} \left[
+        1 + \frac{1}{\nu} \left(
+            \frac{||\color{red}{y_j} - \color{blue}{y_i^{\prime}}||}{\sigma}
+        \right)^{2}
+    \right]^{-\frac{\nu+1}{2}}
+$$
+$$
+    p(\color{red}{y_j} | \color{blue}{y_i^{\prime}}) \propto
+    \left(
+        1 + \frac{|| \color{red}{y_j} - \color{blue}{y_i^{\prime}}||^2}
+            {\sigma^2}
+    \right)^{-1}
+$$
+
+We say $p(\color{red}{y_j} | \color{blue}{y_i^{\prime}})$ is the probability that a single neighbor $y_j$ of the old point $y_i$ being still attracted by the new position $y_i^{\prime}$.
++ The likelihood that all the `k` neighbors of $y_i$'s are still attracted by the new position $y_i^{\prime}$ is a joint distribution
+$p(y_1, \dots, y_k | y_i^{\prime}) = \prod_{j=1}^{k}p(y_j|y_i^{\prime})$.
++ We wish to maximize this likelihood for each fixed point $y_i^{\prime}$, that can be achieved by minimizing the negative log likelihood of the above joint distributions.
++ We introduce a new term in the objective function of `tsne`:
+$$ C = KL(P || Q) + \sum_{i}^{m} \left( - \log \prod_{j}^{k} p(y_j|y_i^{\prime}) \right) $$
+$$ C = KL(P || Q) + \sum_{i}^{m} \left( - \sum_{j}^{k} \log p(y_j|y_i^{\prime}) \right) $$
+$$ C = KL(P || Q) + \sum_{i}^{m} \sum_{j}^{k} \log \left(
+        1 + \frac{|| \color{red}{y_j} - \color{blue}{y_i^{\prime}}||^2}
+            {\sigma^2}
+    \right)
+$$
+
++ When calculate gradient for the neighbor points $y_j$, we add the following term:
+$$ - \frac{\partial}{\partial{y_j}}{\log p(y_j | y_i^{\prime})} $$
+$$ = - \frac{\partial}{\partial{y_j}}{p(y_j | y_i^{\prime})}
+        \frac{1}{p(y_j | y_i^{\prime})} $$
+$$
+    = - \frac{2}{\sigma^2}
+        (\color{red}{y_j} - \color{blue}{y_i^{\prime}})
+        \left(
+            1 + \frac{|| \color{red}{y_j} - \color{blue}{y_i^{\prime}}||^2}
+                {\sigma^2}
+        \right)^{-1}
+$$
