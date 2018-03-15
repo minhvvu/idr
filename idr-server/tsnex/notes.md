@@ -77,14 +77,29 @@ $$ C = KL(P || Q) + \sum_{i}^{m} \sum_{j}^{k} \log \left(
 $$
 
 + When calculate gradient for the neighbor points $y_j$, we add the following term:
-$$ - \frac{\partial}{\partial{y_j}}{\log p(y_j | y_i^{\prime})} $$
-$$ = - \frac{\partial}{\partial{y_j}}{p(y_j | y_i^{\prime})}
-        \frac{1}{p(y_j | y_i^{\prime})} $$
+$$ \frac{\partial}{\partial{y_j}}
+    \left(- \log p(y_j | y_i^{\prime}) \right)
 $$
-    = - \frac{2}{\sigma^2}
-        (\color{red}{y_j} - \color{blue}{y_i^{\prime}})
+$$ = \frac{\partial}{\partial{y_j}}
+    \log \left(
+        1 + \frac{|| \color{red}{y_j} - \color{blue}{y_i^{\prime}}||^2}
+            {\sigma^2}
+    \right)
+$$
+$$ = \frac{\partial}{\partial{y_j}}
         \left(
             1 + \frac{|| \color{red}{y_j} - \color{blue}{y_i^{\prime}}||^2}
                 {\sigma^2}
-        \right)^{-1}
+        \right)
+    \left(
+            1 + \frac{|| \color{red}{y_j} - \color{blue}{y_i^{\prime}}||^2}
+                {\sigma^2}
+    \right)^{-1}
+
+$$
+$$ = \frac{2}{\sigma^2} (\color{red}{y_j} - \color{blue}{y_i^{\prime}})
+    \left(
+        1 + \frac{|| \color{red}{y_j} - \color{blue}{y_i^{\prime}}||^2}
+            {\sigma^2}
+    \right)^{-1}
 $$

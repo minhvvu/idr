@@ -415,7 +415,7 @@ def my_kl_divergence3(params, P, degrees_of_freedom, n_samples, n_components,
     if fixed_ids is not None and neighbor_ids is not None:
         for idx, fixed_id in enumerate(fixed_ids):
             nbs = neighbor_ids[idx]
-            const = -2 / sigma_square
+            const = 2 / sigma_square
             diff = X_embedded[nbs] - X_embedded[fixed_id]
             diff_norm = np.sum(diff**2, axis=1)
             diff_norm /= sigma_square
