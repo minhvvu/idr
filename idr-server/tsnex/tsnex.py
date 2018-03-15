@@ -139,7 +139,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             knn = np.argsort(distances, axis=1)[:, 1:n_neighbors+1]
             kwargs['fixed_ids'] = fixed_ids
             kwargs['neighbor_ids'] = knn
-            kwargs['reg_param'] = 1e-5 # 1e-3 for L2-penalty
+            kwargs['reg_param'] = 1e5 # 1e-3 for L2-penalty
 
             # update position of the newly moved points
             p.reshape(-1, 2)[fixed_ids] = fixed_pos
@@ -341,7 +341,7 @@ def my_kl_divergence2(params, P, degrees_of_freedom, n_samples, n_components,
             nbs = neighbor_ids[idx]
             penalty += np.sum((X_embedded[fixed_id] - X_embedded[nbs])**2)
         # penalty /= (len(fixed_ids) * len(neighbor_ids[0]))
-        penalty *= reg_param
+        penalty /= reg_param
     kl_divergence += penalty
 
     # Gradient: dC/dY
@@ -357,7 +357,7 @@ def my_kl_divergence2(params, P, degrees_of_freedom, n_samples, n_components,
     if fixed_ids is not None and neighbor_ids is not None:
         for idx, fixed_id in enumerate(fixed_ids):
             nbs = neighbor_ids[idx]
-            const = 0.5 * reg_param # (-2 * reg_param / len(nbs)) for L2-penalty
+            const = 0.5 / reg_param # (-2 * reg_param / len(nbs)) for L2-penalty
             grad[nbs] += const * (X_embedded[fixed_id] - X_embedded[nbs])
         grad[fixed_ids] = 0.0
 

@@ -2,12 +2,13 @@
 
 
 #### Summary
-+ Testing the idea of a new penalty term for the objective function of tsne:
-    * The simplest approach is using L2 penalty, but we have to find the regularization constant manually.
-    * Another approach is to try to convert the distance between the fixed points and its old neighbors by introducing a gaussian or a student t distribution at the location of the fixed point. The intuition behind this idea is that, if a point $y_j$ is neighbor of a point $y_i$, it should have large likelihood to still be neighbor of this point at the new position $y_i^{\prime}$.
-    * This way we can minimize the KL divergence and maximize the above likelihoods at the same time, that forces the neighbors of the fixed points move closer to the new position of the fixed points to preserve the neighborhood relation.
+Testing the idea of a new penalty term for the objective function of tsne:
++ The simplest approach is using L2 penalty, but we have to find the regularization constant manually.
++ Another approach is to try to convert the distance between the fixed points and its old neighbors by introducing a gaussian or a student t distribution at the location of the fixed point. The intuition behind this idea is that, if a point $y_j$ is neighbor of a point $y_i$, it should have large likelihood to be still neighbor of this point at the new position $y_i^{\prime}$.
++ This way we can minimize the KL divergence and maximize the above likelihoods at the same time, that forces the neighbors of the fixed points move closer to the new position of the fixed points to preserve the neighborhood relation.
++ The params are found manually when experimenting on the small MNIST dataset.
 
-#### 1. Using Student t-distribution arround the fixed points
+#### 1. Using Student t-distribution around the fixed points
 > Updated 15/03/2018
 
 + For each fixed point ${y_{i}^{\prime}}$, find its `k` nearest neighbors ${y_{j}}$ based on its old position ${y_{i}}$.
@@ -91,7 +92,7 @@ Before moving              |  After moving
 ![mnist01](/home/vmvu/Pictures/exp1503/mnist_cost1_errors.png) ![mnist01](/home/vmvu/Pictures/exp1503/mnist_cost1_gradient_norms.png)
 
 
-#### 2. Using Gaussian distribution arround the fixed points
+#### 2. Using Gaussian distribution around the fixed points
 > Updated 14/03/2018
 
 + Using the same setting as used with the t-distribution, we define the probability that a point $y_j$ being still a neighbor of new fixed point $y_i^{\prime}$ as
@@ -113,7 +114,7 @@ $$
 
 + This way, we can replace the `regularization term` in the approach [using L2 penalty](#3-using-l2-regularization-term) by $\frac{1}{2 \sigma^2}$.
 
-> Some values of $\sigma^{\prime}$ in range #[1e-5, 1e-3] give a clear result.
+> Some values of $\sigma^{2}$ in range `[1e3, 1e5]` give a clear result.
 
 + The additional gradient for each neighbor point $y_j$ is the partial derivative of the negative log likelihood w.r.t. $y_j$, that is exactly the same as using L2-penalty.
 $$ \frac{\partial}{\partial{y_j}}
