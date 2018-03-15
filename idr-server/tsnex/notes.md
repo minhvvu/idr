@@ -113,6 +113,8 @@ $$
 
 + This way, we can replace the `regularization term` in the approach [using L2 penalty](#3-using-l2-regularization-term) by $\frac{1}{2 \sigma^2}$.
 
+> Some values of $\sigma^{\prime}$ in range #[1e-5, 1e-3] give a clear result.
+
 + The additional gradient for each neighbor point $y_j$ is the partial derivative of the negative log likelihood w.r.t. $y_j$, that is exactly the same as using L2-penalty.
 $$ \frac{\partial}{\partial{y_j}}
     \left(- \log p(y_j | y_i^{\prime}) \right)
