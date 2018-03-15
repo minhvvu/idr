@@ -389,7 +389,7 @@ def my_kl_divergence3(params, P, degrees_of_freedom, n_samples, n_components,
     divergences = np.sum(divergences, axis=1)
 
     # add penalty term for moved points
-    sigma_square = 1e5 # need to understand the phenomene in the viz
+    sigma_square = 1e5
     neg_log_likelihood = 0.0
     if fixed_ids is not None and neighbor_ids is not None:
         for idx, fixed_id in enumerate(fixed_ids):
