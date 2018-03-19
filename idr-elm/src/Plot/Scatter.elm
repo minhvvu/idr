@@ -18,6 +18,7 @@ import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
 import Array exposing (..)
 import VirtualDom
 import Json.Decode as Decode
+import Strategy exposing (FixedPoint)
 
 
 {-| Scatter Model contains data used for rendering a scatter plot
@@ -230,6 +231,26 @@ updateSelectedCircle circleId allNeighbors scatter =
 updateImportantPoints : List String -> Scatter -> Scatter
 updateImportantPoints importantPoints scatter =
     { scatter | points = Plot.CircleGroup.updateImportantPoint importantPoints scatter.points }
+
+
+{-| Public API for setting position of some fixed points
+-}
+updateFixedPoints : List FixedPoint -> Scatter -> Scatter
+updateFixedPoints fixedPoints ({ points, xScale, yScale } as scatter) =
+    let
+        fixedPointsWithPos =
+            fixedPoints
+                |> List.map
+                    (\p ->
+                        { id = p.id
+                        , x = p.x
+                        , y = p.y
+                        , displayX = Scale.convert xScale p.x
+                        , displayY = Scale.convert yScale p.y
+                        }
+                    )
+    in
+        { scatter | points = Plot.CircleGroup.updateFixedPoints fixedPointsWithPos scatter.points }
 
 
 selectedPointsView : Scatter -> Html Msg

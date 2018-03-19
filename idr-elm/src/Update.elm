@@ -183,13 +183,8 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
             let
                 fixedPoints =
                     Strategy.getStrategy model.datasetName strategyId
-
-                newScatter =
-                    { scatter
-                        | points = Plot.CircleGroup.updateFixedPoints fixedPoints scatter.points
-                    }
             in
-                { model | scatter = newScatter } ! []
+                { model | scatter = Plot.Scatter.updateFixedPoints fixedPoints model.scatter } ! []
 
 
 {-| Util function to update new received data into model

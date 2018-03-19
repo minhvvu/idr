@@ -133,8 +133,8 @@ updateFixedPos fixedPoints ({ id, position, status } as circle) =
                 Maybe.Nothing ->
                     ( position, status )
 
-                Just fixedPoint ->
-                    ( Vector2.vec2 fixedPoint.displayX fixedPoint.displayY, setFixed status )
+                Maybe.Just p ->
+                    ( Vector2.vec2 p.displayX p.displayY, setFixed status )
     in
         { circle | position = newPosition, status = newStatus }
 
