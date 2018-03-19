@@ -9,6 +9,7 @@ import Plot.Circle exposing (..)
 import Common exposing (..)
 import Array exposing (..)
 import Math.Vector2 exposing (Vec2)
+import Strategy exposing (FixedPoint)
 
 
 type alias CircleGroup =
@@ -156,6 +157,26 @@ updateHighlightPoint lowerQuery group =
 updateImportantPoint : List String -> CircleGroup -> CircleGroup
 updateImportantPoint importantPoints group =
     { group | idleCircles = List.map (Plot.Circle.makeImportant importantPoints) group.idleCircles }
+
+
+{-| Update fixed points from predefined strategy
+-}
+updateFixedPoints : List FixedPoint -> CircleGroup -> CircleGroup
+updateFixedPoints fixedPoints group =
+    let
+        fixedIds =
+            List.map (\p -> p.id) fixedPoints
+
+        updatedIdleCircles =
+            List.map (Plot.Circle.updateFixedPos fixedPoints) group.idleCircles
+
+        updatedMovedCircles =
+            List.filter (\c -> List.member c.id fixedIds) updatedIdleCircles
+    in
+        { group
+            | idleCircles = updatedIdleCircles
+            , movedCircles = updatedMovedCircles
+        }
 
 
 {-| Util function to update a list of moved circles

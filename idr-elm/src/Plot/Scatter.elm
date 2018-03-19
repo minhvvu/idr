@@ -190,7 +190,6 @@ movedPointsView { points } =
 
 {-| Public API for getting a list of moved circles and map them to the domain value
 -}
-getMovedPoints : Scatter -> List Point
 getMovedPoints { points, xScale, yScale } =
     let
         movedPoint =
@@ -198,15 +197,12 @@ getMovedPoints { points, xScale, yScale } =
 
         invertDomain =
             (\p ->
-                (Point
-                    p.id
-                    (Scale.invert xScale p.x)
-                    (Scale.invert yScale p.y)
-                    p.z
-                    p.label
-                    p.text
-                    p.fixed
-                )
+                { id = p.id
+                , displayX = p.x
+                , displayY = p.y
+                , x = Scale.invert xScale p.x
+                , y = Scale.invert xScale p.y
+                }
             )
     in
         List.map invertDomain movedPoint

@@ -6,6 +6,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (decode, required)
 import Common exposing (Point, SeriesData, EmbeddingResult, DatasetInfo)
 import Msgs exposing (Msg)
+import Strategy exposing (FixedPoint)
 
 
 {-| Socket server URI
@@ -55,9 +56,9 @@ movedPointsURI =
 
 {-| Client command to send a list of Points to server
 -}
-sendMovedPoints : List Point -> Cmd Msg
-sendMovedPoints points =
-    WebSocket.send movedPointsURI (encodeListPoints points)
+sendFixedPoints : List FixedPoint -> Cmd Msg
+sendFixedPoints points =
+    WebSocket.send movedPointsURI (encodeListFixedPoints points)
 
 
 {-| Socket endpoint for pausing server
@@ -114,12 +115,14 @@ pointDecoder =
 
 {-| Util function to describle how to encode a Point object to json
 -}
-pointEncoder : Point -> Encode.Value
-pointEncoder point =
+fixedPointEncoder : FixedPoint -> Encode.Value
+fixedPointEncoder p =
     Encode.object
-        [ ( "id", Encode.string point.id )
-        , ( "x", Encode.float point.x )
-        , ( "y", Encode.float point.y )
+        [ ( "id", Encode.string p.id )
+        , ( "x", Encode.float p.x )
+        , ( "y", Encode.float p.y )
+        , ( "displayX", Encode.float p.displayX )
+        , ( "displayY", Encode.float p.displayY )
         ]
 
 
@@ -130,11 +133,11 @@ listPointsDecoder =
     Decode.list pointDecoder
 
 
-{-| Util function to describle how to encode a list of Point objects to json
+{-| Util function to describle how to encode a list of FixedPoint objects to json
 -}
-listPointEncoder : List Point -> Encode.Value
-listPointEncoder points =
-    Encode.list (List.map pointEncoder points)
+listFixedPointEncoder : List FixedPoint -> Encode.Value
+listFixedPointEncoder points =
+    Encode.list (List.map fixedPointEncoder points)
 
 
 {-| Util function to decode a json to a list of Point object
@@ -146,16 +149,12 @@ decodeListPoints str =
 
 {-| Util function to encode a list of Point objects into json
 -}
-encodeListPoints : List Point -> String
-encodeListPoints points =
-    let
-        pretyPrint =
-            -- set to zero for disable prety json string
-            1
-    in
-        points
-            |> listPointEncoder
-            |> Encode.encode pretyPrint
+encodeListFixedPoints : List FixedPoint -> String
+encodeListFixedPoints points =
+    points
+        |> listFixedPointEncoder
+        -- prety print
+        |> Encode.encode 1
 
 
 {-| Util function to decode series data

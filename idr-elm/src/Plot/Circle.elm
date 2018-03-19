@@ -11,6 +11,7 @@ import Svg.Lazy exposing (lazy2)
 import Msgs exposing (Msg(..))
 import Common exposing (..)
 import Bitwise exposing (and, or, xor)
+import Strategy exposing (FixedPoint)
 
 
 {-| Circle in scatter plot
@@ -115,6 +116,27 @@ makeImportant importantPoints ({ id, status } as circle) =
             else
                 status
     }
+
+
+{-| Set new position for the fixed point
+-}
+updateFixedPos : List FixedPoint -> Circle -> Circle
+updateFixedPos fixedPoints ({ id, position, status } as circle) =
+    let
+        targetFixedPoint =
+            fixedPoints
+                |> List.filter (\p -> p.id == id)
+                |> List.head
+
+        ( newPosition, newStatus ) =
+            case targetFixedPoint of
+                Maybe.Nothing ->
+                    ( position, status )
+
+                Just fixedPoint ->
+                    ( Vector2.vec2 fixedPoint.displayX fixedPoint.displayY, setFixed status )
+    in
+        { circle | position = newPosition, status = newStatus }
 
 
 {-| Util function to draw a circle

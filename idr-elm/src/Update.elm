@@ -9,6 +9,7 @@ import Plot.CircleGroup exposing (..)
 import Plot.Scatter exposing (Scatter, createScatter, getMovedPoints)
 import Array exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
+import Strategy exposing (getStrategy)
 
 
 {-| Big update function to handle all system messages
@@ -60,7 +61,7 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                 movedPoints =
                     Plot.Scatter.getMovedPoints scatter
             in
-                ( { model | ready = True }, sendMovedPoints movedPoints )
+                ( { model | ready = True }, sendFixedPoints movedPoints )
 
         {- Drag circle in scatter plot commands -}
         OnDragBy delta ->
@@ -179,7 +180,16 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                 { model | zoomFactor = newZoomFactor, scatter = newScatter } ! []
 
         DoStrategy strategyId ->
-            ( model, Cmd.none )
+            let
+                fixedPoints =
+                    Strategy.getStrategy model.datasetName strategyId
+
+                newScatter =
+                    { scatter
+                        | points = Plot.CircleGroup.updateFixedPoints fixedPoints scatter.points
+                    }
+            in
+                { model | scatter = newScatter } ! []
 
 
 {-| Util function to update new received data into model
