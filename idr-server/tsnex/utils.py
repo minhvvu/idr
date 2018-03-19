@@ -44,7 +44,12 @@ initial_server_status = {
     'ready': True,
 
     # need to stop all running threads to clean data
-    'stop': False
+    'stop': False,
+
+    # server will run without returning data to client
+    # util reaching the predefined milestone
+    # set to zero: normal interaction mode
+    'pause_at': 200,
 }
 
 

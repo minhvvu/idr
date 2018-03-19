@@ -109,11 +109,13 @@ def my_gradient_descent(objective, p0, it, n_iter,
     clustering_scores = []
     penalties = []
 
+    in_early_exaggeration = n_iter < 500
+
     print("\nGradien Descent:")
     i = 0
     while True:
         i += 1
-        if n_iter < 500 and i > n_iter:
+        if in_early_exaggeration and i > n_iter:
             break  # early_exaggeration
 
         status = utils.get_server_status()
@@ -139,7 +141,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             knn = np.argsort(distances, axis=1)[:, 1:n_neighbors+1]
             kwargs['fixed_ids'] = fixed_ids
             kwargs['neighbor_ids'] = knn
-            kwargs['reg_param'] = 1e5 # 1e-3 for L2-penalty
+            kwargs['reg_param'] = 1e-3 # 1e5 # 1e-3 for L2-penalty
 
             # update position of the newly moved points
             p.reshape(-1, 2)[fixed_ids] = fixed_pos
@@ -195,9 +197,18 @@ def my_gradient_descent(objective, p0, it, n_iter,
                         'series': [list(t) for t in zip(*embedding_scores)]},
                 ]
             }
-            utils.publish_data(client_data)
-            # hold for a while so that client can receive this new data
-            sleep(status['tick_frequence'])
+
+            # auto mode or interactive mode
+            if (status['pause_at'] == 0) \
+                or (i % n_iter_check == 0) \
+                or (not in_early_exaggeration and i > status['pause_at']):
+                utils.publish_data(client_data)
+                sleep(status['tick_frequence'])
+
+        # wait for client's strategy                
+        if (not in_early_exaggeration) and i == status['pause_at']:
+            print("[PAUSING]Waiting for client's strategy ... ")
+            utils.pause_server()
 
         if (i + 1) % n_iter_check == 0:
             toc = time()
@@ -340,8 +351,8 @@ def my_kl_divergence2(params, P, degrees_of_freedom, n_samples, n_components,
         for idx, fixed_id in enumerate(fixed_ids):
             nbs = neighbor_ids[idx]
             penalty += np.sum((X_embedded[fixed_id] - X_embedded[nbs])**2)
-        # penalty /= (len(fixed_ids) * len(neighbor_ids[0]))
-        penalty /= reg_param
+        # penalty / = reg_param # for gaussian
+        penalty *= reg_param / (len(fixed_ids) * len(neighbor_ids[0])) # for L2-penalty
     kl_divergence += penalty
 
     # Gradient: dC/dY
@@ -357,7 +368,8 @@ def my_kl_divergence2(params, P, degrees_of_freedom, n_samples, n_components,
     if fixed_ids is not None and neighbor_ids is not None:
         for idx, fixed_id in enumerate(fixed_ids):
             nbs = neighbor_ids[idx]
-            const = 0.5 / reg_param # (-2 * reg_param / len(nbs)) for L2-penalty
+            # const = 0.5 / reg_param # for gaussian
+            const = (-2 * reg_param / len(nbs)) # for L2-penalty
             grad[nbs] += const * (X_embedded[fixed_id] - X_embedded[nbs])
         grad[fixed_ids] = 0.0
 
@@ -398,7 +410,6 @@ def my_kl_divergence3(params, P, degrees_of_freedom, n_samples, n_components,
             diff_norm = np.sum(diff**2, axis=1)
             diff_norm /= sigma_square
             diff_norm += 1.0
-            # diff_norm /= np.sum(diff_norm)
             neg_log_likelihood += np.sum(np.log(diff_norm))
     kl_divergence += neg_log_likelihood
 
