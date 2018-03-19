@@ -201,7 +201,7 @@ getMovedPoints { points, xScale, yScale } =
                 , displayX = p.x
                 , displayY = p.y
                 , x = Scale.invert xScale p.x
-                , y = Scale.invert xScale p.y
+                , y = Scale.invert yScale p.y
                 }
             )
     in
