@@ -28,6 +28,7 @@ type Msg
     | ToggleAutoZoom
     | SearchByLabel String
     | Zoom Float
+    | DoStrategy String
 
 
 myDragConfig : Draggable.Config CircleId Msg

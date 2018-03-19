@@ -25,20 +25,23 @@ view model =
     Grid.containerFluid []
         [ CDN.stylesheet
         , Grid.row []
-            [ Grid.col [ Col.xs4 ] [ text model.debugMsg ]
-            , Grid.col [ Col.xs8 ]
+            [ Grid.col [ Col.xs2 ] [ text model.debugMsg ]
+            , Grid.col [ Col.xs5 ]
                 [ input [ class "ml-2", HtmlAttrs.placeholder "Search by label", onInput SearchByLabel ] []
-                , slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
+
+                --, slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
                 , slider "Zoom:" model.zoomFactor ( 0.1, 150 ) UpdateZoomFactor
-                , checkbox "Toggle labels" model.cf.showLabel ToggleLabel
-                , checkbox "Toggle colors" model.cf.showColor ToggleColor
-                , checkbox "Toggle Fit" model.cf.autoZoom ToggleAutoZoom
+                ]
+            , Grid.col [ Col.xs3 ]
+                [ checkbox "Labels" model.cf.showLabel ToggleLabel
+                , checkbox "Colors" model.cf.showColor ToggleColor
+                , checkbox "Fit" model.cf.autoZoom ToggleAutoZoom
                 ]
             ]
         , Grid.row []
-            [ Grid.col [ Col.xs4 ]
+            [ Grid.col [ Col.xs2 ]
                 [ Select.select
-                    [ Select.id "dataset-name", Select.onChange SelectDataset ]
+                    [ Select.small, Select.id "dataset-name", Select.onChange SelectDataset ]
                     [ sitem "--Select dataset--" ""
                     , sitem "Country Indicators 1999" "COUNTRY1999"
                     , sitem "Country Indicators 2013" "COUNTRY2013"
@@ -60,7 +63,7 @@ view model =
                     , sitem "Top 3000 words in Wiki-English" "WIKI-EN-3K"
                     ]
                 ]
-            , Grid.col [ Col.xs8 ]
+            , Grid.col [ Col.xs5 ]
                 [ button "Load Dataset" LoadDataset
                 , ButtonGroup.buttonGroup
                     [ ButtonGroup.attrs [ class "ml-2" ] ]
@@ -68,8 +71,16 @@ view model =
                     , groupButton "Pause" PauseServer
                     , groupButton "Continue" ContinueServer
                     ]
-                , button "Reset Data" ResetData
-                , button "Send Moved Points" SendMovedPoints
+                , button "Move Points" SendMovedPoints
+                ]
+            , Grid.col [ Col.xs3 ]
+                [ ButtonGroup.buttonGroup
+                    [ ButtonGroup.attrs [ class "ml-2" ] ]
+                    [ groupButton "Strategy1" (DoStrategy "1")
+                    , groupButton "Strategy2" (DoStrategy "2")
+                    , groupButton "Strategy3" (DoStrategy "3")
+                    ]
+                , button "Reset" ResetData
                 ]
             ]
         , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]
@@ -121,14 +132,14 @@ slider name value ( minVal, maxVal ) msgWithString =
 
 button : String -> Msg -> Html Msg
 button name clickMsg =
-    Button.button [ secondary, Button.attrs [ class "ml-2" ], onClick clickMsg ]
+    Button.button [ secondary, Button.small, Button.attrs [ class "ml-2" ], onClick clickMsg ]
         [ text name ]
 
 
 groupButton : String -> Msg -> ButtonGroup.ButtonItem Msg
 groupButton name clickMsg =
     ButtonGroup.button
-        [ secondary, onClick clickMsg ]
+        [ secondary, Button.small, onClick clickMsg ]
         [ text name ]
 
 

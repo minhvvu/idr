@@ -178,6 +178,9 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
             in
                 { model | zoomFactor = newZoomFactor, scatter = newScatter } ! []
 
+        DoStrategy strategyId ->
+            ( model, Cmd.none )
+
 
 {-| Util function to update new received data into model
 -}
