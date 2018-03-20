@@ -141,7 +141,7 @@ def my_gradient_descent(objective, p0, it, n_iter,
             knn = np.argsort(distances, axis=1)[:, 1:n_neighbors+1]
             kwargs['fixed_ids'] = fixed_ids
             kwargs['neighbor_ids'] = knn
-            kwargs['reg_param'] = 1e-3 # 1e5 # 1e-3 for L2-penalty
+            kwargs['reg_param'] = 1e5 # 1e-3 for L2-penalty
 
             # update position of the newly moved points
             p.reshape(-1, 2)[fixed_ids] = fixed_pos
