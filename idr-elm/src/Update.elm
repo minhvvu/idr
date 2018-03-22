@@ -120,10 +120,13 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                 newZoomFactor =
                     Result.withDefault 10.0 (String.toFloat amount)
 
+                newConfig =
+                    { cf | zoomFactor = newZoomFactor }
+
                 newScatter =
                     buildScatter model model.rawPoints model.scatter.selectedId newZoomFactor
             in
-                { model | zoomFactor = newZoomFactor, scatter = newScatter } ! []
+                { model | cf = newConfig, scatter = newScatter } ! []
 
         UpdateGroupMoving amount ->
             let
@@ -163,7 +166,7 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
         Zoom factor ->
             let
                 newZoomFactor =
-                    model.zoomFactor
+                    model.cf.zoomFactor
                         |> (+)
                             (if factor > 0 then
                                 1.0
@@ -174,10 +177,13 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                         |> toFloat
                         |> clamp 0.1 150
 
+                newConfig =
+                    { cf | zoomFactor = newZoomFactor }
+
                 newScatter =
                     buildScatter model model.rawPoints model.scatter.selectedId newZoomFactor
             in
-                { model | zoomFactor = newZoomFactor, scatter = newScatter } ! []
+                { model | cf = newConfig, scatter = newScatter } ! []
 
         DoStrategy strategyId ->
             let
@@ -208,7 +214,7 @@ updateNewData ({ ready, current_it } as model) dataStr =
                     embeddingResult.embedding
 
                 newScatter =
-                    buildScatter model newRawPoints model.scatter.selectedId model.zoomFactor
+                    buildScatter model newRawPoints model.scatter.selectedId model.cf.zoomFactor
             in
                 ( { model
                     | current_it = current_it + 1

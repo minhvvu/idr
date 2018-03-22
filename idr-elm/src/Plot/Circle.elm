@@ -204,14 +204,10 @@ circleView { id, position, radius, label, text, status } cf =
                  , fill color
                  , stroke strokeColor
                  , strokeWidth myStrokeWidth
-
-                 --, Svg.Attributes.cursor "move"
-                 --, Draggable.mouseTrigger id DragMsg
-                 --, Svg.Events.onMouseUp StopDragging
                  ]
                     ++ (Draggable.touchTriggers id DragMsg)
                 )
-                [ Svg.path [ x (centerX 0), y (centerY 0), d "M2 1 h1 v1 h1 v1 h-1 v1 h-1 v-1 h-1 v-1 h1 z" ] [{- doesnot work -}] ]
+                []
 
         bgCircle =
             Svg.circle
@@ -226,20 +222,16 @@ circleView { id, position, radius, label, text, status } cf =
 
         imageElem =
             Svg.image
-                [ x (centerX 0)
-                , y (centerY 0)
+                [ x (centerX -4)
+                , y (centerY -4)
                 , Svg.Attributes.width "8"
                 , Svg.Attributes.height "8"
-                , xlinkHref ("http://localhost:8000/data/imgs/mnist-small.svg#" ++ id)
-
-                --, Svg.Attributes.cursor "move"
-                --, Draggable.mouseTrigger id DragMsg
-                --, Svg.Events.onMouseUp StopDragging
+                , xlinkHref ("http://localhost:8000/data/imgs/mnist-small-color.svg#" ++ id)
                 ]
                 []
 
         displayCircle =
-            if cf.showImage then
+            if cf.showImage && cf.zoomFactor < 16 then
                 imageElem
             else
                 fgCircle

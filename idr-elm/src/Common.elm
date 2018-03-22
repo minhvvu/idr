@@ -21,6 +21,7 @@ type alias PlotConfig =
     , maxCircleRadius : Float
     , fixedRadius : Bool
     , autoZoom : Bool
+    , zoomFactor : Float
     , nNeighbors : Int
     , showImage : Bool
     , showLabel : Bool
@@ -40,8 +41,9 @@ plotConfig =
     , maxCircleRadius = 8
     , fixedRadius = False
     , autoZoom = False
+    , zoomFactor = 30.0
     , nNeighbors = 10
-    , showImage = False
+    , showImage = True
     , showLabel = False
     , showColor = False
     , center = Vector2.vec2 0 0

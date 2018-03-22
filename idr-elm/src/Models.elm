@@ -13,7 +13,6 @@ type alias Model =
     , ready : Bool -- status flag denoting that client is ready for receiving new data
     , current_it : Int -- current iteration in client
     , debugMsg : String -- message showing dataset info, ...
-    , zoomFactor : Float -- make the viz auto fit, confused with panning and zoomming feature
     , datasetName : String -- store the name of selected dataset
     , neighbors : Array (List String) -- a list of knn of each point in high dim
     , distances : List (List Float) -- pairwise distance b.w. points in high dim
@@ -32,7 +31,6 @@ initialModel =
     , ready = True
     , current_it = 0
     , debugMsg = "Client ready"
-    , zoomFactor = 20.0
     , datasetName = ""
     , neighbors = Array.fromList []
     , distances = []

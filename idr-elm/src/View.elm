@@ -30,7 +30,7 @@ view model =
                 [ input [ class "ml-2", HtmlAttrs.placeholder "Search by label", onInput SearchByLabel ] []
 
                 --, slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
-                , slider "Zoom:" model.zoomFactor ( 0.1, 150 ) UpdateZoomFactor
+                , slider "Zoom:" model.cf.zoomFactor ( 0.1, 150 ) UpdateZoomFactor
                 ]
             , Grid.col [ Col.xs3 ]
                 [ checkbox "Labels" model.cf.showLabel ToggleLabel
@@ -146,3 +146,37 @@ groupButton name clickMsg =
 sitem : String -> String -> Select.Item msg
 sitem sname svalue =
     Select.item [ HtmlAttrs.value svalue ] [ text sname ]
+
+
+compactLayout model =
+    Grid.containerFluid []
+        [ CDN.stylesheet
+        , Grid.row []
+            [ Grid.col [ Col.xs3 ] [ text model.debugMsg ]
+            , Grid.col [ Col.xs7 ]
+                [ slider "Zoom:" model.cf.zoomFactor ( 0.1, 150 ) UpdateZoomFactor
+                , checkbox "Labels" model.cf.showLabel ToggleLabel
+                , checkbox "Colors" model.cf.showColor ToggleColor
+                , checkbox "Fit" model.cf.autoZoom ToggleAutoZoom
+                ]
+            ]
+        , Grid.row []
+            [ Grid.col [ Col.xs3 ]
+                [ Select.select
+                    [ Select.small, Select.id "dataset-name", Select.onChange SelectDataset ]
+                    [ sitem "--Select dataset--" "" ]
+                ]
+            , Grid.col [ Col.xs7 ]
+                [ button "Load Dataset" LoadDataset
+                , ButtonGroup.buttonGroup
+                    [ ButtonGroup.attrs [ class "ml-2" ] ]
+                    [ groupButton "Do Embedding" DoEmbedding
+                    , groupButton "Pause" PauseServer
+                    , groupButton "Continue" ContinueServer
+                    ]
+                , button "Move Points" SendMovedPoints
+                ]
+            ]
+        , Grid.row []
+            [ Grid.col [ Col.xs8 ] [ scatterView model.scatter model.cf ] ]
+        ]

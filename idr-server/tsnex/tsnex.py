@@ -55,7 +55,7 @@ def boostrap_do_embedding(X, shared_queue=None):
         n_iter_without_progress=500,
         verbose=2
     )
-    tsne._EXPLORATION_N_ITER = 250
+    tsne._EXPLORATION_N_ITER = 150
 
     X_projected = tsne.fit_transform(X)
     return X_projected

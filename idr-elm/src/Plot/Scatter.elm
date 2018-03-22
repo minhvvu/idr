@@ -59,13 +59,13 @@ createScatter rawPoints zoomFactor cf =
         autoZoomFactor =
             [ abs minX, abs maxX, abs minY, abs maxY ]
                 |> List.maximum
-                |> Maybe.withDefault zoomFactor
+                |> Maybe.withDefault cf.zoomFactor
 
         zoomFactorXY =
             if cf.autoZoom then
                 autoZoomFactor
             else
-                zoomFactor
+                cf.zoomFactor
 
         xScale =
             Scale.linear

@@ -17,10 +17,11 @@ svgMetaData = """<?xml version="1.0" encoding="utf-8" standalone="no"?>
     *{stroke-linecap:butt;stroke-linejoin:round;}
     .sprite { display: none;}
     .sprite:target { display: inline; }
-    .myimg {  filter: invert(100%); }
+    
   </style>
  </defs>
 """
+# .myimg {  filter: invert(100%); }
 
 svgImgTag = """
 <g class="sprite" id="{}">
@@ -31,21 +32,35 @@ svgImgTag = """
 current_dpi = plt.gcf().get_dpi()
 fig = plt.figure(figsize=( 28/current_dpi, 28/current_dpi ))
 
-def generate_figure_data(idx, data, data_size):
+# create custom `cmap`
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import to_rgb
+
+def create_cm(basecolor):
+    colors = [(1, 1, 1), to_rgb(basecolor), to_rgb(basecolor)]  # R -> G -> B
+    return LinearSegmentedColormap.from_list(colors=colors, name=basecolor)
+
+basecolors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+              "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"]
+cmaps = []
+for basecolor in basecolors:
+    cmaps.append(create_cm(basecolor))
+
+def generate_figure_data(data, classId, data_size):
     figFile = BytesIO()
-    plt.imsave(figFile, data.reshape(data_size, data_size), cmap=plt.cm.gray_r)
+    plt.imsave(figFile, data.reshape(data_size, data_size), cmap=cmaps[classId])
     plt.gcf().clear()
     figFile.seek(0)
     return base64.b64encode(figFile.getvalue()).decode('utf-8')
 
 
-def generate_svg_stack(dataset_name, X, n, data_size):
-    outfile = '../data/imgs/{}.svg'.format(dataset_name)
+def generate_svg_stack(dataset_name, X, classIds, n, data_size):
+    outfile = '../data/imgs/test_{}.svg'.format(dataset_name)
     with open(outfile, "w") as svgFile:
         svgFile.write(svgMetaData)
         for i in range(n):
             utils.print_progress(i, n)
-            figData = generate_figure_data(i, X[i], data_size)
+            figData = generate_figure_data(X[i], classIds[i], data_size)
             svgFile.write(svgImgTag.format(i, i, figData))
         svgFile.write("</svg>")
 
@@ -100,4 +115,4 @@ def plot_default_tsne():
 if __name__ == '__main__':
     X, y, labels = datasets.load_dataset(name='MNIST-SMALL')
     data_size = 8 # for MNIST: 28, MNIST-SMALL: 8
-    generate_svg_stack('mnist-small', X, len(y), data_size)
+    generate_svg_stack('mnist-small', X, y, len(y), data_size)
