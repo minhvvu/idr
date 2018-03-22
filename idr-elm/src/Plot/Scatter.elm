@@ -2,8 +2,6 @@ module Plot.Scatter exposing (..)
 
 import Html exposing (Html)
 import Html.Attributes as HtmlAttrs exposing (class)
-import Bootstrap.ListGroup as ListGroup exposing (..)
-import Bootstrap.Badge as Badge
 import Svg exposing (..)
 import Svg.Attributes as SvgAttrs exposing (..)
 import Svg.Events as SvgEvents exposing (onClick)
@@ -159,36 +157,6 @@ drawScatter points cf =
             [ Plot.CircleGroup.circleGroupView points cf ]
 
 
-{-| Public API for calling drawing a list of moved circle in CircleGroup
--}
-movedPointsView : Scatter -> Html Msg
-movedPointsView { points } =
-    let
-        pointToListItem =
-            (\p ->
-                ListGroup.li
-                    [ ListGroup.attrs [ HtmlAttrs.class "justify-content-between" ] ]
-                    [ Badge.pill [] [ Html.text p.id ]
-                    , Html.text
-                        ("["
-                            ++ p.text
-                            ++ "], ("
-                            ++ p.label
-                            ++ "), {"
-                            ++ (toString <| round <| getX <| p.position)
-                            ++ ", "
-                            ++ (toString <| round <| getY <| p.position)
-                            ++ "}"
-                        )
-                    ]
-            )
-    in
-        ListGroup.ul
-            (points.movedCircles
-                |> List.map pointToListItem
-            )
-
-
 {-| Public API for getting a list of moved circles and map them to the domain value
 -}
 getMovedPoints { points, xScale, yScale } =
@@ -251,28 +219,3 @@ updateFixedPoints fixedPoints ({ points, xScale, yScale } as scatter) =
                     )
     in
         { scatter | points = Plot.CircleGroup.updateFixedPoints fixedPointsWithPos scatter.points }
-
-
-selectedPointsView : Scatter -> Html Msg
-selectedPointsView { points, selectedId } =
-    Html.div [] []
-
-
-
---let
---    neighbors =
---        Plot.CircleGroup.getKNN selectedId {-missing config here-} points
---in
---    Html.div []
---        [ Html.text ("Selected Id: " ++ selectedId)
---        , Html.br [] []
---        , Html.text
---            (if List.isEmpty neighbors then
---                "No neighbors"
---             else
---                (toString (List.length neighbors)
---                    ++ " neighbors: "
---                    ++ (toString neighbors)
---                )
---            )
---        ]

@@ -14,10 +14,11 @@ import Bootstrap.Badge as Badge
 import Bootstrap.Form.Select as Select exposing (..)
 import Models exposing (Model)
 import Msgs exposing (Msg(..))
-import Plot.Scatter exposing (scatterView, movedPointsView, selectedPointsView)
+import Plot.Scatter exposing (scatterView)
 import Plot.LineChart exposing (viewLineChart)
 import Svg exposing (image)
 import Svg.Attributes exposing (x, y, xlinkHref)
+import DataView.PointDetail exposing (..)
 
 
 view : Model -> Html Msg
@@ -86,16 +87,17 @@ view model =
         , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]
             [ Grid.col [ Col.xs8 ] [ scatterView model.scatter model.cf ]
             , Grid.col [ Col.xs4 ]
-                [ Grid.row [{- line charts for measurement -}]
+                [ dataview "cool qua la cool"
+                , Grid.row [{- line charts for measurement -}]
                     [ Grid.col []
                         (model.seriesData
                             |> List.map
                                 (\aseries -> viewLineChart aseries.name aseries.series)
                         )
                     ]
-                , Grid.row [] [ Grid.col [] [ movedPointsView model.scatter ] ]
+                , Grid.row [] [ Grid.col [] [ movedPointsView model.scatter.points.movedCircles ] ]
 
-                --m Grid.row [] [ Grid.col [] [ selectedPointsView model.scatter ] ]
+                --Grid.row [] [ Grid.col [] [ selectedPointsView model.scatter ] ]
                 ]
             ]
         ]
@@ -132,14 +134,14 @@ slider name value ( minVal, maxVal ) msgWithString =
 
 button : String -> Msg -> Html Msg
 button name clickMsg =
-    Button.button [ secondary, Button.small, Button.attrs [ class "ml-2" ], onClick clickMsg ]
+    Button.button [ Button.outlinePrimary, Button.small, Button.attrs [ class "ml-2" ], onClick clickMsg ]
         [ text name ]
 
 
 groupButton : String -> Msg -> ButtonGroup.ButtonItem Msg
 groupButton name clickMsg =
     ButtonGroup.button
-        [ secondary, Button.small, onClick clickMsg ]
+        [ Button.outlineSecondary, Button.small, onClick clickMsg ]
         [ text name ]
 
 
