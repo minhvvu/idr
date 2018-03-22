@@ -10,6 +10,7 @@ import Plot.Scatter exposing (Scatter, createScatter, getMovedPoints)
 import Array exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
 import Strategy exposing (getStrategy)
+import Bootstrap.Tab as Tab exposing (..)
 
 
 {-| Big update function to handle all system messages
@@ -191,6 +192,11 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                     Strategy.getStrategy model.datasetName strategyId
             in
                 { model | scatter = Plot.Scatter.updateFixedPoints fixedPoints model.scatter } ! []
+
+        TabMsg state ->
+            ( { model | tabState = state }
+            , Cmd.none
+            )
 
 
 {-| Util function to update new received data into model

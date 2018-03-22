@@ -4,6 +4,7 @@ import Draggable
 import Draggable.Events exposing (onDragBy, onDragStart, onClick)
 import Common exposing (CircleId)
 import Math.Vector2 as Vector2 exposing (Vec2)
+import Bootstrap.Tab as Tab exposing (..)
 
 
 type Msg
@@ -29,6 +30,7 @@ type Msg
     | SearchByLabel String
     | Zoom Float
     | DoStrategy String
+    | TabMsg Tab.State
 
 
 myDragConfig : Draggable.Config CircleId Msg

@@ -4,6 +4,7 @@ import Draggable
 import Common exposing (..)
 import Plot.Scatter exposing (Scatter, emptyScatter)
 import Array exposing (Array, fromList)
+import Bootstrap.Tab as Tab exposing (..)
 
 
 type alias Model =
@@ -20,6 +21,7 @@ type alias Model =
     , cf : PlotConfig -- all config for ploting
     , pointMoving : Bool -- panning or moving a point
     , rawPoints : List Point -- a list of raw point from server, store it for zoom when pausing
+    , tabState : Tab.State
     }
 
 
@@ -38,4 +40,5 @@ initialModel =
     , cf = plotConfig
     , pointMoving = False
     , rawPoints = []
+    , tabState = Tab.initialState
     }

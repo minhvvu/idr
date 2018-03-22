@@ -19,6 +19,7 @@ import Plot.LineChart exposing (viewLineChart)
 import Svg exposing (image)
 import Svg.Attributes exposing (x, y, xlinkHref)
 import DataView.PointDetail exposing (..)
+import Bootstrap.Tab as Tab exposing (..)
 
 
 view : Model -> Html Msg
@@ -87,17 +88,35 @@ view model =
         , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]
             [ Grid.col [ Col.xs8 ] [ scatterView model.scatter model.cf ]
             , Grid.col [ Col.xs4 ]
-                [ dataview "cool qua la cool"
-                , Grid.row [{- line charts for measurement -}]
-                    [ Grid.col []
-                        (model.seriesData
-                            |> List.map
-                                (\aseries -> viewLineChart aseries.name aseries.series)
-                        )
-                    ]
-                , Grid.row [] [ Grid.col [] [ movedPointsView model.scatter.points.movedCircles ] ]
-
-                --Grid.row [] [ Grid.col [] [ selectedPointsView model.scatter ] ]
+                [ Tab.config TabMsg
+                    |> Tab.right
+                    |> Tab.items
+                        [ Tab.item
+                            { id = "tabItem1"
+                            , link = Tab.link [] [ text "Charts" ]
+                            , pane =
+                                Tab.pane []
+                                    (model.seriesData
+                                        |> List.map
+                                            (\aseries -> viewLineChart aseries.name aseries.series)
+                                    )
+                            }
+                        , Tab.item
+                            { id = "tabItem2"
+                            , link = Tab.link [] [ text "Moved points" ]
+                            , pane = Tab.pane [] [ movedPointsView model.scatter.points.movedCircles ]
+                            }
+                        , Tab.item
+                            { id = "tabItem3"
+                            , link = Tab.link [] [ text "Selected points" ]
+                            , pane =
+                                Tab.pane []
+                                    [ --selectedPointsView model.scatter
+                                      dataview "cool qua la cool"
+                                    ]
+                            }
+                        ]
+                    |> Tab.view model.tabState
                 ]
             ]
         ]
