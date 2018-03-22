@@ -22,6 +22,7 @@ import DataView.PointDetail exposing (..)
 import Bootstrap.Tab as Tab exposing (..)
 import Bootstrap.Utilities.Size as Size exposing (..)
 import Bootstrap.Utilities.Border as Border exposing (..)
+import Common exposing (datasets)
 
 
 view : Model -> Html Msg
@@ -29,8 +30,8 @@ view model =
     Grid.containerFluid []
         [ CDN.stylesheet
         , Grid.row []
-            [ Grid.col [ Col.xs2 ] [ text model.debugMsg ]
-            , Grid.col [ Col.xs5 ]
+            [ Grid.col [ Col.xs3 ] [ text model.debugMsg ]
+            , Grid.col [ Col.xs6 ]
                 [ input [ class "ml-2", HtmlAttrs.placeholder "Search by label", onInput SearchByLabel ] []
 
                 --, slider "Group moving:" model.cf.selectionRadius ( 0, 30 ) UpdateGroupMoving
@@ -44,31 +45,12 @@ view model =
                 ]
             ]
         , Grid.row []
-            [ Grid.col [ Col.xs2 ]
+            [ Grid.col [ Col.xs3 ]
                 [ Select.select
                     [ Select.small, Select.id "dataset-name", Select.onChange SelectDataset ]
-                    [ sitem "--Select dataset--" ""
-                    , sitem "Country Indicators 1999" "COUNTRY1999"
-                    , sitem "Country Indicators 2013" "COUNTRY2013"
-                    , sitem "Country Indicators 2014" "COUNTRY2014"
-                    , sitem "Country Indicators 2015" "COUNTRY2015"
-                    , sitem "Cars and Trucks 2004" "CARS04"
-                    , sitem "Breast Cancer Wisconsin (Diagnostic)" "BREAST-CANCER95"
-                    , sitem "Pima Indians Diabetes" "DIABETES"
-                    , sitem "Multidimensional Poverty Measures" "MPI"
-                    , sitem "US Insurance Cost" "INSURANCE"
-                    , sitem "Fifa 18 Players (top 2000)" "FIFA18"
-                    , sitem "French salaries per town (top 2000)" "FR_SALARY"
-                    , sitem "MNIST mini" "MNIST-SMALL"
-                    , sitem "MNIST full (sample 2000)" "MNIST"
-                    , sitem "COIL-20" "COIL20"
-                    , sitem "Top 1000 words in Wiki-French" "WIKI-FR-1K"
-                    , sitem "Top 3000 words in Wiki-French" "WIKI-FR-3K"
-                    , sitem "Top 1000 words in Wiki-English" "WIKI-EN-1K"
-                    , sitem "Top 3000 words in Wiki-English" "WIKI-EN-3K"
-                    ]
+                    (List.map sitem datasets)
                 ]
-            , Grid.col [ Col.xs5 ]
+            , Grid.col [ Col.xs6 ]
                 [ button "Load Dataset" LoadDataset
                 , ButtonGroup.buttonGroup
                     [ ButtonGroup.attrs [ class "ml-2" ] ]
@@ -77,6 +59,7 @@ view model =
                     , groupButton "Continue" ContinueServer
                     ]
                 , button "Move Points" SendMovedPoints
+                , button "Reset" ResetData
                 ]
             , Grid.col [ Col.xs3 ]
                 [ ButtonGroup.buttonGroup
@@ -85,44 +68,32 @@ view model =
                     , groupButton "Strategy2" (DoStrategy "2")
                     , groupButton "Strategy3" (DoStrategy "3")
                     ]
-                , button "Reset" ResetData
                 ]
             ]
         , Grid.row [{- main content: scatter plot and detail view for selected and moved point -}]
-            [ Grid.col [ Col.xs8 ] [ scatterView model.scatter model.cf ]
-            , Grid.col [ Col.xs4 ]
-                [ Tab.config TabMsg
-                    |> Tab.right
-                    |> Tab.items
-                        [ Tab.item
-                            { id = "tabItem1"
-                            , link = Tab.link [] [ text "Charts" ]
-                            , pane =
-                                Tab.pane [ Size.h25, HtmlAttrs.style [ ( "overflow", "scroll" ) ] ]
-                                    (model.seriesData
-                                        |> List.map
-                                            (\aseries -> viewLineChart aseries.name aseries.series)
-                                    )
-                            }
-                        , Tab.item
-                            { id = "tabItem2"
-                            , link = Tab.link [] [ text "Moved points" ]
-                            , pane = Tab.pane [] [ movedPointsView model.scatter.points.movedCircles ]
-                            }
-                        , Tab.item
-                            { id = "tabItem3"
-                            , link = Tab.link [] [ text "Selected points" ]
-                            , pane =
-                                Tab.pane []
-                                    [ --selectedPointsView model.scatter
-                                      dataview "cool qua la cool"
-                                    ]
-                            }
-                        ]
-                    |> Tab.view model.tabState
+            [ Grid.col [ Col.xs7 ] [ scatterView model.scatter model.cf ]
+            , Grid.col [ Col.xs5 ]
+                [ div [ HtmlAttrs.style [ ( "padding-top", "10px" ) ] ]
+                    [ Tab.config TabMsg
+                        |> Tab.right
+                        |> Tab.items
+                            [ tabItem "tab1" "Charts" (List.map (\aseries -> viewLineChart aseries.name aseries.series) model.seriesData)
+                            , tabItem "tab2" "Moved Points" [ movedPointsView model.scatter.points.movedCircles ]
+                            , tabItem "tab3" "Selected points" [ dataview "cool qua la cool" ]
+                            ]
+                        |> Tab.view model.tabState
+                    ]
                 ]
             ]
         ]
+
+
+tabItem id name items =
+    Tab.item
+        { id = id
+        , link = Tab.link [] [ text name ]
+        , pane = Tab.pane [] items
+        }
 
 
 checkbox : String -> Bool -> Html Msg
@@ -167,8 +138,8 @@ groupButton name clickMsg =
         [ text name ]
 
 
-sitem : String -> String -> Select.Item msg
-sitem sname svalue =
+sitem : ( String, String ) -> Select.Item msg
+sitem ( sname, svalue ) =
     Select.item [ HtmlAttrs.value svalue ] [ text sname ]
 
 
@@ -189,7 +160,7 @@ compactLayout model =
             [ Grid.col [ Col.xs3 ]
                 [ Select.select
                     [ Select.small, Select.id "dataset-name", Select.onChange SelectDataset ]
-                    [ sitem "--Select dataset--" "" ]
+                    (List.map sitem datasets)
                 ]
             , Grid.col [ Col.xs7 ]
                 [ button "Load Dataset" LoadDataset

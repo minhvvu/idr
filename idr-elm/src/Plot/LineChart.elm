@@ -19,12 +19,12 @@ import Common exposing (intToColor10Str)
 
 w : Float
 w =
-    420.0
+    265.0
 
 
 h : Float
 h =
-    300.0
+    170.0
 
 
 padding : Float
@@ -94,7 +94,7 @@ viewLineChart name series =
             Svg.path
                 [ d (line points)
                 , stroke (intToColor10Str idx)
-                , strokeWidth "2px"
+                , strokeWidth "3px"
                 , fill "none"
                 ]
                 []
@@ -112,7 +112,8 @@ viewLineChart name series =
                 [ text_ [ fill (intToColor10Str idx) ] [ text label ] ]
     in
         svg [ width (toString w ++ "px"), height (toString h ++ "px") ]
-            [ g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString (h - padding) ++ ")") ]
+            [ Svg.style [] [ text ".axis text {font: 8px sans-serif; }" ]
+            , g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString (h - padding) ++ ")") ]
                 [ xAxis ]
             , g [ transform ("translate(" ++ toString (padding - 1) ++ ", " ++ toString padding ++ ")") ]
                 [ yAxis1 ]
@@ -120,6 +121,6 @@ viewLineChart name series =
                 [ yAxis2 ]
             , g [ transform ("translate(" ++ toString padding ++ ", " ++ toString padding ++ ")"), class "series" ]
                 (List.indexedMap drawLine series)
-            , g [ fontFamily "sans-serif", fontSize "16" ]
+            , g [ fontFamily "sans-serif", fontSize "10" ]
                 (List.indexedMap drawLabel labels)
             ]

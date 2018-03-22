@@ -15,12 +15,7 @@ import Plot.Circle exposing (..)
 
 dataview : String -> Html msg
 dataview data =
-    let
-        longTexts =
-            List.range 1 100
-                |> List.map (\i -> div [] [ text ((toString i) ++ ": --------------------------------------------------------------------------------") ])
-    in
-        div [ Size.h25, Border.all, HtmlAttrs.style [ ( "overflow", "scroll" ) ] ] (longTexts)
+    div [] (List.range 1 100 |> List.map (\i -> div [] [ text ((toString i) ++ ": ---------") ]))
 
 
 {-| Public API for calling drawing a list of moved circle in CircleGroup
