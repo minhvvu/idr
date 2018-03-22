@@ -24,9 +24,7 @@ type Msg
     | Select String
     | UpdateZoomFactor String -- zoom in/ zoom out the svg
     | UpdateGroupMoving String -- size of the radius using for group moving
-    | ToggleLabel
-    | ToggleColor
-    | ToggleAutoZoom
+    | ToggleConfig String
     | SearchByLabel String
     | Zoom Float
     | DoStrategy String

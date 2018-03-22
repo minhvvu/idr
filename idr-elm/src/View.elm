@@ -20,6 +20,8 @@ import Svg exposing (image)
 import Svg.Attributes exposing (x, y, xlinkHref)
 import DataView.PointDetail exposing (..)
 import Bootstrap.Tab as Tab exposing (..)
+import Bootstrap.Utilities.Size as Size exposing (..)
+import Bootstrap.Utilities.Border as Border exposing (..)
 
 
 view : Model -> Html Msg
@@ -35,9 +37,10 @@ view model =
                 , slider "Zoom:" model.cf.zoomFactor ( 0.1, 150 ) UpdateZoomFactor
                 ]
             , Grid.col [ Col.xs3 ]
-                [ checkbox "Labels" model.cf.showLabel ToggleLabel
-                , checkbox "Colors" model.cf.showColor ToggleColor
-                , checkbox "Fit" model.cf.autoZoom ToggleAutoZoom
+                [ checkbox "Label" model.cf.showLabel
+                , checkbox "Color" model.cf.showColor
+                , checkbox "Fit" model.cf.autoZoom
+                , checkbox "Axes" model.cf.showAxes
                 ]
             ]
         , Grid.row []
@@ -95,7 +98,7 @@ view model =
                             { id = "tabItem1"
                             , link = Tab.link [] [ text "Charts" ]
                             , pane =
-                                Tab.pane []
+                                Tab.pane [ Size.h25, HtmlAttrs.style [ ( "overflow", "scroll" ) ] ]
                                     (model.seriesData
                                         |> List.map
                                             (\aseries -> viewLineChart aseries.name aseries.series)
@@ -122,13 +125,13 @@ view model =
         ]
 
 
-checkbox : String -> Bool -> Msg -> Html Msg
-checkbox name value toggleMsg =
+checkbox : String -> Bool -> Html Msg
+checkbox name value =
     Html.label [ class "ml-2" ]
         [ input
             [ HtmlAttrs.type_ "checkbox"
             , HtmlAttrs.checked value
-            , HtmlEvents.onClick toggleMsg
+            , HtmlEvents.onClick (ToggleConfig name)
             ]
             []
         , text name
@@ -176,9 +179,10 @@ compactLayout model =
             [ Grid.col [ Col.xs3 ] [ text model.debugMsg ]
             , Grid.col [ Col.xs7 ]
                 [ slider "Zoom:" model.cf.zoomFactor ( 0.1, 150 ) UpdateZoomFactor
-                , checkbox "Labels" model.cf.showLabel ToggleLabel
-                , checkbox "Colors" model.cf.showColor ToggleColor
-                , checkbox "Fit" model.cf.autoZoom ToggleAutoZoom
+                , checkbox "Labels" model.cf.showLabel
+                , checkbox "Colors" model.cf.showColor
+                , checkbox "Fit" model.cf.autoZoom
+                , checkbox "Axes" model.cf.showAxes
                 ]
             ]
         , Grid.row []

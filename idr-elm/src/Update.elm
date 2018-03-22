@@ -136,21 +136,22 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
             in
                 { model | cf = { cf | selectionRadius = groupSize } } ! []
 
-        ToggleLabel ->
-            { model | cf = { cf | showLabel = not model.cf.showLabel } } ! []
+        ToggleConfig flagName ->
+            case flagName of
+                "Axes" ->
+                    { model | cf = { cf | showAxes = not model.cf.showAxes } } ! []
 
-        ToggleColor ->
-            { model | cf = { cf | showColor = not model.cf.showColor } } ! []
+                "Label" ->
+                    { model | cf = { cf | showLabel = not model.cf.showLabel } } ! []
 
-        ToggleAutoZoom ->
-            { model
-                | cf =
-                    { cf
-                        | autoZoom = not model.cf.autoZoom
-                        , center = Vector2.vec2 0 0
-                    }
-            }
-                ! []
+                "Color" ->
+                    { model | cf = { cf | showColor = not model.cf.showColor } } ! []
+
+                "Fit" ->
+                    { model | cf = { cf | autoZoom = not model.cf.autoZoom, center = Vector2.vec2 0 0 } } ! []
+
+                _ ->
+                    ( model, Cmd.none )
 
         SearchByLabel query ->
             let

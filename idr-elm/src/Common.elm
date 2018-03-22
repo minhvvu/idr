@@ -26,6 +26,7 @@ type alias PlotConfig =
     , showImage : Bool
     , showLabel : Bool
     , showColor : Bool
+    , showAxes : Bool
     , center : Vec2
     }
 
@@ -46,6 +47,7 @@ plotConfig =
     , showImage = True
     , showLabel = False
     , showColor = False
+    , showAxes = False
     , center = Vector2.vec2 0 0
     }
 
