@@ -171,6 +171,8 @@ embeddingResultDecoder =
     decode EmbeddingResult
         |> required "embedding" listPointsDecoder
         |> required "seriesData" (Decode.list seriesDataDecoder)
+        |> required "distances" (Decode.list (Decode.list Decode.float))
+        |> required "neighbors" (Decode.list (Decode.list Decode.string))
 
 
 decodeEmbeddingResult : String -> Result String EmbeddingResult

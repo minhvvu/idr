@@ -110,6 +110,8 @@ def my_gradient_descent(objective, p0, it, n_iter,
     penalties = []
 
     in_early_exaggeration = n_iter < 500
+    n_neighbors = int(0.05 * X_original.shape[0])
+    knnModel2d = NearestNeighbors(n_neighbors)
 
     print("\nGradien Descent:")
     i = 0
@@ -188,9 +190,13 @@ def my_gradient_descent(objective, p0, it, n_iter,
             if (status['pause_at'] == 0) \
                 or (i % n_iter_check == 0) \
                 or (not in_early_exaggeration and i > status['pause_at']):
+                
+                distances2d, neighbors2d = knnModel2d.fit(p.reshape(-1,2)).kneighbors()
                 client_data = {
                     'embedding': p.copy().tostring().decode('latin-1'),
                     'z_info': z_info.tolist(),
+                    'distances': distances2d.tolist(),
+                    'neighbors': list(map(lambda s: list(map(str, s)), neighbors2d)),
                     'seriesData': [
                         {'name': 'errors, penalty', 'series': [errors, penalties]},
                         {'name': 'gradients norms', 'series': [grad_norms]},

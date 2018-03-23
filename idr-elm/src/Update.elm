@@ -203,7 +203,7 @@ update msg ({ scatter, ready, dataModel, cf } as model) =
 {-| Util function to update new received data into model
 -}
 updateNewData : Model -> String -> ( Model, Cmd Msg )
-updateNewData ({ ready, current_it } as model) dataStr =
+updateNewData ({ ready, current_it, dataModel } as model) dataStr =
     case decodeEmbeddingResult dataStr of
         Err msg ->
             Debug.log ("[ERROR]decodeEmbeddingResult:\n" ++ msg)
@@ -220,6 +220,12 @@ updateNewData ({ ready, current_it } as model) dataStr =
                 newRawPoints =
                     embeddingResult.embedding
 
+                newDataModel =
+                    { dataModel
+                        | yDistances = Array.fromList embeddingResult.distances
+                        , yNeighbors = Array.fromList embeddingResult.neighbors
+                    }
+
                 newScatter =
                     buildScatter model newRawPoints model.scatter.selectedId model.cf.zoomFactor
             in
@@ -228,6 +234,7 @@ updateNewData ({ ready, current_it } as model) dataStr =
                     , scatter = newScatter
                     , seriesData = embeddingResult.seriesData
                     , rawPoints = newRawPoints
+                    , dataModel = newDataModel
                   }
                 , nextCommand
                 )

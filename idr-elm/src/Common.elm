@@ -147,6 +147,8 @@ emptySeriesData =
 type alias EmbeddingResult =
     { embedding : List Point
     , seriesData : List SeriesData
+    , distances : List (List Float)
+    , neighbors : List (List String)
     }
 
 
