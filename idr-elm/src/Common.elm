@@ -46,6 +46,11 @@ getDatasetType datasetName =
         |> Tuple.first
 
 
+isImageDataset : String -> Bool
+isImageDataset datasetName =
+    Image == getDatasetType datasetName
+
+
 type alias CircleId =
     String
 

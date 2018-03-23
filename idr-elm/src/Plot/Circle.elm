@@ -226,32 +226,40 @@ circleView { id, position, radius, label, text, status } cf =
                 , y (centerY -4)
                 , Svg.Attributes.width "8"
                 , Svg.Attributes.height "8"
-                , xlinkHref ("http://localhost:8000/data/imgs/mnist-small-color.svg#" ++ id)
+                , xlinkHref ("/data/imgs/mnist-small-color.svg#" ++ id)
                 ]
                 []
 
-        displayCircle =
-            if cf.showImage && cf.zoomFactor < 16 then
-                imageElem
-            else
-                fgCircle
+        itemsToShow =
+            (if cf.showLabel then
+                (if isImageDataset "MNIST1" then
+                    ---TODO check datasetName
+                    if isJustIdle status then
+                        [ imageElem ]
+                    else
+                        [ imageElem, fgCircle ]
+                 else
+                    [ lblText, fgCircle ]
+                )
+             else
+                (if isJustIdle status then
+                    [ fgCircle ]
+                 else
+                    [ lblText, fgCircle ]
+                )
+            )
+                ++ (if isSelected status && cf.selectionRadius > 0 then
+                        [ bgCircle ]
+                    else
+                        []
+                   )
     in
         Svg.g
             [ Svg.Attributes.cursor "move"
             , Draggable.mouseTrigger id DragMsg
             , Svg.Events.onMouseUp StopDragging
             ]
-            ((if isSelected status && cf.selectionRadius > 0 then
-                [ bgCircle ]
-              else
-                []
-             )
-                ++ (if isJustIdle status && not cf.showLabel then
-                        [ displayCircle ]
-                    else
-                        [ lblText, displayCircle ]
-                   )
-            )
+            itemsToShow
 
 
 {-| Public API for drawing a indexed-svg circle (index by key)
