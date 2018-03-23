@@ -226,14 +226,13 @@ circleView { id, position, radius, label, text, status } cf =
                 , y (centerY -4)
                 , Svg.Attributes.width "8"
                 , Svg.Attributes.height "8"
-                , xlinkHref ("/data/imgs/mnist-small-color.svg#" ++ id)
+                , xlinkHref ("/data/imgs/" ++ cf.datasetName ++ ".svg#" ++ id)
                 ]
                 []
 
         itemsToShow =
             (if cf.showLabel then
-                (if isImageDataset "MNIST1" then
-                    ---TODO check datasetName
+                (if isImageDataset cf.datasetName then
                     if isJustIdle status then
                         [ imageElem ]
                     else

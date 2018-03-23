@@ -72,6 +72,7 @@ type alias PlotConfig =
     , showColor : Bool
     , showAxes : Bool
     , center : Vec2
+    , datasetName : String
     }
 
 
@@ -93,6 +94,7 @@ plotConfig =
     , showColor = False
     , showAxes = False
     , center = Vector2.vec2 0 0
+    , datasetName = ""
     }
 
 

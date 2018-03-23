@@ -20,15 +20,15 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
     case msg of
         {- Do embedding commands -}
         SelectDataset datasetName ->
-            { model | datasetName = datasetName } ! []
+            { model | cf = { cf | datasetName = datasetName } } ! []
 
         LoadDataset ->
             let
                 newModel =
                     Models.initialModel
             in
-                ( { newModel | datasetName = model.datasetName }
-                , loadDataset model.datasetName
+                ( { newModel | cf = { cf | datasetName = cf.datasetName } }
+                , loadDataset cf.datasetName
                 )
 
         DatasetStatus datasetInfo ->
@@ -54,7 +54,7 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                 newModel =
                     Models.initialModel
             in
-                ( { newModel | datasetName = model.datasetName }, sendReset )
+                ( { newModel | cf = { cf | datasetName = cf.datasetName } }, sendReset )
 
         {- Client interact commands -}
         SendMovedPoints ->
@@ -190,7 +190,7 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
         DoStrategy strategyId ->
             let
                 fixedPoints =
-                    Strategy.getStrategy model.datasetName strategyId
+                    Strategy.getStrategy cf.datasetName strategyId
             in
                 { model | scatter = Plot.Scatter.updateFixedPoints fixedPoints model.scatter } ! []
 

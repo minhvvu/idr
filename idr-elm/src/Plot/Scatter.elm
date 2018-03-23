@@ -17,6 +17,7 @@ import Array exposing (..)
 import VirtualDom
 import Json.Decode as Decode
 import Strategy exposing (FixedPoint)
+import Bootstrap.Utilities.Size as Size exposing (..)
 
 
 {-| Scatter Model contains data used for rendering a scatter plot
@@ -116,8 +117,8 @@ scatterView { points, xScale, yScale } cf =
             "translate(" ++ toString -cx ++ ", " ++ toString -cy ++ ")"
     in
         svg
-            [ SvgAttrs.width <| toString <| plotConfig.width
-            , SvgAttrs.height <| toString <| plotConfig.height
+            [ SvgAttrs.width <| toString <| cf.width
+            , SvgAttrs.height <| toString <| cf.height
             , handleZoom Msgs.Zoom
             , Draggable.mouseTrigger "" DragMsg
             ]
