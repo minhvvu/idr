@@ -1,13 +1,41 @@
-### INSTALLATION NOTES
+### Interactive t-SNE
 
-1. Python websocker server:
+![tsnex-demo](./notes/demo.png)
 
-    + [Flask sockets](https://github.com/kennethreitz/flask-sockets)
+#### Installation notes
 
-    + Money patching to: `sklearn.manifold.t_sne._gradient_descent` function.
+1. Install `elm` and client packages
++ [Install `elm`](https://guide.elm-lang.org/install.html)
++ Install used packages
+
+```
+cd idr-elm
+elm package install --yes
+
+# run elm-reactor in dev mode with auto reload
+elm-reactor
+
+```
+
+=> go to [http://localhost:8000/src/Main.elm](http://localhost:8000/src/Main.elm)
 
 
-2. Redis server:
+2. [Optional] Build client without debug
+
+```
+# compile elm to javascript and pack all in a sigle html file
+cd idr-elm
+elm-make src/Main.elm --output=main.html
+
+# run a simple http server to serve main html file and assert
+python -m http.server 8000
+
+```
+
+=> go to [http://localhost:8000/main.html](http://localhost:8000/main.html)
+
+
+3. Redis server:
     + Install, run service:
 
         ```
@@ -26,3 +54,19 @@
         * [Redis-stat](https://github.com/junegunn/redis-stat)
             - Run: `java -jar redis-stat-0.4.14.jar --server`
             - Host: `http://localhost:63790/`
+
+4. Python websocker server:
+
+    + [Flask sockets](https://github.com/kennethreitz/flask-sockets)
+
+    + Money patching to: `sklearn.manifold.t_sne._gradient_descent` function.
+
+    + Run server: 
+    ```
+    cd idr-server/tsnex
+    python tsnex_flash_socket.py
+    ```
+
+
+#### Algorithm
++ [Notes change in objective function of t-SNE](notes/notes%20change%20in%20objective%20function%20tsne.md)
