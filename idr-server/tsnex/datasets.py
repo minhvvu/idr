@@ -46,7 +46,7 @@ def load_mnist_mini():
     return X, y, labels
 
 
-def load_mnist_full(n_samples=2000):
+def load_mnist_full(n_samples=200): # 2000
     from sklearn.datasets import fetch_mldata
     dataset = fetch_mldata('MNIST original', data_home='../data/')
     X, y = dataset.data, dataset.target
@@ -104,32 +104,28 @@ def top_words(outName, k):
                 open(outName, 'wb'))
 
 
-def pre_calculate(X, k=100, ntop=50, use_pagerank=True):
+def pre_calculate(X, k=100, ntop=50, calculate_important=None):
     """ Calculate the k-nearest neighbors matrix
         Calculate Hubs or Pagerank for each points
     """
     from sklearn.neighbors import NearestNeighbors
     model = NearestNeighbors(n_neighbors=k, algorithm='ball_tree')
     model.fit(X)
-
-    print("Calculate distance")
     distances, indices = model.kneighbors()
 
-    print("Build knn graph")
-    nn = model.kneighbors_graph(mode='distance')
-    g = nx.from_scipy_sparse_matrix(nn)
-
-    if use_pagerank:
-        print("Calculate pagerank", end=',')
-        pageranks = nx.pagerank_scipy(g)
-        top_important = sorted(pageranks, key=pageranks.get, reverse=True)
+    if calculate_important is None:
+        top_important = []
     else:
-        print("Calculate hits", end=',')
-        hubs, authorities = nx.hits_scipy(g)
-        top_important = sorted(hubs, key=hubs.get, reverse=True)
-    print("\tDone!")
+        nn = model.kneighbors_graph(mode='distance')
+        g = nx.from_scipy_sparse_matrix(nn)
+        if calculate_important == 'pagerank':
+            pageranks = nx.pagerank_scipy(g)
+            top_important = sorted(pageranks, key=pageranks.get, reverse=True)
+        elif calculate_important == 'hubs':
+            hubs, authorities = nx.hits_scipy(g)
+            top_important = sorted(hubs, key=hubs.get, reverse=True)
 
-    return {'distances': [],  # distances.tolist(),
+    return {'distances': distances.tolist(),
             'neighbors': list(map(lambda s: list(map(str, s)), indices)),
             'importantPoints': list(map(str, top_important[:ntop])),
             'infoMsg': 'Dataset size: {}, important points: {}'.format(X.shape, ntop)}

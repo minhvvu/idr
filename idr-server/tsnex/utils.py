@@ -31,9 +31,6 @@ initial_server_status = {
     # # hard-fix position of client selected points
     # 'hard_move': False,
 
-    # use pagerank to find the most influential points
-    'use_pagerank': False,
-
     # use weights for interacted points. Weight = 1: no affect
     'use_weight': 0.1,
 

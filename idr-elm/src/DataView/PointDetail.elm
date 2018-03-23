@@ -47,7 +47,7 @@ selectedPointsView : Model -> Html Msg
 selectedPointsView model =
     case getDatasetType model.cf.datasetName of
         Image ->
-            ImageView.view "Image view here"
+            ImageView.view model
 
         _ ->
             TableView.view "Table view here"

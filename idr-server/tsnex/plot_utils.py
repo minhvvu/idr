@@ -55,7 +55,7 @@ def generate_figure_data(data, classId, data_size):
 
 
 def generate_svg_stack(dataset_name, X, classIds, n, data_size):
-    outfile = '../data/imgs/test_{}.svg'.format(dataset_name)
+    outfile = '../data/imgs/{}.svg'.format(dataset_name)
     with open(outfile, "w") as svgFile:
         svgFile.write(svgMetaData)
         for i in range(n):
@@ -113,6 +113,7 @@ def plot_default_tsne():
 
 
 if __name__ == '__main__':
-    X, y, labels = datasets.load_dataset(name='MNIST-SMALL')
-    data_size = 8 # for MNIST: 28, MNIST-SMALL: 8
-    generate_svg_stack('mnist-small', X, y, len(y), data_size)
+    datasetName = 'MNIST'
+    dataSize = 28 # for MNIST: 28, MNIST-SMALL: 8
+    X, y, labels = datasets.load_dataset(name=datasetName)
+    generate_svg_stack(datasetName, X, y, len(y), dataSize)

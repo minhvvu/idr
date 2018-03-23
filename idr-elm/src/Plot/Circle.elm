@@ -220,12 +220,15 @@ circleView { id, position, radius, label, text, status } cf =
                 ]
                 []
 
+        imageSize =
+            getImageSize cf.datasetName
+
         imageElem =
             Svg.image
-                [ x (centerX -4)
-                , y (centerY -4)
-                , Svg.Attributes.width "8"
-                , Svg.Attributes.height "8"
+                [ x <| centerX <| -imageSize / 2
+                , y <| centerY <| -imageSize / 2
+                , Svg.Attributes.width <| toString imageSize
+                , Svg.Attributes.height <| toString imageSize
                 , xlinkHref ("/data/imgs/" ++ cf.datasetName ++ ".svg#" ++ id)
                 ]
                 []

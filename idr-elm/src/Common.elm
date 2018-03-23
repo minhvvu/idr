@@ -51,6 +51,19 @@ isImageDataset datasetName =
     Image == getDatasetType datasetName
 
 
+getImageSize : String -> Float
+getImageSize datasetName =
+    case datasetName of
+        "MNIST" ->
+            16
+
+        "MNIST-SMALL" ->
+            8
+
+        _ ->
+            0
+
+
 type alias CircleId =
     String
 
@@ -94,7 +107,7 @@ plotConfig =
     , showColor = False
     , showAxes = False
     , center = Vector2.vec2 0 0
-    , datasetName = ""
+    , datasetName = "MNIST-SMALL"
     }
 
 
