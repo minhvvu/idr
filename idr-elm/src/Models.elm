@@ -8,35 +8,56 @@ import Bootstrap.Tab as Tab exposing (..)
 
 
 type alias Model =
-    { scatter : Scatter -- main data for scatter plot
+    { rawPoints : List Point -- a list of raw point from server, store it for zoom when pausing
+    , scatter : Scatter -- main data for scatter plot
     , seriesData : List SeriesData -- series data from server for line charts
-    , drag : Draggable.State CircleId -- this var must be named `drag`, used by Draggable lib
+
+    --
     , ready : Bool -- status flag denoting that client is ready for receiving new data
     , current_it : Int -- current iteration in client
     , debugMsg : String -- message showing dataset info, ...
-    , neighbors : Array (List String) -- a list of knn of each point in high dim
-    , distances : Array (List Float) -- pairwise distance b.w. points in high dim
-    , importantPoints : List String -- a list of important points calculated by server
     , cf : PlotConfig -- all config for ploting
+
+    --
+    , dataModel : DataModel -- contains data of distances and neighbors of each points in high and low dim
+
+    --
     , pointMoving : Bool -- panning or moving a point
-    , rawPoints : List Point -- a list of raw point from server, store it for zoom when pausing
-    , tabState : Tab.State
+    , drag : Draggable.State CircleId -- this var must be named `drag`, used by Draggable lib
+    , tabState : Tab.State -- needed for Boostrap.Tab
     }
 
 
 initialModel : Model
 initialModel =
-    { scatter = emptyScatter
+    { rawPoints = []
+    , scatter = emptyScatter
     , seriesData = []
-    , drag = Draggable.init
     , ready = True
     , current_it = 0
     , debugMsg = "Client ready"
-    , neighbors = Array.fromList []
-    , distances = Array.fromList []
-    , importantPoints = []
     , cf = plotConfig
+    , dataModel = initialDataModel
     , pointMoving = False
-    , rawPoints = []
+    , drag = Draggable.init
     , tabState = Tab.initialState
+    }
+
+
+type alias DataModel =
+    { importantPoints : List String -- a list of important points calculated by server
+    , xDistances : Array (List Float) -- pairwise distance b.w. points in HIGH dim
+    , xNeighbors : Array (List String) -- a list of knn of each point in HIGH dim
+    , yDistances : Array (List Float) -- in LOW dim
+    , yNeighbors : Array (List String) -- in LOW dim
+    }
+
+
+initialDataModel : DataModel
+initialDataModel =
+    { importantPoints = []
+    , xDistances = Array.fromList []
+    , xNeighbors = Array.fromList []
+    , yDistances = Array.fromList []
+    , yNeighbors = Array.fromList []
     }

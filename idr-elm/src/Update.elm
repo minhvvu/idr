@@ -16,7 +16,7 @@ import Bootstrap.Tab as Tab exposing (..)
 {-| Big update function to handle all system messages
 -}
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ scatter, ready, neighbors, cf } as model) =
+update msg ({ scatter, ready, dataModel, cf } as model) =
     case msg of
         {- Do embedding commands -}
         SelectDataset datasetName ->
@@ -94,7 +94,7 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
                         }
                             -- the dragged circle is also a selected one,
                             -- so we have to show its neighbors in high-dim
-                            |> Plot.Scatter.updateSelectedCircle circleId neighbors
+                            |> Plot.Scatter.updateSelectedCircle circleId dataModel.xNeighbors
                 in
                     { model | scatter = newScatter, pointMoving = True } ! []
 
@@ -109,7 +109,7 @@ update msg ({ scatter, ready, neighbors, cf } as model) =
             { model
                 | scatter =
                     scatter
-                        |> Plot.Scatter.updateSelectedCircle selectedId neighbors
+                        |> Plot.Scatter.updateSelectedCircle selectedId dataModel.xNeighbors
             }
                 ! []
 
@@ -236,22 +236,28 @@ updateNewData ({ ready, current_it } as model) dataStr =
 buildScatter : Model -> List Point -> String -> Float -> Scatter
 buildScatter model rawPoints selectedId zoomFactor =
     Plot.Scatter.createScatter rawPoints zoomFactor model.cf
-        |> Plot.Scatter.updateSelectedCircle selectedId model.neighbors
-        |> Plot.Scatter.updateImportantPoints model.importantPoints
+        |> Plot.Scatter.updateSelectedCircle selectedId model.dataModel.xNeighbors
+        |> Plot.Scatter.updateImportantPoints model.dataModel.importantPoints
 
 
 updateDatasetInfo : Model -> String -> ( Model, Cmd Msg )
-updateDatasetInfo model dataStr =
+updateDatasetInfo ({ dataModel } as model) dataStr =
     case decodeDatasetInfo dataStr of
         Err msg ->
             Debug.log ("[ERROR]decodeEmbeddingResult:\n" ++ msg)
                 ( Models.initialModel, Cmd.none )
 
         Ok datasetInfo ->
-            { model
-                | neighbors = Array.fromList datasetInfo.neighbors
-                , distances = Array.fromList datasetInfo.distances
-                , importantPoints = datasetInfo.importantPoints
-                , debugMsg = datasetInfo.infoMsg
-            }
-                ! []
+            let
+                newDataModel =
+                    { dataModel
+                        | xNeighbors = Array.fromList datasetInfo.neighbors
+                        , xDistances = Array.fromList datasetInfo.distances
+                        , importantPoints = datasetInfo.importantPoints
+                    }
+            in
+                { model
+                    | dataModel = newDataModel
+                    , debugMsg = datasetInfo.infoMsg
+                }
+                    ! []

@@ -44,30 +44,13 @@ movedPointsView movedCircles =
 
 
 selectedPointsView : Model -> Html Msg
-selectedPointsView model =
-    case getDatasetType model.cf.datasetName of
-        Image ->
-            ImageView.view model
+selectedPointsView { cf, dataModel, scatter } =
+    if String.isEmpty scatter.selectedId then
+        div [] []
+    else
+        case getDatasetType cf.datasetName of
+            Image ->
+                ImageView.view cf.datasetName scatter.selectedId dataModel
 
-        _ ->
-            TableView.view "Table view here"
-
-
-
---let
---    neighbors =
---        Plot.CircleGroup.getKNN selectedId {-missing config here-} points
---in
---    Html.div []
---        [ Html.text ("Selected Id: " ++ selectedId)
---        , Html.br [] []
---        , Html.text
---            (if List.isEmpty neighbors then
---                "No neighbors"
---             else
---                (toString (List.length neighbors)
---                    ++ " neighbors: "
---                    ++ (toString neighbors)
---                )
---            )
---        ]
+            _ ->
+                TableView.view "Table view here"

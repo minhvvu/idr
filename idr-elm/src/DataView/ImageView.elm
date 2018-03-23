@@ -9,54 +9,48 @@ import Models exposing (..)
 import Common exposing (..)
 
 
-view : Model -> Html msg
-view { scatter, neighbors, distances, cf } =
+view : String -> String -> DataModel -> Html msg
+view datasetName selectedId { xDistances, xNeighbors, yDistances, yNeighbors } =
     let
         selectedImg =
-            div [] [ showImage 12.0 cf.datasetName scatter.selectedId 0.0 ]
+            div [] [ showImage 128 datasetName selectedId 0.0 ]
 
-        selectedId =
-            scatter.selectedId
+        targetId =
+            selectedId
                 |> String.toInt
                 |> Result.toMaybe
                 |> Maybe.withDefault -1
 
-        neighborIds =
-            Array.get selectedId neighbors
+        xNeighborIds =
+            Array.get targetId xNeighbors
                 |> Maybe.withDefault []
 
-        distanceToNeighbors =
-            Array.get selectedId distances
+        xDistanceToNeighbors =
+            Array.get targetId xDistances
                 |> Maybe.withDefault []
 
         neighborImgs =
-            div [] (List.map2 (showImage 6.0 cf.datasetName) neighborIds distanceToNeighbors)
+            div [] (List.map2 (showImage 64 datasetName) xNeighborIds xDistanceToNeighbors)
     in
         Html.div [] [ selectedImg, neighborImgs ]
 
 
-showImage : Float -> String -> String -> Float -> Html msg
-showImage scaleFactor datasetName pointId distance =
-    let
-        imageSize =
-            datasetName
-                |> getImageSize
-                |> (*) scaleFactor
-                |> round
-    in
-        Html.figure [ HtmlAttr.style [ ( "float", "left" ), ( "boder", "1px" ) ] ]
-            [ Html.img
-                [ HtmlAttr.width imageSize
-                , HtmlAttr.height imageSize
-                , HtmlAttr.src ("/data/imgs/" ++ datasetName ++ ".svg#" ++ pointId)
-                ]
-                []
-            , Html.figcaption [ HtmlAttr.style [ ( "font", "12px monospace" ), ( "color", "red" ) ] ]
-                (if distance > 0 then
-                    [ Badge.pillSuccess [ Spacing.ml2 ] [ text <| toString <| round <| distance ]
-                    , Badge.pillLight [ Spacing.ml2 ] [ text <| toString <| round <| distance ]
-                    ]
-                 else
-                    [ text "" ]
-                )
+showImage : Int -> String -> String -> Float -> Html msg
+showImage imageSize datasetName pointId distance =
+    Html.figure
+        [ HtmlAttr.style [ ( "float", "left" ), ( "boder", "1px" ) ] ]
+        [ Html.img
+            [ HtmlAttr.width imageSize
+            , HtmlAttr.height imageSize
+            , HtmlAttr.src ("/data/imgs/" ++ datasetName ++ ".svg#" ++ pointId)
             ]
+            []
+        , Html.figcaption [ HtmlAttr.style [ ( "font", "12px monospace" ) ] ]
+            (if distance > 0 then
+                [ Badge.pillSuccess [ Spacing.ml1 ] [ text <| toString <| round <| distance ]
+                , Badge.pillLight [ Spacing.ml1 ] [ text <| toString <| round <| distance ]
+                ]
+             else
+                [ text "" ]
+            )
+        ]
