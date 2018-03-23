@@ -22,7 +22,8 @@ import DataView.PointDetail exposing (..)
 import Bootstrap.Tab as Tab exposing (..)
 import Bootstrap.Utilities.Size as Size exposing (..)
 import Bootstrap.Utilities.Border as Border exposing (..)
-import Common exposing (datasets)
+import Common exposing (datasets, DatasetType)
+import Dict exposing (..)
 
 
 view : Model -> Html Msg
@@ -48,7 +49,7 @@ view model =
             [ Grid.col [ Col.xs3 ]
                 [ Select.select
                     [ Select.small, Select.id "dataset-name", Select.onChange SelectDataset ]
-                    (List.map sitem datasets)
+                    (List.map sitem <| Dict.toList datasets)
                 ]
             , Grid.col [ Col.xs6 ]
                 [ button "Load Dataset" LoadDataset
@@ -138,9 +139,9 @@ groupButton name clickMsg =
         [ text name ]
 
 
-sitem : ( String, String ) -> Select.Item msg
-sitem ( sname, svalue ) =
-    Select.item [ HtmlAttrs.value svalue ] [ text sname ]
+sitem : ( String, ( DatasetType, String ) ) -> Select.Item msg
+sitem ( keyName, ( aType, displayName ) ) =
+    Select.item [ HtmlAttrs.value keyName ] [ text displayName ]
 
 
 compactLayout model =
@@ -160,7 +161,7 @@ compactLayout model =
             [ Grid.col [ Col.xs3 ]
                 [ Select.select
                     [ Select.small, Select.id "dataset-name", Select.onChange SelectDataset ]
-                    (List.map sitem datasets)
+                    (List.map sitem <| Dict.toList datasets)
                 ]
             , Grid.col [ Col.xs7 ]
                 [ button "Load Dataset" LoadDataset

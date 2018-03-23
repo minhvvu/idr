@@ -5,29 +5,45 @@ import Array
 import Color exposing (..)
 import Visualization.Scale exposing (category20a, category10)
 import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
+import Dict exposing (..)
+
+
+type DatasetType
+    = NoType
+    | Image
+    | Table
+    | Text
 
 
 datasets =
-    [ ( "--Select dataset--", "" )
-    , ( "Country Indicators 1999", "COUNTRY1999" )
-    , ( "Country Indicators 2013", "COUNTRY2013" )
-    , ( "Country Indicators 2014", "COUNTRY2014" )
-    , ( "Country Indicators 2015", "COUNTRY2015" )
-    , ( "Cars and Trucks 2004", "CARS04" )
-    , ( "Breast Cancer Wisconsin (Diagnostic)", "BREAST-CANCER95" )
-    , ( "Pima Indians Diabetes", "DIABETES" )
-    , ( "Multidimensional Poverty Measures", "MPI" )
-    , ( "US Insurance Cost", "INSURANCE" )
-    , ( "Fifa 18 Players (top 2000)", "FIFA18" )
-    , ( "French salaries per town (top 2000)", "FR_SALARY" )
-    , ( "MNIST mini", "MNIST-SMALL" )
-    , ( "MNIST full (sample 2000)", "MNIST" )
-    , ( "COIL-20", "COIL20" )
-    , ( "Top 1000 words in Wiki-French", "WIKI-FR-1K" )
-    , ( "Top 3000 words in Wiki-French", "WIKI-FR-3K" )
-    , ( "Top 1000 words in Wiki-English", "WIKI-EN-1K" )
-    , ( "Top 3000 words in Wiki-English", "WIKI-EN-3K" )
-    ]
+    Dict.fromList
+        [ ( "", ( NoType, "--Select dataset--" ) )
+        , ( "COUNTRY1999", ( Table, "Country Indicators 1999" ) )
+        , ( "COUNTRY2013", ( Table, "Country Indicators 2013" ) )
+        , ( "COUNTRY2014", ( Table, "Country Indicators 2014" ) )
+        , ( "COUNTRY2015", ( Table, "Country Indicators 2015" ) )
+        , ( "CARS04", ( Table, "Cars and Trucks 2004" ) )
+        , ( "BREAST-CANCER95", ( Table, "Breast Cancer Wisconsin (Diagnostic)" ) )
+        , ( "DIABETES", ( Table, "Pima Indians Diabetes" ) )
+        , ( "MPI", ( Table, "Multidimensional Poverty Measures" ) )
+        , ( "INSURANCE", ( Table, "US Insurance Cost" ) )
+        , ( "FIFA18", ( Table, "Fifa 18 Players (top 2000)" ) )
+        , ( "FR_SALARY", ( Table, "French salaries per town (top 2000)" ) )
+        , ( "MNIST-SMALL", ( Image, "MNIST mini" ) )
+        , ( "MNIST", ( Image, "MNIST full (sample 2000)" ) )
+        , ( "COIL20", ( Image, "COIL-20" ) )
+        , ( "WIKI-FR-1K", ( Text, "Top 1000 words in Wiki-French" ) )
+        , ( "WIKI-FR-3K", ( Text, "Top 3000 words in Wiki-French" ) )
+        , ( "WIKI-EN-1K", ( Text, "Top 1000 words in Wiki-English" ) )
+        , ( "WIKI-EN-3K", ( Text, "Top 3000 words in Wiki-English" ) )
+        ]
+
+
+getDatasetType : String -> DatasetType
+getDatasetType datasetName =
+    Dict.get datasetName datasets
+        |> Maybe.withDefault ( NoType, "" )
+        |> Tuple.first
 
 
 type alias CircleId =
