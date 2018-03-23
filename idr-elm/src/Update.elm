@@ -250,7 +250,7 @@ updateDatasetInfo model dataStr =
         Ok datasetInfo ->
             { model
                 | neighbors = Array.fromList datasetInfo.neighbors
-                , distances = datasetInfo.distances
+                , distances = Array.fromList datasetInfo.distances
                 , importantPoints = datasetInfo.importantPoints
                 , debugMsg = datasetInfo.infoMsg
             }

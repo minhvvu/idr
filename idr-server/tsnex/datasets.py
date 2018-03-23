@@ -128,7 +128,7 @@ def pre_calculate(X, k=100, ntop=50, calculate_important=None):
     return {'distances': distances.tolist(),
             'neighbors': list(map(lambda s: list(map(str, s)), indices)),
             'importantPoints': list(map(str, top_important[:ntop])),
-            'infoMsg': 'Dataset size: {}, important points: {}'.format(X.shape, ntop)}
+            'infoMsg': 'Dataset size: {}'.format(X.shape)}
 
 
 

@@ -15,7 +15,7 @@ type alias Model =
     , current_it : Int -- current iteration in client
     , debugMsg : String -- message showing dataset info, ...
     , neighbors : Array (List String) -- a list of knn of each point in high dim
-    , distances : List (List Float) -- pairwise distance b.w. points in high dim
+    , distances : Array (List Float) -- pairwise distance b.w. points in high dim
     , importantPoints : List String -- a list of important points calculated by server
     , cf : PlotConfig -- all config for ploting
     , pointMoving : Bool -- panning or moving a point
@@ -33,7 +33,7 @@ initialModel =
     , current_it = 0
     , debugMsg = "Client ready"
     , neighbors = Array.fromList []
-    , distances = []
+    , distances = Array.fromList []
     , importantPoints = []
     , cf = plotConfig
     , pointMoving = False

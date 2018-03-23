@@ -7,7 +7,7 @@ import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Grid.Col as Col
-import Bootstrap.Button as Button exposing (secondary, onClick, attrs)
+import Bootstrap.Button as Button exposing (..)
 import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.ListGroup as ListGroup exposing (..)
 import Bootstrap.Badge as Badge

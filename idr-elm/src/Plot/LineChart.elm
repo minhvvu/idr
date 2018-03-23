@@ -94,7 +94,7 @@ viewLineChart name series =
             Svg.path
                 [ d (line points)
                 , stroke (intToColor10Str idx)
-                , strokeWidth "3px"
+                , strokeWidth "2px"
                 , fill "none"
                 ]
                 []

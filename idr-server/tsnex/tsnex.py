@@ -183,25 +183,25 @@ def my_gradient_descent(objective, p0, it, n_iter,
             errors.append(error)
             penalties.append(penalty)
             grad_norms.append(float(grad_norm))
-            client_data = {
-                'embedding': p.copy().tostring().decode('latin-1'),
-                'z_info': z_info.tolist(),
-                'seriesData': [
-                    {'name': 'errors, penalty', 'series': [errors, penalties]},
-                    {'name': 'gradients norms', 'series': [grad_norms]},
-                    # {'name': 'classification accuracy',
-                    #     'series': [classification_scores]},
-                    {'name': 'vmeasure, silhoutte',
-                        'series': [list(t) for t in zip(*clustering_scores)]},
-                    {'name': 'trustworthinesses,statbility,convergence',
-                        'series': [list(t) for t in zip(*embedding_scores)]},
-                ]
-            }
 
             # auto mode or interactive mode
             if (status['pause_at'] == 0) \
                 or (i % n_iter_check == 0) \
                 or (not in_early_exaggeration and i > status['pause_at']):
+                client_data = {
+                    'embedding': p.copy().tostring().decode('latin-1'),
+                    'z_info': z_info.tolist(),
+                    'seriesData': [
+                        {'name': 'errors, penalty', 'series': [errors, penalties]},
+                        {'name': 'gradients norms', 'series': [grad_norms]},
+                        # {'name': 'classification accuracy',
+                        #     'series': [classification_scores]},
+                        {'name': 'vmeasure, silhoutte',
+                            'series': [list(t) for t in zip(*clustering_scores)]},
+                        {'name': 'trustworthinesses,statbility,convergence',
+                            'series': [list(t) for t in zip(*embedding_scores)]},
+                    ]
+                }
                 utils.publish_data(client_data)
                 sleep(status['tick_frequence'])
 
