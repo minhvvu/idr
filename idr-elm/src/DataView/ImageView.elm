@@ -29,16 +29,30 @@ view datasetName selectedId { xDistances, xNeighbors, yDistances, yNeighbors } =
             Array.get targetId xDistances
                 |> Maybe.withDefault []
 
-        neighborImgs =
+        yNeighborIds =
+            Array.get targetId yNeighbors
+                |> Maybe.withDefault []
+
+        yDistanceToNeighbors =
+            Array.get targetId yDistances
+                |> Maybe.withDefault []
+
+        xNeighborImgs =
             div [] (List.map2 (showImage 64 datasetName) xNeighborIds xDistanceToNeighbors)
+
+        yNeighborImgs =
+            div [] (List.map2 (showImage 64 datasetName) yNeighborIds yDistanceToNeighbors)
     in
-        Html.div [] [ selectedImg, neighborImgs ]
+        div []
+            [ div [ HtmlAttr.style [ ( "float", "left" ) ] ] [ selectedImg, xNeighborImgs ]
+            , div [ HtmlAttr.style [ ( "float", "left" ) ] ] [ selectedImg, yNeighborImgs ]
+            ]
 
 
 showImage : Int -> String -> String -> Float -> Html msg
 showImage imageSize datasetName pointId distance =
     Html.figure
-        [ HtmlAttr.style [ ( "float", "left" ), ( "boder", "1px" ) ] ]
+        [ HtmlAttr.style [ ( "float", "left" ) ] ]
         [ Html.img
             [ HtmlAttr.width imageSize
             , HtmlAttr.height imageSize
@@ -47,7 +61,8 @@ showImage imageSize datasetName pointId distance =
             []
         , Html.figcaption [ HtmlAttr.style [ ( "font", "12px monospace" ) ] ]
             (if distance > 0 then
-                [ Badge.pillSuccess [ Spacing.ml1 ] [ text <| toString <| round <| distance ]
+                [ Badge.pillDanger [ Spacing.ml1 ] [ text <| pointId ]
+                , Badge.pillSuccess [ Spacing.ml1 ] [ text <| toString <| round <| distance ]
                 , Badge.pillLight [ Spacing.ml1 ] [ text <| toString <| round <| distance ]
                 ]
              else

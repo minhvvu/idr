@@ -295,7 +295,7 @@ decoSelected flag deco =
         { deco
             | alpha = 1
             , sColor = "rgba(255, 0, 0, 1)"
-            , sWidth = 1.0
+            , sWidth = 2.5
             , labelSize = "16px"
         }
     else
@@ -327,8 +327,8 @@ decoNeighborHigh flag deco =
     if flag then
         { deco
             | alpha = 1.0
-            , sColor = "rgba(255, 69, 0, 0.8)"
-            , sWidth = 1.0
+            , sColor = "blue"
+            , sWidth = 1.5
             , labelSize = "9px"
         }
     else
