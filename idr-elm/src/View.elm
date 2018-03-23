@@ -80,7 +80,7 @@ view model =
                         |> Tab.items
                             [ tabItem "tab1" "Charts" (List.map (\aseries -> viewLineChart aseries.name aseries.series) model.seriesData)
                             , tabItem "tab2" "Moved Points" [ movedPointsView model.scatter.points.movedCircles ]
-                            , tabItem "tab3" "Selected points" [ dataview "cool qua la cool" ]
+                            , tabItem "tab3" "Selected points" [ selectedPointsView model ]
                             ]
                         |> Tab.view model.tabState
                     ]

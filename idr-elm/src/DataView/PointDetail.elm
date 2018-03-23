@@ -1,21 +1,19 @@
 module DataView.PointDetail exposing (..)
 
-import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
 import Html exposing (..)
 import Html.Attributes as HtmlAttrs exposing (..)
 import Bootstrap.Utilities.Size as Size exposing (..)
 import Bootstrap.Utilities.Border as Border exposing (..)
 import Bootstrap.ListGroup as ListGroup exposing (..)
 import Bootstrap.Badge as Badge
-import Msgs exposing (Msg(..))
-import Common exposing (..)
 import Plot.Scatter exposing (..)
 import Plot.Circle exposing (..)
-
-
-dataview : String -> Html msg
-dataview data =
-    div [] (List.range 1 100 |> List.map (\i -> div [] [ text ((toString i) ++ ": ---------") ]))
+import DataView.ImageView as ImageView exposing (..)
+import DataView.TableView as TableView exposing (..)
+import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
+import Msgs exposing (Msg(..))
+import Common exposing (..)
+import Models exposing (..)
 
 
 {-| Public API for calling drawing a list of moved circle in CircleGroup
@@ -45,9 +43,14 @@ movedPointsView movedCircles =
         ListGroup.ul (List.map pointToListItem movedCircles)
 
 
-selectedPointsView : Scatter -> Html Msg
-selectedPointsView { points, selectedId } =
-    Html.div [] []
+selectedPointsView : Model -> Html Msg
+selectedPointsView model =
+    case getDatasetType model.cf.datasetName of
+        Image ->
+            ImageView.view "Image view here"
+
+        _ ->
+            TableView.view "Table view here"
 
 
 
