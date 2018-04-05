@@ -1,0 +1,6 @@
+*/__pycache__/
+*/*.pyc
+.mypy_cache/
+.ipynb_checkpoints/
+input_data
+output_tsne/
