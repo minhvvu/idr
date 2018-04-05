@@ -191,12 +191,13 @@ def my_gradient_descent(objective, p0, it, n_iter,
                 or (i % n_iter_check == 0) \
                 or (not in_early_exaggeration and i > status['pause_at']):
                 
-                distances2d, neighbors2d = knnModel2d.fit(p.reshape(-1,2)).kneighbors()
+                # distances2d, neighbors2d = knnModel2d.fit(p.reshape(-1,2)).kneighbors()
                 client_data = {
                     'embedding': p.copy().tostring().decode('latin-1'),
                     'z_info': z_info.tolist(),
-                    'distances': distances2d.tolist(),
-                    'neighbors': list(map(lambda s: list(map(str, s)), neighbors2d)),
+                    'distances': [], # distances2d.tolist(),
+                    'neighbors': [], # list(map(lambda s: list(map(str, s)), neighbors2d)),
+                    # these two fields cause: gevent.hub.LoopExit: ('This operation would block forever'
                     'seriesData': [
                         {'name': 'errors, penalty', 'series': [errors, penalties]},
                         {'name': 'gradients norms', 'series': [grad_norms]},
