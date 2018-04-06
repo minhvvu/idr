@@ -1,7 +1,10 @@
 # some metric measurement for DR methods
 
+import math
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
+from scipy.stats import pearsonr
+from sklearn.preprocessing import scale
 
 
 class DRMetric(object):
@@ -26,6 +29,8 @@ class DRMetric(object):
         self.Y = Y
 
         # pre-calculate pairwise distance in high-dim and low-dim
+        self.pdX = pdist(self.X, "euclidean")
+        self.pdY = pdist(self.Y, "euclidean")
         self.dX = squareform(pdist(self.X, "sqeuclidean"))
         self.dY = squareform(pdist(self.Y, "sqeuclidean"))
 
@@ -42,6 +47,7 @@ class DRMetric(object):
             float: value of Q
         """
         assert 1 <= k <= self.n_samples - 1
+
         Vk = self.idX[:, :k]
         Nk = self.idY[:, :k]
         q_nx = sum([len(set(a) & set(b)) for a, b in zip(Vk, Nk)])
@@ -58,12 +64,20 @@ class DRMetric(object):
         Returns:
             float: value of R
         """
-        return ((self.n_samples - 1) * self._Qnx(k) - k) / \
-            (self.n_samples - 1 - k)
+        assert 1 <= k <= self.n_samples - 2
+        rnx = (self.n_samples - 1) * self._Qnx(k) - k
+        rnx /= (self.n_samples - 1 - k)
+        return rnx
 
     def auc_rnx(self):
         """Calculate Area under the $R_{NX}(k)$ curve in the log-scale of $k$
         """
-        numerator = sum([self._Rnx(k) / k for k in range(1, self.n_samples-1)])
-        denominator = sum([1.0 / k for k in range(1, self.n_samples - 1)])
-        return numerator / denominator
+        auc = sum([self._Rnx(k) / k for k in range(1, self.n_samples - 1)])
+        norm = sum([1 / k for k in range(1, self.n_samples - 1)])
+        auc /= norm
+        assert 0.0 <= auc <= 1.0
+        return auc
+
+    def pearsonr(self):
+        p, _ = pearsonr(self.pdX, self.pdY)
+        return p
