@@ -9,6 +9,8 @@ from scipy.spatial.distance import squareform
 from dataset_utils import load_dataset, output_folder
 from constraint_utils import get_constraints
 
+from metrics import DRMetric
+
 
 MACHINE_EPSILON = np.finfo(np.double).eps
 
@@ -86,35 +88,72 @@ def calculate_nll(X_original, item, mls, cls):
     item['q_link'] = q_ml + q_cl
 
 
-def pre_calculate_loss(dataset_name):
+def calculate_metrics(X_original, item, metrics):
+    X_embedded = item['embedding']
+    drMetric = DRMetric(X_original, X_embedded)
+    for metric_name in metrics:
+        metric_method = getattr(drMetric, metric_name)
+        item[metric_name] = metric_method()
+
+
+def pre_calculate(dataset_name, num_constraints=10, metrics=[]):
     # prepare original dataset
     X_original, y_original, labels_original = load_dataset(dataset_name)
-    dist_X_original = pdist(X_original, "sqeuclidean")
-    dist_X_original = squareform(dist_X_original)
-
-    # prepare constraints
-    num_constraints = 10
-    mustlinks, cannotlinks = get_constraints(
-        target_labels=y_original, n_take=num_constraints)
 
     # get pre-calculated tsne results
     pkl_name = '{}/tsne_{}.pkl'.format(output_folder, dataset_name)
     pkl_data = pickle.load(open(pkl_name, 'rb'))
 
-    # calculate neg. log. likelihood for constrainted points
-    for item in pkl_data['results']:
-        calculate_nll(X_original, item, mustlinks, cannotlinks)
-        # TODO calculate metric
+    if num_constraints is not None:
+        if num_constraints == 0 or len(np.unique(y_original)) == 1:
+            # use hard-coded constraints
+            mustlinks, cannotlinks = get_constraints(dataset_name)
+        else:  # use generated constraints
+            mustlinks, cannotlinks = get_constraints(
+                target_labels=y_original, n_take=num_constraints)
 
-    # add constraints into pickle object
-    pkl_data['mustlinks'] = mustlinks
-    pkl_data['cannotlinnks'] = cannotlinks
+        # calculate neg. log. likelihood for constrainted points
+        for item in pkl_data['results']:
+            calculate_nll(X_original, item, mustlinks, cannotlinks)
+        # add constraints into pickle object
+        pkl_data['mustlinks'] = mustlinks
+        pkl_data['cannotlinnks'] = cannotlinks
+
+    if metrics:
+        # calculate the named-metric in `metrics`
+        for item in pkl_data['results']:
+            calculate_metrics(X_original, item, metrics)
 
     # save pickle data for reuse
-    out_name = '{}/plot_{}.pickle'.format(output_folder, dataset_name)
+    out_name = '{}/tsne_{}.pickle'.format(output_folder, dataset_name)
     pickle.dump(pkl_data, open(out_name, 'wb'))
 
 
 if __name__ == '__main__':
-    dataset_name = 'COUNTRY1999'  # 'MNIST-SMALL'
-    pre_calculate_loss(dataset_name)
+    num_constraints = 10
+
+    metrics = [
+        'auc_rnx',
+        'pearsonr',
+        'mds_isotonic',
+        'cca_stress',
+        'sammon_nlm'
+    ]
+
+    datasets = [
+        'MNIST-SMALL'
+        # 'BREAST-CANCER95'
+        # 'CARS04'
+        # 'COIL20'
+        # # 'COUNTRY1999'
+        # 'COUNTRY2013'
+        # 'COUNTRY2014'
+        # 'COUNTRY2015'
+        # 'DIABETES'
+        # 'MPI'
+        # 'FR_SALARY'
+        # 'INSURANCE'
+    ]
+
+    for dataset_name in datasets:
+        pre_calculate(dataset_name, num_constraints, metrics)

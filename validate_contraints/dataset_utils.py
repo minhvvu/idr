@@ -5,8 +5,8 @@ from sklearn.utils import shuffle
 from functools import partial
 import pickle
 
-input_folder = '../tsnex/input_data'
-output_folder = '../tsnex/output_tsne'
+input_folder = './input_data'
+output_folder = './output_tsne'
 fixed_random_seed = 0
 
 
