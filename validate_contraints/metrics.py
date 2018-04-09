@@ -1,6 +1,5 @@
 # some metric measurement for DR methods
 
-import math
 import numpy as np
 from numpy.linalg import norm
 from scipy.spatial.distance import pdist, squareform
@@ -22,12 +21,6 @@ class DRMetric(object):
             Y (ndarray): embedded result in low dimensional space
         """
         super(DRMetric, self).__init__()
-        self.n_samples = X.shape[0]
-        # self.n_high_dim = X.shape[1]
-        # self.n_low_dim = Y.shape[1]
-
-        self.X = X
-        self.Y = Y
 
         # pre-calculate pairwise distance in high-dim and low-dim
         self.dX = pdist(X, "euclidean")
@@ -35,52 +28,32 @@ class DRMetric(object):
         # self.dX = np.maximum(self.dX, MACHINE_EPSILON)
         # self.dY = np.maximum(self.dY, MACHINE_EPSILON)
 
-        # index of all neighbors with ascending distances
-        dXSquare = squareform(self.dX**2)
-        dYSquare = squareform(self.dY**2)
-        self.idX = np.argsort(dXSquare, axis=1)[:, 1:]
-        self.idY = np.argsort(dYSquare, axis=1)[:, 1:]
-
-    def _Qnx(self, k):
-        """Calculate $Q_{NX}(k)= \\
-          \frac{1}{Nk} \sum_{i=1}^{N} |v_{i}^{k} \cap n_{i}^{k}| $
-        Args:
-            k (int): number of neighbors
-        Returns:
-            float: value of Q
+    def _qnx(self, a, b):
+        """Vectorized version of `self._Qnx` for all values of `k`
         """
-        assert 1 <= k <= self.n_samples - 1
-
-        Vk = self.idX[:, :k]
-        Nk = self.idY[:, :k]
-        q_nx = sum([np.intersect1d(a, b, assume_unique=True).size
-                    for a, b in zip(Vk, Nk)])
-        q_nx /= (k * self.n_samples)
-
-        assert 0.0 <= q_nx <= 1.0
-        return q_nx
-
-    def _Rnx(self, k):
-        """Calculate rescaled version of $Q_{NX}(k)$
-          $R_{NX}(k) =  \frac{(N-1) Q_{NX}(k) - k}{N - 1 - k} $
-        Args:
-            k (int): number of neighbors
-        Returns:
-            float: value of R
-        """
-        assert 1 <= k <= self.n_samples - 2
-        rnx = (self.n_samples - 1) * self._Qnx(k) - k
-        rnx /= (self.n_samples - 1 - k)
-        return rnx
+        n = len(a)
+        common = set()
+        res = []
+        for k in range(1, n - 1):
+            common |= {a[k], b[k]}
+            q = (2 * k - len(common)) / (k * n)
+            assert 0 <= 1 <= 1
+            res.append(q)
+        return res
 
     def auc_rnx(self):
-        """Calculate Area under the $R_{NX}(k)$ curve in the log-scale of $k$
+        """Vectorized version of `self._auc_rnx`
         """
-        auc = sum([self._Rnx(k) / k for k in range(1, self.n_samples - 1)])
-        norm_const = sum([1 / k for k in range(1, self.n_samples - 1)])
-        auc /= norm_const
-        assert 0.0 <= auc <= 1.0
-        return auc
+        idX = np.argsort(squareform(self.dX**2), axis=1)
+        idY = np.argsort(squareform(self.dY**2), axis=1)
+        n = len(idX)
+
+        qnx = [self._qnx(a, b) for a, b in zip(idX, idY)]
+        qnx = np.sum(qnx, axis=0)
+
+        ks = np.arange(1, n - 1)
+        rnx = ((n - 1) * qnx - ks) / (n - 1 - ks)
+        return (rnx / ks).sum() / (1.0 / ks).sum()
 
     def pearsonr(self):
         """Calculate Pearson correlation coefficient b.w. two vectors
@@ -136,3 +109,44 @@ class DRMetric(object):
         diff = self.dX - self.dY
         stress = np.dot((diff ** 2), dX_inv)
         return stress / self.dX.sum()
+
+    def _Qnx(self, k):
+        """Calculate $Q_{NX}(k)= \\
+          \frac{1}{Nk} \sum_{i=1}^{N} |v_{i}^{k} \cap n_{i}^{k}| $
+        Args:
+            k (int): number of neighbors
+        Returns:
+            float: value of Q
+        """
+        assert 1 <= k <= self.n_samples - 1
+
+        Vk = self.idX[:, :k]
+        Nk = self.idY[:, :k]
+        q_nx = sum([np.intersect1d(a, b, assume_unique=True).size
+                    for a, b in zip(Vk, Nk)])
+        q_nx /= (k * self.n_samples)
+
+        assert 0.0 <= q_nx <= 1.0
+        return q_nx
+
+    def _Rnx(self, k):
+        """Calculate rescaled version of $Q_{NX}(k)$
+          $R_{NX}(k) =  \frac{(N-1) Q_{NX}(k) - k}{N - 1 - k} $
+        Args:
+            k (int): number of neighbors
+        Returns:
+            float: value of R
+        """
+        assert 1 <= k <= self.n_samples - 2
+        rnx = (self.n_samples - 1) * self._Qnx(k) - k
+        rnx /= (self.n_samples - 1 - k)
+        return rnx
+
+    def _auc_rnx(self):
+        """Calculate Area under the $R_{NX}(k)$ curve in the log-scale of $k$
+        """
+        auc = sum([self._Rnx(k) / k for k in range(1, self.n_samples - 1)])
+        norm_const = sum([1 / k for k in range(1, self.n_samples - 1)])
+        auc /= norm_const
+        assert 0.0 <= auc <= 1.0
+        return auc

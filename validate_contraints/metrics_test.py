@@ -28,11 +28,11 @@ rel_tol = 1e-3
 # target_labels = ds.target
 
 X_hd, target_labels = datasets.samples_generator.make_swiss_roll(
-    n_samples=100, random_state=0) # make_s_curve
+    n_samples=1000, random_state=0) # make_s_curve
 
 
 # run tsne to get embedded result in low dim.
-tsne = TSNE(random_state=0)
+tsne = TSNE(random_state=None)
 print(tsne)
 X_ld = tsne.fit_transform(X_hd)
 
@@ -46,7 +46,7 @@ test_suites = {
     'Test CorrCoef': [Corr.compute, drMetric.pearsonr],
     'Test MDS Stress': [MDS.compute, drMetric.mds_isotonic],
     'Test CCA Stress': [CCA.compute, drMetric.cca_stress],
-    #'Test Sammon NLM': [NLM.compute, drMetric.sammon_nlm],
+    'Test Sammon NLM': [NLM.compute, drMetric.sammon_nlm],
 }
 
 print("Start test suite")
