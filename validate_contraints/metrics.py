@@ -25,8 +25,6 @@ class DRMetric(object):
         # pre-calculate pairwise distance in high-dim and low-dim
         self.dX = pdist(X, "euclidean")
         self.dY = pdist(Y, "euclidean")
-        # self.dX = np.maximum(self.dX, MACHINE_EPSILON)
-        # self.dY = np.maximum(self.dY, MACHINE_EPSILON)
 
     def _qnx(self, a, b):
         """Vectorized version of `self._Qnx` for all values of `k`
@@ -104,8 +102,8 @@ class DRMetric(object):
                 \sum_{ij} \frac{ (d^{x}_{ij} - d^{y}_{ij})^2 }{d^{x}_{ij}]}
             $
         """
-        dX_inv = 1.0 / self.dX
-        dX_inv[np.isinf(dX_inv)] = 0
+        dX_inv = np.divide(1.0, self.dX,
+                           out=np.zeros_like(self.dX), where=(self.dX != 0))
         diff = self.dX - self.dY
         stress = np.dot((diff ** 2), dX_inv)
         return stress / self.dX.sum()

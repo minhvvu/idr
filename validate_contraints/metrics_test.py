@@ -23,12 +23,12 @@ from sklearn.manifold import TSNE
 rel_tol = 1e-3
 
 # prepare test dataset
-# ds = datasets.load_iris()
-# X_hd = ds.data
-# target_labels = ds.target
+ds = datasets.load_iris()
+X_hd = ds.data
+target_labels = ds.target
 
-X_hd, target_labels = datasets.samples_generator.make_swiss_roll(
-    n_samples=1000, random_state=0) # make_s_curve
+# X_hd, target_labels = datasets.samples_generator.make_swiss_roll(
+#     n_samples=1000, random_state=0) # make_s_curve
 
 
 # run tsne to get embedded result in low dim.
