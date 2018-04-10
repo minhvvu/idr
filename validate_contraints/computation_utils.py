@@ -129,17 +129,21 @@ def pre_calculate(dataset_name, num_constraints=10, metrics=[]):
 
 
 if __name__ == '__main__':
+    # number of expected constraints
+    # set to None to disable calculation of neg. LL for constrained points
+    # set to 0 to use fixed (by hand constraints - not implemented)
     num_constraints = 10
 
-    metrics = [
+    metrics = [  # enabled metrics
         'auc_rnx',
         'pearsonr',
         'mds_isotonic',
         'cca_stress',
-        'sammon_nlm'  # update 10/04: rerun NLM stress
+        'sammon_nlm'
     ]
 
     datasets = [
+        # 'MNIST',
         'MNIST-SMALL',
         'COIL20',
         'BREAST-CANCER95',
