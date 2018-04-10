@@ -1,5 +1,6 @@
 # clone some util functions to load datasets from code in local
 
+import numpy as np
 from sklearn import datasets
 from sklearn.utils import shuffle
 from functools import partial
@@ -14,7 +15,7 @@ def load_dataset(name='MNIST-SMALL'):
     print('Loading dataset: {}'.format(name))
     return {
         'COIL20': load_coil20,
-        'MNIST': load_mnist_full,
+        'MNIST-2000': load_mnist_full,
         'MNIST-SMALL': load_mnist_mini,
         'WIKI-FR-1K': partial(load_wiki, 'fr'),
         'WIKI-EN-1K': partial(load_wiki, 'en'),
@@ -50,7 +51,7 @@ def load_mnist_mini():
     return X, y, labels
 
 
-def load_mnist_full(n_samples=1000):
+def load_mnist_full(n_samples=2000):
     from sklearn.datasets import fetch_mldata
     dataset = fetch_mldata('MNIST original', data_home=input_folder)
     X, y = dataset.data, dataset.target

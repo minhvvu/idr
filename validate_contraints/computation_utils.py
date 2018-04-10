@@ -99,6 +99,7 @@ def calculate_metrics(X_original, item, metrics):
 def pre_calculate(dataset_name, num_constraints=10, metrics=[]):
     # prepare original dataset
     X_original, y_original, labels_original = load_dataset(dataset_name)
+    print(X_original.shape, y_original.shape, len(labels_original))
 
     # get pre-calculated tsne results
     pkl_name = '{}/tsne_{}.pkl'.format(output_folder, dataset_name)
@@ -143,17 +144,17 @@ if __name__ == '__main__':
     ]
 
     datasets = [
-        # 'MNIST',
-        'MNIST-SMALL',
-        'COIL20',
-        'BREAST-CANCER95',
-        'CARS04',
-        'COUNTRY1999',
-        'COUNTRY2013',
-        'COUNTRY2014',
-        'COUNTRY2015',
-        'DIABETES',
-        'MPI',
+        'MNIST-2000',
+        # 'MNIST-SMALL',
+        # 'COIL20',
+        # 'BREAST-CANCER95',
+        # 'CARS04',
+        # 'COUNTRY1999',
+        # 'COUNTRY2013',
+        # 'COUNTRY2014',
+        # 'COUNTRY2015',
+        # 'DIABETES',
+        # 'MPI',
         # 'FR_SALARY',
         # 'INSURANCE',
     ]
