@@ -124,9 +124,8 @@ def pre_calculate(dataset_name, num_constraints=10, metrics=[]):
         for item in pkl_data['results']:
             calculate_metrics(X_original, item, metrics)
 
-    # save pickle data for reuse
-    out_name = '{}/tsne_{}.pickle'.format(output_folder, dataset_name)
-    pickle.dump(pkl_data, open(out_name, 'wb'))
+    # save pickle data for reuse (update existed file)
+    pickle.dump(pkl_data, open(pkl_name, 'wb'))
 
 
 if __name__ == '__main__':
@@ -137,15 +136,15 @@ if __name__ == '__main__':
         'pearsonr',
         'mds_isotonic',
         'cca_stress',
-        'sammon_nlm'
+        'sammon_nlm'  # update 10/04: rerun NLM stress
     ]
 
     datasets = [
-        # 'MNIST-SMALL',
+        'MNIST-SMALL',
+        'COIL20',
         'BREAST-CANCER95',
         'CARS04',
-        'COIL20',
-        # 'COUNTRY1999',
+        'COUNTRY1999',
         'COUNTRY2013',
         'COUNTRY2014',
         'COUNTRY2015',
@@ -156,4 +155,5 @@ if __name__ == '__main__':
     ]
 
     for dataset_name in datasets:
-        pre_calculate(dataset_name, num_constraints, metrics)
+        pre_calculate(dataset_name,
+                      num_constraints=num_constraints, metrics=metrics)
