@@ -102,11 +102,13 @@ class DRMetric(object):
                 \sum_{ij} \frac{ (d^{x}_{ij} - d^{y}_{ij})^2 }{d^{x}_{ij}]}
             $
         """
-        dX_inv = np.divide(1.0, self.dX,
-                           out=np.zeros_like(self.dX), where=(self.dX != 0))
-        diff = self.dX - self.dY
+        dX = self.dX / np.std(self.dX)
+        dX_inv = np.divide(1.0, dX,
+                           out=np.zeros_like(dX), where=(dX != 0))
+        dY = self.dY / np.std(self.dY)
+        diff = dX - dY
         stress = np.dot((diff ** 2), dX_inv)
-        return stress / self.dX.sum()
+        return stress / dX.sum()
 
     def _Qnx(self, k):
         """Calculate $Q_{NX}(k)= \\
