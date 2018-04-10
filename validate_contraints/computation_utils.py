@@ -141,18 +141,18 @@ if __name__ == '__main__':
     ]
 
     datasets = [
-        'MNIST-SMALL'
-        # 'BREAST-CANCER95'
-        # 'CARS04'
-        # 'COIL20'
-        # # 'COUNTRY1999'
-        # 'COUNTRY2013'
-        # 'COUNTRY2014'
-        # 'COUNTRY2015'
-        # 'DIABETES'
-        # 'MPI'
-        # 'FR_SALARY'
-        # 'INSURANCE'
+        # 'MNIST-SMALL',
+        'BREAST-CANCER95',
+        'CARS04',
+        'COIL20',
+        # 'COUNTRY1999',
+        'COUNTRY2013',
+        'COUNTRY2014',
+        'COUNTRY2015',
+        'DIABETES',
+        'MPI',
+        # 'FR_SALARY',
+        # 'INSURANCE',
     ]
 
     for dataset_name in datasets:
