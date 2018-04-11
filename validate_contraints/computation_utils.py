@@ -118,7 +118,7 @@ def pre_calculate(dataset_name, num_constraints=10, metrics=[]):
             calculate_nll(X_original, item, mustlinks, cannotlinks)
         # add constraints into pickle object
         pkl_data['mustlinks'] = mustlinks
-        pkl_data['cannotlinnks'] = cannotlinks
+        pkl_data['cannotlinnks'] = cannotlinks  # my typo
 
     if metrics:
         # calculate the named-metric in `metrics`
