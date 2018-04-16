@@ -6,13 +6,24 @@ from scipy.spatial.distance import cosine
 from dataset_utils import load_dataset
 
 import random
+import time
+import pickle
 
 # some global vars for easily access
 dataX = None
 target_labels = None
 target_names = None
 
-constraints = []
+epsilon = 1e-5
+
+dataset_name = ''
+current_pair = {
+    'id1': -1,
+    'id2': -1
+}
+
+mustlinks = []
+cannotlinks = []
 
 datasets = {
     "MNIST mini": "MNIST-SMALL",
@@ -60,13 +71,15 @@ app.layout = html.Div([
 
 @app.callback(dash.dependencies.Output('dataset-info', 'children'),
               [dash.dependencies.Input('datasetX', 'value')])
-def update_dataset(dataset_name):
-    if not dataset_name:
+def update_dataset(name):
+    if not name:
         return 'Please select a dataset!'
-
+    global dataset_name
     global dataX
     global target_labels
     global target_names
+
+    dataset_name = name
     dataX, target_labels, target_names = load_dataset(dataset_name)
     dataset_info = 'dataX: {}'.format(dataX.shape)
     return dataset_info
@@ -88,10 +101,12 @@ def show_pair(_):
 
     n = dataX.shape[0]
     i1, i2 = _rand_pair(n)
+    current_pair['id1'] = i1
+    current_pair['id2'] = i2
 
-    epsilon = 1e-5
     data1 = dataX[i1]
     data2 = dataX[i2]
+    # cosine distance = 1 - cosine similarity
     sim1 = cosine(data1, data2)
 
     name1 = target_names[i1]
@@ -100,6 +115,7 @@ def show_pair(_):
     for i in range(len(data1)):
         # consider the features that are different enough
         if abs(data1[i] - data2[i]) > epsilon:
+            # TODO: verify the range of input data
             selected_idx.append(i)
 
     data1 = data1[selected_idx]
@@ -130,7 +146,7 @@ def show_pair(_):
         title="""
             {} distinguishable features.
             Cosine distance = {:.4f}.
-        """.format(len(data1), sim1),
+        """.format(len(data1) - 1, sim1),
         polar=dict(
             radialaxis=dict(
                 visible=False,
@@ -152,8 +168,50 @@ def show_pair(_):
     dash.dependencies.Output('debug-msg', 'children'),
     [dash.dependencies.Input('btn-submit', 'n_clicks')],
     [dash.dependencies.State('targetLabelX', 'value')])
-def update_output(_, link_type):
-    return 'You decision: {}'.format(link_type)
+def update_selected_link(_, link_type):
+    if not link_type:
+        return
+
+    global current_pair
+    id1, id2 = current_pair['id1'], current_pair['id2']
+    assert id1 != -1 and id2 != -1
+
+    if link_type == 'Mustlink':
+        mustlinks.append([id1, id2])
+    elif link_type == 'CannotLink':
+        cannotlinks.append([id1, id2])
+
+    current_pair = {
+        'id1': -1,
+        'id2': -1
+    }
+
+    return '{} mustlinks, {} cannotlinks selected'.format(
+        len(mustlinks), len(cannotlinks))
+
+
+@app.callback(
+    dash.dependencies.Output('support-info', 'children'),
+    [dash.dependencies.Input('btn-done', 'n_clicks')])
+def save_links(_):
+    if not dataset_name:
+        return
+
+    global mustlinks
+    global cannotlinks
+
+    out_name = './manual_constraints/{}_{}.pkl'.format(
+        dataset_name, time.strftime("%Y%m%d_%H%M%S"))
+    data = {'mustlinks': mustlinks, 'cannotlinks': cannotlinks}
+    pickle.dump(data, open(out_name, 'wb'))
+
+    mustlinks = []
+    cannotlinks = []
+
+    pkl_data = pickle.load(open(out_name, 'rb'))
+    print(pkl_data)
+    
+    return "Write constraints to {}".format(out_name)
 
 
 if __name__ == '__main__':
