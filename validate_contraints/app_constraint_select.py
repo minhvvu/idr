@@ -10,12 +10,13 @@ import random
 import time
 import pickle
 
+
+epsilon = 1e-5
+
 dataX = None
 target_labels = None
 target_names = None
 dists = None
-
-epsilon = 1e-5
 
 dataset_name = ''
 current_pair = {
@@ -25,6 +26,33 @@ current_pair = {
 
 mustlinks = []
 cannotlinks = []
+
+def _reset():
+    global dataX
+    global target_labels
+    global target_names
+    global dists
+
+    dataX = None
+    target_labels = None
+    target_names = None
+    dists = None
+
+    global dataset_name
+    global current_pair
+
+    dataset_name = ''
+    current_pair = {
+        'id1': -1,
+        'id2': -1
+    }
+
+    global mustlinks
+    global cannotlinks
+
+    mustlinks = []
+    cannotlinks = []
+
 
 datasets = {
     "MNIST mini": "MNIST-SMALL",
@@ -174,10 +202,11 @@ def _show_pair():
     dash.dependencies.Output('ml-info', 'children'),
     [dash.dependencies.Input('btn-mustlink', 'n_clicks')])
 def select_ml(n_clicks):
+    global mustlinks
     id1, id2 = current_pair['id1'], current_pair['id2']
     if id1 != -1 and id2 != -1:
         mustlinks.append([id1, id2])
-        assert len(mustlinks) == n_clicks
+        # assert len(mustlinks) == n_clicks
         return '{} mustlinks'.format(n_clicks)
 
 
@@ -185,10 +214,11 @@ def select_ml(n_clicks):
     dash.dependencies.Output('cl-info', 'children'),
     [dash.dependencies.Input('btn-cannotlink', 'n_clicks')])
 def select_cl(n_clicks):
+    global cannotlinks
     id1, id2 = current_pair['id1'], current_pair['id2']
     if id1 != -1 and id2 != -1:
         cannotlinks.append([id1, id2])
-        assert len(cannotlinks) == n_clicks
+        # assert len(cannotlinks) == n_clicks
         return '{} cannotlinks'.format(n_clicks)
 
 
@@ -199,15 +229,19 @@ def save_links(_):
     if not dataset_name:
         return
 
-    out_name = './manual_constraints/{}_{}.pkl'.format(
-        dataset_name, time.strftime("%Y%m%d_%H%M%S"))
-    data = {'mustlinks': mustlinks, 'cannotlinks': cannotlinks}
-    pickle.dump(data, open(out_name, 'wb'))
+    if mustlinks or cannotlinks:
+        out_name = './manual_constraints/{}_{}.pkl'.format(
+            dataset_name, time.strftime("%Y%m%d_%H%M%S"))
+        data = {'mustlinks': mustlinks, 'cannotlinks': cannotlinks}
+        pickle.dump(data, open(out_name, 'wb'))
 
-    pkl_data = pickle.load(open(out_name, 'rb'))
-    print(pkl_data)
+        _reset()
 
-    return "Write constraints to {}".format(out_name)
+        # Debug
+        pkl_data = pickle.load(open(out_name, 'rb'))
+        print(pkl_data)
+
+        return "Write constraints to {}".format(out_name)
 
 
 if __name__ == '__main__':
