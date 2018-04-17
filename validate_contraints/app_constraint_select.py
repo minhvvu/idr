@@ -1,18 +1,19 @@
+import numpy as np
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
 import plotly.graph_objs as go
-from scipy.spatial.distance import cosine
+from scipy.spatial.distance import cosine, pdist, squareform
 from dataset_utils import load_dataset
 
 import random
 import time
 import pickle
 
-# some global vars for easily access
 dataX = None
 target_labels = None
 target_names = None
+dists = None
 
 epsilon = 1e-5
 
@@ -48,22 +49,16 @@ app.layout = html.Div([
         value=''
     ),
     html.Div(id='dataset-info', children='Dataset Info'),
+    html.Div(id='ml-info', children='0 mustlink'),
+    html.Div(id='cl-info', children='0 cannotlink'),
+    html.Div(id='support-info', children='No output file'),
 
     dcc.Graph(
         id='scatterX'
     ),
 
-    dcc.RadioItems(
-        id='targetLabelX',
-        options=[{'label': i, 'value': i} for i in ['Mustlink', 'CannotLink']],
-        value='',
-        labelStyle={'display': 'inline-block'}
-    ),
-
-    html.Div(id='debug-msg', children='Debug message'),
-    html.Div(id='support-info', children='Supported Info'),
-
-    html.Button('Submit', id='btn-submit'),
+    html.Button('Mustlink', id='btn-mustlink'),
+    html.Button('CannotLink', id='btn-cannotlink'),
     html.Button('Next', id='btn-next'),
     html.Button('Done', id='btn-done'),
 ])
@@ -74,14 +69,22 @@ app.layout = html.Div([
 def update_dataset(name):
     if not name:
         return 'Please select a dataset!'
+
     global dataset_name
     global dataX
     global target_labels
     global target_names
+    global dists
 
     dataset_name = name
     dataX, target_labels, target_names = load_dataset(dataset_name)
-    dataset_info = 'dataX: {}'.format(dataX.shape)
+    dists = squareform(pdist(dataX))
+    dataset_info = """
+        dataX: shape={}, mean={:.3f}, std={:.3f},
+        min={:.3f}, max={:.3f},
+        min_dist={:.3f}, max_dist={:.3f}
+    """.format(dataX.shape, np.mean(dataX), np.std(dataX),
+               np.min(dataX), np.max(dataX), np.min(dists), np.max(dists))
     return dataset_info
 
 
@@ -95,7 +98,11 @@ def _rand_pair(n_max):
 
 @app.callback(dash.dependencies.Output('scatterX', 'figure'),
               [dash.dependencies.Input('btn-next', 'n_clicks')])
-def show_pair(_):
+def show_pair(n_clicks):
+    return _show_pair()
+
+
+def _show_pair():
     if dataX is None or target_names is None:
         return
 
@@ -107,7 +114,7 @@ def show_pair(_):
     data1 = dataX[i1]
     data2 = dataX[i2]
     # cosine distance = 1 - cosine similarity
-    sim1 = cosine(data1, data2)
+    sim1 = 1.0 - cosine(data1, data2)
 
     name1 = target_names[i1]
     name2 = target_names[i2]
@@ -115,7 +122,6 @@ def show_pair(_):
     for i in range(len(data1)):
         # consider the features that are different enough
         if abs(data1[i] - data2[i]) > epsilon:
-            # TODO: verify the range of input data
             selected_idx.append(i)
 
     data1 = data1[selected_idx]
@@ -123,7 +129,7 @@ def show_pair(_):
 
     data1 = data1.tolist() + [data1[0]]
     data2 = data2.tolist() + [data2[0]]
-    theta = ['i{}'.format(i) for i in range(len(data1))]
+    theta = ['f{}'.format(i) for i in range(len(data1))]
 
     max_val = max(max(data1), max(data2))
 
@@ -144,17 +150,17 @@ def show_pair(_):
 
     layout = go.Layout(
         title="""
-            {} distinguishable features.
-            Cosine distance = {:.4f}.
-        """.format(len(data1) - 1, sim1),
+            {} distinguishable features <br>
+            Cosine similarity = {:.4f}, Distance = {:.4f}
+        """.format(len(data1) - 1, sim1, dists[i1, i2]),
         polar=dict(
             radialaxis=dict(
-                visible=False,
+                visible=True,
                 range=[0.0, max_val]
             ),
             angularaxis=dict(
                 visible=True,
-                showticklabels=False
+                showticklabels=True
             )
         ),
         showlegend=True,
@@ -165,29 +171,25 @@ def show_pair(_):
 
 
 @app.callback(
-    dash.dependencies.Output('debug-msg', 'children'),
-    [dash.dependencies.Input('btn-submit', 'n_clicks')],
-    [dash.dependencies.State('targetLabelX', 'value')])
-def update_selected_link(_, link_type):
-    if not link_type:
-        return
-
-    global current_pair
+    dash.dependencies.Output('ml-info', 'children'),
+    [dash.dependencies.Input('btn-mustlink', 'n_clicks')])
+def select_ml(n_clicks):
     id1, id2 = current_pair['id1'], current_pair['id2']
-    assert id1 != -1 and id2 != -1
-
-    if link_type == 'Mustlink':
+    if id1 != -1 and id2 != -1:
         mustlinks.append([id1, id2])
-    elif link_type == 'CannotLink':
+        assert len(mustlinks) == n_clicks
+        return '{} mustlinks'.format(n_clicks)
+
+
+@app.callback(
+    dash.dependencies.Output('cl-info', 'children'),
+    [dash.dependencies.Input('btn-cannotlink', 'n_clicks')])
+def select_cl(n_clicks):
+    id1, id2 = current_pair['id1'], current_pair['id2']
+    if id1 != -1 and id2 != -1:
         cannotlinks.append([id1, id2])
-
-    current_pair = {
-        'id1': -1,
-        'id2': -1
-    }
-
-    return '{} mustlinks, {} cannotlinks selected'.format(
-        len(mustlinks), len(cannotlinks))
+        assert len(cannotlinks) == n_clicks
+        return '{} cannotlinks'.format(n_clicks)
 
 
 @app.callback(
@@ -197,20 +199,14 @@ def save_links(_):
     if not dataset_name:
         return
 
-    global mustlinks
-    global cannotlinks
-
     out_name = './manual_constraints/{}_{}.pkl'.format(
         dataset_name, time.strftime("%Y%m%d_%H%M%S"))
     data = {'mustlinks': mustlinks, 'cannotlinks': cannotlinks}
     pickle.dump(data, open(out_name, 'wb'))
 
-    mustlinks = []
-    cannotlinks = []
-
     pkl_data = pickle.load(open(out_name, 'rb'))
     print(pkl_data)
-    
+
     return "Write constraints to {}".format(out_name)
 
 
