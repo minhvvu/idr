@@ -7,7 +7,7 @@ from functools import partial
 import pickle
 
 input_folder = './input_data'
-output_folder = './output_tsne'
+output_folder = './output2_tsne'
 fixed_random_seed = 0
 
 

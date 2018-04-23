@@ -4,18 +4,20 @@
 
 import numpy as np
 import random
+import pickle
+
 fixed_random_seed = 0
 random.seed(fixed_random_seed)
 
 
 def get_constraints(target_labels=None, dataset_name=None, n_take=0):
     if target_labels is None:
-        return _fix_constraints(dataset_name)
+        return _fixed_constraints(dataset_name)
     else:
-        return _generate_constraints(target_labels, n_take)
+        return _generated_constraints(target_labels, n_take)
 
 
-def _generate_constraints(target_labels, n_take, nlimit=1000):
+def _generated_constraints(target_labels, n_take, nlimit=1000):
     mustlinks = []
     cannotlinks = []
     cnt = 0
@@ -35,5 +37,15 @@ def _generate_constraints(target_labels, n_take, nlimit=1000):
     return mustlinks, cannotlinks
 
 
-def _fix_constraints(dataset_name):
-    pass
+def _fixed_constraints(dataset_name, n_take):
+    base_dir = 'manual_constraints'
+    input_name = '{}/done_{}.pkl'.format(base_dir, dataset_name)
+    pkl_data = pickle.load(open(input_name, 'rb'))
+    mustlinks = np.array(pkl_data['mustlinks'][:n_take])
+    cannotlinks = np.array(pkl_data['cannotlinks'][:n_take])
+    return mustlinks, cannotlinks
+
+
+if __name__ == '__main__':
+    mls, cls = _fixed_constraints(dataset_name='DIABETES', n_take=10)
+    print(mls, cls)

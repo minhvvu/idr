@@ -96,7 +96,7 @@ def calculate_metrics(X_original, item, metrics):
         item[metric_name] = metric_method()
 
 
-def pre_calculate(dataset_name, num_constraints=10, metrics=[]):
+def pre_calculate(dataset_name, num_constraints=10, metrics=[], manual=False):
     # prepare original dataset
     X_original, y_original, labels_original = load_dataset(dataset_name)
     print(X_original.shape, y_original.shape, len(labels_original))
@@ -105,20 +105,20 @@ def pre_calculate(dataset_name, num_constraints=10, metrics=[]):
     pkl_name = '{}/tsne_{}.pkl'.format(output_folder, dataset_name)
     pkl_data = pickle.load(open(pkl_name, 'rb'))
 
-    if num_constraints is not None:
-        if num_constraints == 0 or len(np.unique(y_original)) == 1:
-            # use hard-coded constraints
-            mustlinks, cannotlinks = get_constraints(dataset_name)
-        else:  # use generated constraints
-            mustlinks, cannotlinks = get_constraints(
-                target_labels=y_original, n_take=num_constraints)
+    if manual:  # use hard-coded constraints
+        mustlinks, cannotlinks = get_constraints(
+            target_labels=None,
+            dataset_name=dataset_name, n_take=num_constraints)
+    else:  # use generated constraints
+        mustlinks, cannotlinks = get_constraints(
+            target_labels=y_original, n_take=num_constraints)
 
-        # calculate neg. log. likelihood for constrainted points
-        for item in pkl_data['results']:
-            calculate_nll(X_original, item, mustlinks, cannotlinks)
-        # add constraints into pickle object
-        pkl_data['mustlinks'] = mustlinks
-        pkl_data['cannotlinnks'] = cannotlinks  # my typo
+    # calculate neg. log. likelihood for constrainted points
+    for item in pkl_data['results']:
+        calculate_nll(X_original, item, mustlinks, cannotlinks)
+    # add constraints into pickle object
+    pkl_data['mustlinks'] = mustlinks
+    pkl_data['cannotlinnks'] = cannotlinks  # my typo
 
     if metrics:
         # calculate the named-metric in `metrics`
@@ -144,17 +144,17 @@ if __name__ == '__main__':
     ]
 
     datasets = [
-        'MNIST-2000',
+        # 'MNIST-2000',
         # 'MNIST-SMALL',
         # 'COIL20',
         # 'BREAST-CANCER95',
         # 'CARS04',
-        # 'COUNTRY1999',
+        'COUNTRY1999',
         # 'COUNTRY2013',
         # 'COUNTRY2014',
         # 'COUNTRY2015',
-        # 'DIABETES',
-        # 'MPI',
+        'DIABETES',
+        'MPI',
         # 'FR_SALARY',
         # 'INSURANCE',
     ]

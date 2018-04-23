@@ -106,6 +106,10 @@ def update_dataset(name):
 
     dataset_name = name
     dataX, target_labels, target_names = load_dataset(dataset_name)
+    # debug the number of classes
+    print('Number of class: ', len(np.unique(target_labels)))
+    # print(set(target_names))
+
     dists = squareform(pdist(dataX))
     dataset_info = """
         dataX: shape={}, mean={:.3f}, std={:.3f},
