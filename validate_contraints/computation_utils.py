@@ -7,7 +7,7 @@ from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
 
 from dataset_utils import load_dataset, output_folder
-from constraint_utils import get_constraints
+from constraint_utils import *
 
 from metrics import DRMetric
 
@@ -66,7 +66,9 @@ def compute_Q(X_embedded):
 
 def _neg_log_likelihood(X, mls, cls):
     log_loss_ml = np.sum(np.log(X[mls[:, 0], mls[:, 1]])) / len(mls)
-    log_loss_cl = np.sum(1.0 - np.log(X[cls[:, 0], cls[:, 1]])) / len(cls)
+    # NOTE: bug??? 1.0 - log(q) or log(1.0 - q)
+    # log_loss_cl = np.sum(1.0 - np.log(X[cls[:, 0], cls[:, 1]])) / len(cls)
+    log_loss_cl = np.sum(np.log(1.0 / X[cls[:, 0], cls[:, 1]])) / len(cls)
     return -log_loss_ml, -log_loss_cl
 
 
@@ -86,6 +88,7 @@ def calculate_nll(X_original, item, mls, cls):
     item['q_ml'] = q_ml
     item['q_cl'] = q_cl
     item['q_link'] = q_ml + q_cl
+    # print(item['q_ml'], item['q_cl'], item['q_link'])
 
 
 def calculate_metrics(X_original, item, metrics):
@@ -105,17 +108,19 @@ def pre_calculate(dataset_name, num_constraints=10, metrics=[], manual=False):
     pkl_name = '{}/tsne_{}.pkl'.format(output_folder, dataset_name)
     pkl_data = pickle.load(open(pkl_name, 'rb'))
 
-    if manual:  # use hard-coded constraints
-        mustlinks, cannotlinks = get_constraints(
+    if manual is True:  # use hard-coded constraints
+        print("Using manual constraints")
+        mustlinks, cannotlinks = manual_constraints(
             target_labels=None,
             dataset_name=dataset_name, n_take=num_constraints)
     else:  # use generated constraints
-        mustlinks, cannotlinks = get_constraints(
+        print("Using AUTO constraints")
+        mustlinks, cannotlinks = auto_constraints(
             target_labels=y_original, n_take=num_constraints)
 
     # calculate neg. log. likelihood for constrainted points
-    for item in pkl_data['results']:
-        calculate_nll(X_original, item, mustlinks, cannotlinks)
+    for item in pkl_data['results']: #CO TINH DE SAI LINK
+        calculate_nll(X_original, item, mls=mustlinks, cls=cannotlinks)
     # add constraints into pickle object
     pkl_data['mustlinks'] = mustlinks
     pkl_data['cannotlinnks'] = cannotlinks  # my typo
@@ -133,21 +138,18 @@ if __name__ == '__main__':
     # number of expected constraints
     # set to None to disable calculation of neg. LL for constrained points
     # set to 0 to use fixed (by hand constraints - not implemented)
-    num_constraints = 10
+    num_constraints = 100
 
     metrics = [  # enabled metrics
-        'auc_rnx',
-        'pearsonr',
-        'mds_isotonic',
-        'cca_stress',
-        'sammon_nlm'
+        # 'auc_rnx',
+        # 'pearsonr',
+        # 'mds_isotonic',
+        # 'cca_stress',
+        # 'sammon_nlm'
     ]
 
     datasets = [
-        # 'MNIST-2000',
-        # 'MNIST-SMALL',
-        # 'COIL20',
-        # 'BREAST-CANCER95',
+        'BREAST-CANCER95',
         # 'CARS04',
         'COUNTRY1999',
         # 'COUNTRY2013',
@@ -157,8 +159,11 @@ if __name__ == '__main__':
         'MPI',
         # 'FR_SALARY',
         # 'INSURANCE',
+        # 'MNIST-2000',
+        'MNIST-SMALL',
+        'COIL20',
     ]
 
     for dataset_name in datasets:
-        pre_calculate(dataset_name,
+        pre_calculate(dataset_name, manual=False,
                       num_constraints=num_constraints, metrics=metrics)

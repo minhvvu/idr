@@ -8,6 +8,7 @@ import pickle
 
 input_folder = './input_data'
 output_folder = './output2_tsne'
+# output_folder = './output2_tsne_manual'
 fixed_random_seed = 0
 
 
