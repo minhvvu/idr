@@ -65,10 +65,15 @@ def compute_Q(X_embedded):
 
 
 def _neg_log_likelihood(X, mls, cls):
+    # log(q_ij) + log(1-q_ij) works well with values of q_ij are not too small
+    # X = np.random.random_sample(X.shape)
+
     log_loss_ml = np.sum(np.log(X[mls[:, 0], mls[:, 1]])) / len(mls)
-    # NOTE: bug??? 1.0 - log(q) or log(1.0 - q)
-    # log_loss_cl = np.sum(1.0 - np.log(X[cls[:, 0], cls[:, 1]])) / len(cls)
-    log_loss_cl = np.sum(np.log(1.0 / X[cls[:, 0], cls[:, 1]])) / len(cls)
+
+    # log_loss_cl = np.sum(np.log(1.0 - X[cls[:, 0], cls[:, 1]])) / len(cls)
+
+    # log_loss_cl = np.sum(np.log(1.0 / X[cls[:, 0], cls[:, 1]])) / len(cls)
+    log_loss_cl = -np.sum(np.log(X[cls[:, 0], cls[:, 1]])) / len(cls)
     return -log_loss_ml, -log_loss_cl
 
 
@@ -88,7 +93,8 @@ def calculate_nll(X_original, item, mls, cls):
     item['q_ml'] = q_ml
     item['q_cl'] = q_cl
     item['q_link'] = q_ml + q_cl
-    # print(item['q_ml'], item['q_cl'], item['q_link'])
+    # print('(perp={}: q_ml={}, q_cl={}, q_all={}'.format(
+    #     item['perplexity'], item['q_ml'], item['q_cl'], item['q_link']))
 
 
 def calculate_metrics(X_original, item, metrics):
@@ -111,15 +117,14 @@ def pre_calculate(dataset_name, num_constraints=10, metrics=[], manual=False):
     if manual is True:  # use hard-coded constraints
         print("Using manual constraints")
         mustlinks, cannotlinks = manual_constraints(
-            target_labels=None,
             dataset_name=dataset_name, n_take=num_constraints)
     else:  # use generated constraints
-        print("Using AUTO constraints")
+        print("Using auto constraints")
         mustlinks, cannotlinks = auto_constraints(
             target_labels=y_original, n_take=num_constraints)
 
     # calculate neg. log. likelihood for constrainted points
-    for item in pkl_data['results']: #CO TINH DE SAI LINK
+    for item in pkl_data['results']:
         calculate_nll(X_original, item, mls=mustlinks, cls=cannotlinks)
     # add constraints into pickle object
     pkl_data['mustlinks'] = mustlinks
@@ -138,23 +143,23 @@ if __name__ == '__main__':
     # number of expected constraints
     # set to None to disable calculation of neg. LL for constrained points
     # set to 0 to use fixed (by hand constraints - not implemented)
-    num_constraints = 100
+    num_constraints = 10
 
     metrics = [  # enabled metrics
-        # 'auc_rnx',
-        # 'pearsonr',
-        # 'mds_isotonic',
-        # 'cca_stress',
-        # 'sammon_nlm'
+        'auc_rnx',
+        'pearsonr',
+        'mds_isotonic',
+        'cca_stress',
+        'sammon_nlm'
     ]
 
     datasets = [
         'BREAST-CANCER95',
         # 'CARS04',
         'COUNTRY1999',
-        # 'COUNTRY2013',
-        # 'COUNTRY2014',
-        # 'COUNTRY2015',
+        'COUNTRY2013',
+        'COUNTRY2014',
+        'COUNTRY2015',
         'DIABETES',
         'MPI',
         # 'FR_SALARY',
