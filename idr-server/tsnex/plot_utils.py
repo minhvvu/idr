@@ -49,6 +49,7 @@ for basecolor in basecolors:
 def generate_figure_data(data, classId, data_size):
     figFile = BytesIO()
     plt.imsave(figFile, data.reshape(data_size, data_size), cmap=cmaps[classId])
+    # plt.imsave(figFile, data.reshape(data_size, data_size).T, cmap='gray')
     plt.gcf().clear()
     figFile.seek(0)
     return base64.b64encode(figFile.getvalue()).decode('utf-8')
@@ -113,7 +114,12 @@ def plot_default_tsne():
 
 
 if __name__ == '__main__':
+    datasets = {
+        'MNIST': 28,
+        'MNIST-SMALL': 8,
+        'COIL20': 32
+    }
     datasetName = 'MNIST'
-    dataSize = 28 # for MNIST: 28, MNIST-SMALL: 8
+    dataSize = datasets[datasetName]
     X, y, labels = datasets.load_dataset(name=datasetName)
     generate_svg_stack(datasetName, X, y, len(y), dataSize)

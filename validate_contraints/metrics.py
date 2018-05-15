@@ -55,13 +55,17 @@ class DRMetric(object):
 
     def pearsonr(self):
         """Calculate Pearson correlation coefficient b.w. two vectors
+            $$ \textnormal{CC} =
+                \textnormal{pearson\_correlation}(d^x, d^y) =
+                \frac{\textnormal{Cov}(d^x, d^y)}{\sigma(d^x)\sigma(d^y)}
+            $$
         """
         p, _ = pearsonr(self.dX, self.dY)
         return p
 
     def cca_stress(self):
         """Curvilinear Component Analysis Stress function
-            $$ S = \sum_{ij}^{N}
+            $$ \textnormal{CCA} = \sum_{ij}^{N}
                 (d^{x}_{ij} - d^{y}_{ij})^2 F_{\lambda}(d^{y}_{ij})
             $$
             where $d^{x}_{ij}$ is pairwise distance in high-dim,
@@ -84,9 +88,9 @@ class DRMetric(object):
             Isotonic Regression model
             + The stressMDS function is then applied for the isotonic-fitted
             vector and the pairwise distance vector in low-dim
-            $$ S = \sqrt
-                { \sum_{ij}^{N} (d^{iso}_{ij} - d^{y}_{ij})^2 }
-                { \sum_{ij}^{N} d^{y}_{ij} }
+            $$ \textnormal{nMDS} = \sqrt{\frac
+                { \sum_{ij} (d^{iso}_{ij} - d^{y}_{ij})^2 }
+                { \sum_{ij} d^{y}_{ij} } }
             $$
             where $d^{y}_{ij}$ is pairwise distance in low-dim.
         """
@@ -98,7 +102,7 @@ class DRMetric(object):
 
     def sammon_nlm(self):
         """Stree function for Sammon Nonlinear mapping
-            $ S = \frac{1}{\sum_{ij} d^{x}_{ij}}
+            $ \textnormal{NLM} = \frac{1}{\sum_{ij} d^{x}_{ij}}
                 \sum_{ij} \frac{ (d^{x}_{ij} - d^{y}_{ij})^2 }{d^{x}_{ij}]}
             $
         """
@@ -144,6 +148,10 @@ class DRMetric(object):
 
     def _auc_rnx(self):
         """Calculate Area under the $R_{NX}(k)$ curve in the log-scale of $k$
+            $$ \textnormal{AUC}_{log}\textnormal{RNX} =
+                \frac {\left(\sum_{k=1}^{N-2} \frac{R_{NX}(k)}{k} \right)}
+                      {\left(\sum_{k=1}^{N-2}\frac{1}{k}\right)}
+            $$
         """
         auc = sum([self._Rnx(k) / k for k in range(1, self.n_samples - 1)])
         norm_const = sum([1 / k for k in range(1, self.n_samples - 1)])
