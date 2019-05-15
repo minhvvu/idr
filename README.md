@@ -1,5 +1,61 @@
 ### Interactive t-SNE
 
+### Build final elm-client:
+```
+cd idr-elm
+elm make src/Main.elm --output=main.html
+```
+
+For demo (production), use this `main.html`:
++ `cp main.html ./data/`
++ run static server as the following notes.
+
+
+### Demo workflow in Built environment:
++ Run python socket server (internal port **5000**)
+```
+cd idr-server/tsnex
+python tsnex_flask_socket.py 
+
+```
+
++ Run static server to serve the image and the final built output `main.html`: (port **8001**)
+```
+cd idr-server
+python -m http.server 8001
+
+# goto lo
+```
+
+
+### Demo workflow in DEV envirionment:
+
+Locate into the root dir of the project
+```
+pwd # /home/vmvu/WorkspaceSync/IDR
+```
+
++ Run static server to serve the image: (port **8888**)
+```
+cd idr-server/ # TODO re-check
+python -m http.server 8888
+
+```
+
++ Run python socket server (internal port **5000**)
+```
+cd idr-server/tsnex
+python tsnex_flask_socket.py 
+
+```
+
++ Run client ELM app (web port **8000**)
+```
+cd idr-elm
+elm-reactor
+```
+
+
 ![tsnex-demo](./notes/demo.png)
 
 #### Installation notes

@@ -22,17 +22,17 @@ from sklearn.manifold import TSNE
 
 rel_tol = 1e-6
 
-# # prepare test dataset
-# ds = datasets.load_iris()
-# X_hd = ds.data
-# target_labels = ds.target
+# prepare test dataset
+ds = datasets.load_digits()
+X_hd = ds.data
+target_labels = ds.target
 
-X_hd, target_labels = datasets.samples_generator.make_swiss_roll(
-    n_samples=400, random_state=0) # make_s_curve
+# X_hd, target_labels = datasets.samples_generator.make_swiss_roll(
+#     n_samples=400, random_state=0) # make_s_curve
 
 
 # run tsne to get embedded result in low dim.
-tsne = TSNE(random_state=0)
+tsne = TSNE(random_state=0, perplexity=10)
 print(tsne)
 X_ld = tsne.fit_transform(X_hd)
 

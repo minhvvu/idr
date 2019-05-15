@@ -59,13 +59,14 @@ showImage imageSize datasetName pointId distance =
             , HtmlAttr.src ("/data/imgs/" ++ datasetName ++ ".svg#" ++ pointId)
             ]
             []
-        , Html.figcaption [ HtmlAttr.style [ ( "font", "12px monospace" ) ] ]
-            (if distance > 0 then
-                [ Badge.pillDanger [ Spacing.ml1 ] [ text <| pointId ]
-                , Badge.pillSuccess [ Spacing.ml1 ] [ text <| toString <| round <| distance ]
-                , Badge.pillLight [ Spacing.ml1 ] [ text <| toString <| round <| distance ]
-                ]
-             else
-                [ text "" ]
-            )
+
+        --, Html.figcaption [ HtmlAttr.style [ ( "font", "12px monospace" ) ] ]
+        --    (if distance > 0 then
+        --        [ Badge.pillDanger [ Spacing.ml1 ] [ text <| pointId ]
+        --        , Badge.pillSuccess [ Spacing.ml1 ] [ text <| toString <| round <| distance ]
+        --        , Badge.pillLight [ Spacing.ml1 ] [ text <| toString <| round <| distance ]
+        --        ]
+        --     else
+        --        [ text "" ]
+        --    )
         ]

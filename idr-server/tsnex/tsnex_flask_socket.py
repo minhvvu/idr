@@ -58,7 +58,7 @@ def do_load_dataset(ws):
             utils.set_ndarray(name='X_original', arr=X)
             utils.set_ndarray(name='y_original', arr=y)
             utils.set_to_db(key='labels', str_value=json.dumps(labels))
-            n_neighbors = int(0.05 * X.shape[0])
+            n_neighbors = 100 #int(0.05 * X.shape[0])
             info = datasets.pre_calculate(X, k=n_neighbors)
             ws.send(json.dumps(info))
 
