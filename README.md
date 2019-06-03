@@ -1,5 +1,8 @@
 ### Interactive t-SNE
 
+![tsnex-demo](./notes/demo.png)
+
+
 ### Build final elm-client:
 ```
 cd idr-elm
@@ -55,8 +58,6 @@ cd idr-elm
 elm-reactor
 ```
 
-
-![tsnex-demo](./notes/demo.png)
 
 #### Installation notes
 
