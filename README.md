@@ -3,6 +3,9 @@
 ![tsnex-demo](./notes/demo.png)
 
 
+![elm client app](tsnex.gif)
+
+
 ### Build final elm-client:
 ```
 cd idr-elm
